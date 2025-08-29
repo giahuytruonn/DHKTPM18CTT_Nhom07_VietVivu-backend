@@ -1,10 +1,11 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -18,6 +19,7 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String messageId;
+
     String content;
 
     @Column(name = "created_date")

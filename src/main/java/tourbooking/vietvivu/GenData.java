@@ -1,25 +1,25 @@
-//package tourbooking.vietvivu;
+// package tourbooking.vietvivu;
 //
-//import lombok.AccessLevel;
-//import lombok.AllArgsConstructor;
-//import lombok.RequiredArgsConstructor;
-//import lombok.experimental.FieldDefaults;
-//import lombok.extern.slf4j.Slf4j;
-//import net.datafaker.Faker;
-//import org.springframework.boot.CommandLineRunner;
-//import org.springframework.stereotype.Component;
-//import tourbooking.vietvivu.entity.*;
-//import tourbooking.vietvivu.repository.*;
+// import lombok.AccessLevel;
+// import lombok.AllArgsConstructor;
+// import lombok.RequiredArgsConstructor;
+// import lombok.experimental.FieldDefaults;
+// import lombok.extern.slf4j.Slf4j;
+// import net.datafaker.Faker;
+// import org.springframework.boot.CommandLineRunner;
+// import org.springframework.stereotype.Component;
+// import tourbooking.vietvivu.entity.*;
+// import tourbooking.vietvivu.repository.*;
 //
-//import java.time.LocalDate;
-//import java.util.HashSet;
-//import java.util.List;
-//import java.util.Random;
+// import java.time.LocalDate;
+// import java.util.HashSet;
+// import java.util.List;
+// import java.util.Random;
 //
-//@Component
-//@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-//@Slf4j
-//public class GenData implements CommandLineRunner {
+// @Component
+// @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+// @Slf4j
+// public class GenData implements CommandLineRunner {
 //    UserRepository userRepository;
 //    TourRepository tourRepository;
 //    RoleRepository roleRepository;
@@ -303,4 +303,4 @@
 //            System.out.println("History seeded successfully!");
 //        }
 //    }
-//}
+// }

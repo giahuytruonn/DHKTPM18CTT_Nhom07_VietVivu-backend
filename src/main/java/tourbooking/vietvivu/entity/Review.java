@@ -1,10 +1,11 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,6 +20,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "review_id")
     String reviewId;
+
     Integer rating;
     String comment;
     LocalDate timestamp;
@@ -34,5 +36,4 @@ public class Review {
     @OneToOne
     @JoinColumn(name = "booking_id")
     Booking booking;
-
 }

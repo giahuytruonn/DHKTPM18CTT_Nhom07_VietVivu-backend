@@ -8,21 +8,20 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
-
-
 outbound:
   identity:
-    client-id: ""
-    client-secret: ""
-    redirect_uri: ""
+    client-id: ${CLIENT_ID}
+    client-secret: ${CLIENT_SECRET}
+    redirect_uri: ${REDIRECT_URI}
 
 jwt:
-  signerKey: ""
+  signerKey: "DZtxujmJMQT0hZV1XtvsC5mN+UBAnnqX/0ldmRm+8RO53zOcZX0cK43l1TAgYu8g"
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds

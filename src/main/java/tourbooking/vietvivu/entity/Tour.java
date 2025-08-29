@@ -1,11 +1,12 @@
 package tourbooking.vietvivu.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.util.List;
 import java.util.Set;
+
+import jakarta.persistence.*;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -20,6 +21,7 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "tour_id")
     String tourId;
+
     String title;
     String description;
     Integer quantity;
@@ -29,15 +31,13 @@ public class Tour {
 
     @Column(name = "price_child")
     Double priceChild;
+
     String duration;
     String destination;
     Boolean availability;
 
     @ElementCollection
-    @CollectionTable(
-            name = "tour_itinerary",
-            joinColumns = @JoinColumn(name = "tour_id")
-    )
+    @CollectionTable(name = "tour_itinerary", joinColumns = @JoinColumn(name = "tour_id"))
     @Column(name = "step")
     List<String> itinerary;
 

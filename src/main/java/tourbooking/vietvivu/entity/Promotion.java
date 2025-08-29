@@ -1,11 +1,12 @@
 package tourbooking.vietvivu.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.time.LocalDate;
 import java.util.Set;
+
+import jakarta.persistence.*;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -28,6 +29,7 @@ public class Promotion {
 
     @Column(name = "end_date")
     LocalDate endDate;
+
     Boolean status;
     Integer quantity;
 
