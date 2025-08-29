@@ -22,6 +22,6 @@ outbound:
     redirect_uri: ${REDIRECT_URI}
 
 jwt:
-  signerKey: "DZtxujmJMQT0hZV1XtvsC5mN+UBAnnqX/0ldmRm+8RO53zOcZX0cK43l1TAgYu8g"
+  signerKey: ${SIGNER_KEY}
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
