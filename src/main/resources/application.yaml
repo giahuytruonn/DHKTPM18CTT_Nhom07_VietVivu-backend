@@ -1,0 +1,28 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /vietvivu
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: true
+
+
+
+outbound:
+  identity:
+    client-id: ""
+    client-secret: ""
+    redirect_uri: ""
+
+jwt:
+  signerKey: ""
+  valid-duration: 3600 # in second
+  refreshable-duration: 36000 # in seconds
