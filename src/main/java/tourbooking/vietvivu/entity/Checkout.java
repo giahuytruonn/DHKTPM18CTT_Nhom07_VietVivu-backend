@@ -1,10 +1,11 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -35,7 +36,7 @@ public class Checkout {
     String transactionId;
 
     @OneToOne
-    @JoinColumn(name = "booking_id" )
+    @JoinColumn(name = "booking_id")
     Booking booking;
 
     @OneToOne(mappedBy = "checkout", cascade = CascadeType.ALL)

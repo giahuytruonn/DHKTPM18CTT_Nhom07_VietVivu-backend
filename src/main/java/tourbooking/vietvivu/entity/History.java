@@ -1,10 +1,11 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -23,16 +24,10 @@ public class History {
     @Column(name = "tour_id")
     String tourId;
 
-    @Column(name = "invalid_token")
-    String invalidToken;
-
     @Column(name = "action_type")
     String actionType;
 
     LocalDate timestamp;
-
-    @Column(name = "expiry_time")
-    LocalDate expiryTime;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

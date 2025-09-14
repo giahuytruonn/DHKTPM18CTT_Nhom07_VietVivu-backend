@@ -1,13 +1,13 @@
 package tourbooking.vietvivu.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Set;
-import java.util.UUID;
+
+import jakarta.persistence.*;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -22,6 +22,7 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id")
     String id;
+
     String username;
     String password;
     String email;
@@ -59,5 +60,7 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user")
     Set<Booking> bookings;
 
-
+    @OneToMany(mappedBy = "user")
+    @ToString.Exclude
+    Set<InvalidatedToken> invalidatedTokens;
 }

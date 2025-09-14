@@ -1,10 +1,11 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -22,6 +23,7 @@ public class Image {
 
     @Column(name = "image_url")
     String imageUrl;
+
     String description;
 
     @Column(name = "upload_date")
