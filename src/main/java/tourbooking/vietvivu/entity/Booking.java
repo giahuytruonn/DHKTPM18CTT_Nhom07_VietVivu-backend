@@ -59,4 +59,7 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     Review review;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+    Contact contact;
 }

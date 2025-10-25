@@ -1,0 +1,37 @@
+package tourbooking.vietvivu.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Set;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity
+@Table(name = "contacts")
+public class Contact implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "contact_id")
+    String id;
+
+    String email;
+    String name;
+    String address;
+
+    @Column(name = "phone_number")
+    String phoneNumber;
+
+    String note;
+
+    @OneToOne
+    @JoinColumn(name = "booking_id")
+    Booking booking;
+}
