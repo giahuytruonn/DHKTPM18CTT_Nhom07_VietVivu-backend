@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.BookingStatus;
+import tourbooking.vietvivu.enumm.PaymentStatus;
 
 @Getter
 @Setter
@@ -34,10 +36,15 @@ public class Booking {
     Double totalPrice;
 
     @Column(name = "payment_status")
-    String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    PaymentStatus paymentStatus;
 
     @Column(name = "booking_status")
-    String bookingStatus;
+    @Enumerated(EnumType.STRING)
+    BookingStatus bookingStatus;
+
+    @Column(name = "payment_term")
+    LocalDate paymentTerm;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

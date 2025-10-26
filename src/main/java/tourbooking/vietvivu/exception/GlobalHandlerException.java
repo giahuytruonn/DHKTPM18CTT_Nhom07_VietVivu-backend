@@ -32,6 +32,7 @@ public class GlobalHandlerException {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
+    //Xu ly custom exception
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         log.error("Exception", exception);

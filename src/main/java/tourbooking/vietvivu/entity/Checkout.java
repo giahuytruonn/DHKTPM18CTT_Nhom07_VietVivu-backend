@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.PaymentMethod;
+import tourbooking.vietvivu.enumm.PaymentStatus;
 
 @Getter
 @Setter
@@ -22,7 +24,8 @@ public class Checkout {
     String checkoutId;
 
     @Column(name = "payment_method")
-    String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    PaymentMethod paymentMethod;
 
     @Column(name = "payment_date")
     LocalDate paymentDate;
@@ -30,7 +33,8 @@ public class Checkout {
     Double amount;
 
     @Column(name = "payment_status")
-    String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    PaymentStatus paymentStatus;
 
     @Column(name = "transaction_id")
     String transactionId;

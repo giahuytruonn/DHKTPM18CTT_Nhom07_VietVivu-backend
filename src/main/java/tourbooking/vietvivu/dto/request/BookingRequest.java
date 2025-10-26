@@ -1,14 +1,30 @@
 package tourbooking.vietvivu.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingRequest {
-    private String tourId;
-    private String userId;
-    private int numberOfGuests;
+    String tourId;
+    String userId;
+    LocalDate bookingDate;
+
+    //Contact information
+    String name;
+    String email;
+    String phone;
+    String address;
+    String note;
+
+    int numOfAdults;
+    int numOfChildren;
+
+    //promotion
+    String promotionId;
 }

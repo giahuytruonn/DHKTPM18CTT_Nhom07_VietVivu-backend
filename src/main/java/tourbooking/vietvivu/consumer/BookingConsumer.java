@@ -18,7 +18,7 @@ public class BookingConsumer {
     public void processBooking(BookingRequest request) {
         try {
             // Xử lý logic đặt tour
-            BookingResponse response = bookingService.bookTour(request.getUserId(), request);
+            BookingResponse response = bookingService.bookTour(request);
             log.info("Booking processed successfully: {}", response);
         } catch (Exception e) {
             log.error("Failed to process booking: {}", e.getMessage());
