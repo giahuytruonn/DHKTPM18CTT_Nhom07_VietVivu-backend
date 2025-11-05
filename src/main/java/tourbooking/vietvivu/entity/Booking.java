@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
@@ -24,7 +25,7 @@ public class Booking {
     String bookingId;
 
     @Column(name = "booking_date")
-    LocalDate bookingDate;
+    LocalDateTime bookingDate;
 
     @Column(name = "num_adults")
     Integer numAdults;
@@ -44,7 +45,7 @@ public class Booking {
     BookingStatus bookingStatus;
 
     @Column(name = "payment_term")
-    LocalDate paymentTerm;
+    LocalDateTime paymentTerm;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

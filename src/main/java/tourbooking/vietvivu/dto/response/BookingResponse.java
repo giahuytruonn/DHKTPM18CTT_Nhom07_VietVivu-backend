@@ -6,6 +6,7 @@ import org.springframework.cglib.core.Local;
 import tourbooking.vietvivu.enumm.BookingStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -24,14 +25,13 @@ public class BookingResponse {
 
     //Booking details
     String bookingId;
-    LocalDate bookingDate;
+    LocalDateTime bookingDate;
     Double totalPrice;
     String promotionCode;
     Double discountAmount;
-    Double deposit;
     Double remainingAmount;
     BookingStatus bookingStatus;
-    LocalDate paymentTerm;
+    LocalDateTime paymentTerm;
 
     //Tour details
     String tourId;

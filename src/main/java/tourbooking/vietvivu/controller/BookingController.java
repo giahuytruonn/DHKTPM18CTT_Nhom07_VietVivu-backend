@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.controller;
 
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -10,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tourbooking.vietvivu.dto.request.BookingRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
-import tourbooking.vietvivu.producer.BookingProducer;
+import tourbooking.vietvivu.dto.response.BookingResponse;
+import tourbooking.vietvivu.service.BookingService;
 
 @RestController
 @RequestMapping("/bookings")
@@ -18,11 +20,17 @@ import tourbooking.vietvivu.producer.BookingProducer;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class BookingController {
-    BookingProducer bookingProducer;
 
-    @PostMapping
-    public ApiResponse<Void> bookTour(@RequestBody BookingRequest request) {
-        bookingProducer.sendBookingRequest(request);
-        return ApiResponse.<Void>builder().message("Booking request has been sent to the queue").build();
-    }
+   BookingService bookingService;
+
+   @PostMapping
+    ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request){
+       log.info("Received booking request: {}", request);
+       BookingResponse response = bookingService.bookTour(request);
+       log.info("Booking successful: {}", response);
+       return ApiResponse.<BookingResponse>builder()
+                .result(response)
+                .build();
+}
+
 }

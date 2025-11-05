@@ -25,7 +25,7 @@ public enum ErrorCode {
     PROMOTION_NOT_FOUND(1015, "Promotion not found", HttpStatus.BAD_REQUEST),
     PROMOTION_EXPIRED(1016, "Promotion expired", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_APPLICABLE(1017, "Promotion not applicable", HttpStatus.BAD_REQUEST),
-    PROMOTION_NOT_AVAILABLE(1018, "Promotion not available", HttpStatus.BAD_REQUEST)
+    PROMOTION_NOT_AVAILABLE(1018, "Promotion not available", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

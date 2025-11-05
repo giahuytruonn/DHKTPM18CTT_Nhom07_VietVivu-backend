@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -34,4 +35,9 @@ public class Contact implements Serializable {
     @OneToOne
     @JoinColumn(name = "booking_id")
     Booking booking;
+
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    Set<History> histories = new HashSet<>();
+
 }

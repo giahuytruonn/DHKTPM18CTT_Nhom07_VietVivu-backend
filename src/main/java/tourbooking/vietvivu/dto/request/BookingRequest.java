@@ -1,8 +1,12 @@
 package tourbooking.vietvivu.dto.request;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
@@ -10,14 +14,19 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BookingRequest {
+public class BookingRequest implements Serializable {
+
     String tourId;
     String userId;
     LocalDate bookingDate;
 
-    //Contact information
+    @NotBlank(message = "Name is required")
     String name;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
     String email;
+
     String phone;
     String address;
     String note;
@@ -25,6 +34,5 @@ public class BookingRequest {
     int numOfAdults;
     int numOfChildren;
 
-    //promotion
     String promotionId;
 }
