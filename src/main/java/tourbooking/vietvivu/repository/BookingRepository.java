@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 import tourbooking.vietvivu.entity.Booking;
 
 @Repository
-public interface BookingRepository extends JpaRepository<Booking, String> {}
+public interface BookingRepository extends JpaRepository<Booking, String> {
+    Integer countByTourTourId(String tourId);
+}
