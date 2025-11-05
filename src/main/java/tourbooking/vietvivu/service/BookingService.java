@@ -16,6 +16,7 @@ import tourbooking.vietvivu.repository.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -128,25 +129,44 @@ public class BookingService {
         bookingRepository.save(booking);
 
         History history = History.builder()
-                .user(booking.getUser())
-                .contact(contact)
                 .tourId(tour.getTourId())
                 .actionType(ActionType.BOOK_TOUR)
                 .timestamp(LocalDateTime.now())
                 .build();
 
         if (booking.getUser() != null) {
-            booking.getUser().getHistories().add(history);
-            userRepository.save(booking.getUser());
+            User user = booking.getUser();
+            history.setUser(user);
+            history.setContact(null);
+
+            if (user.getHistories() == null) {
+                user.setHistories(new HashSet<>());
+            }
+            user.getHistories().add(history);
+
+            if (user.getBookings() == null) {
+                user.setBookings(new HashSet<>());
+            }
+            user.getBookings().add(booking);
+
+            userRepository.save(user);
+        } else {
+            history.setUser(null);
+            history.setContact(contact);
+
+            contact.setBooking(booking);
+
+            if (contact.getHistories() == null) {
+                contact.setHistories(new HashSet<>());
+            }
+            contact.getHistories().add(history);
+
+            contactRepository.save(contact);
         }
 
-        contact.setBooking(booking);
-        contact.getHistories().add(history);
 
         historyRepository.save(history);
         contactRepository.save(contact);
-
-
 
 
         response.setBookingId(booking.getBookingId());
