@@ -83,7 +83,6 @@ public class BookingService {
                     .email(request.getEmail())
                     .phoneNumber(request.getPhone())
                     .address(request.getAddress())
-                    .note(request.getNote())
                     .build();
             booking.setContact(contact);
             booking.setUser(null);
@@ -108,6 +107,7 @@ public class BookingService {
         Double totalPrice = (request.getNumOfAdults() * tour.getPriceAdult()) +
                 (request.getNumOfChildren() * tour.getPriceChild());
         booking.setTotalPrice(totalPrice);
+        booking.setNote(request.getNote());
         booking.setPaymentStatus(PaymentStatus.UNPAID);
         booking.setBookingStatus(BookingStatus.PENDING);
         booking.setPaymentTerm(tour.getStartDate().minusDays(7).atStartOfDay());
@@ -164,10 +164,7 @@ public class BookingService {
             contactRepository.save(contact);
         }
 
-
         historyRepository.save(history);
-        contactRepository.save(contact);
-
 
         response.setBookingId(booking.getBookingId());
         response.setBookingDate(booking.getBookingDate());

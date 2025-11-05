@@ -36,6 +36,8 @@ public class Booking {
     @Column(name = "total_price")
     Double totalPrice;
 
+    String note;
+
     @Column(name = "payment_status")
     @Enumerated(EnumType.STRING)
     PaymentStatus paymentStatus;

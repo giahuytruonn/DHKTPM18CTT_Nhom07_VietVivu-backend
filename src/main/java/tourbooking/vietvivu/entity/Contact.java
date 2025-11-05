@@ -30,7 +30,6 @@ public class Contact implements Serializable {
     @Column(name = "phone_number")
     String phoneNumber;
 
-    String note;
 
     @OneToOne
     @JoinColumn(name = "booking_id")
