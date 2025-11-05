@@ -18,7 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-public class ThongKeController {
+public class StatisticalController {
     ThongKeService thongKeService;
 
 
