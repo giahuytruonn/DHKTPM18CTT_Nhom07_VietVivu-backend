@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.AccessLevel;
@@ -72,5 +73,19 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId, request))
                 .build();
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<UserResponse>> searchUsers(@RequestParam("keyword") String keyword) {
+        var result = userService.searchUsers(keyword);
+        return ApiResponse.<List<UserResponse>>builder().result(result).build();
+    }
+
+    @PatchMapping("/{userId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> updateStatusUser(@PathVariable String userId, @RequestParam("isActive") Boolean isActive) {
+        userService.updateStatusUser(userId, isActive);
+        return ApiResponse.<Void>builder().message("User status has been updated").build();
     }
 }
