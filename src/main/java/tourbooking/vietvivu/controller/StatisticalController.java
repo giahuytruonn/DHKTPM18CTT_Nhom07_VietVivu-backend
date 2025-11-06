@@ -1,17 +1,18 @@
 package tourbooking.vietvivu.controller;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tourbooking.vietvivu.dto.response.ApiResponse;
-import tourbooking.vietvivu.service.ThongKeService;
 
-import java.util.Map;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import tourbooking.vietvivu.dto.response.ApiResponse;
+import tourbooking.vietvivu.service.StatisticalService;
 
 @RestController
 @RequestMapping("/statistical")
@@ -19,25 +20,23 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class StatisticalController {
-    ThongKeService thongKeService;
-
+    StatisticalService statisticalService;
 
     // Thống kê top N tour được đặt nhiều nhất(booking_status: CONFIRMED/ CANCELLED) Map<Tên tour, Số lần đặt>
     @GetMapping("/top-booked-tours")
     ApiResponse<Map<String, Integer>> getTopNTourBookedByStatus(@RequestParam String bookingStatus) {
         int topN = 5;
         return ApiResponse.<Map<String, Integer>>builder()
-                .result(thongKeService.getTopNTourBookedByStatus(topN, bookingStatus))
+                .result(statisticalService.getTopNTourBookedByStatus(topN, bookingStatus))
                 .build();
     }
-
 
     // Thống kê top N khách hàng có nhiều đơn đặt (booking_status: CONFIRMED/ CANCELLED) Map<Tên Khách hàng, Số lần>
     @GetMapping("/top-users")
     ApiResponse<Map<String, Integer>> getTopNCustomersByBookingStatus(@RequestParam String bookingStatus) {
         int topN = 5;
         return ApiResponse.<Map<String, Integer>>builder()
-                .result(thongKeService.getTopNCustomersByBookingStatus(topN, bookingStatus))
+                .result(statisticalService.getTopNCustomersByBookingStatus(topN, bookingStatus))
                 .build();
     }
 
@@ -45,8 +44,7 @@ public class StatisticalController {
     @GetMapping("/total-bookings-by-status")
     ApiResponse<Map<String, Integer>> getTotalBookingsByStatus() {
         return ApiResponse.<Map<String, Integer>>builder()
-                .result(thongKeService.getBookingCountByStatus())
+                .result(statisticalService.getBookingCountByStatus())
                 .build();
     }
-
 }

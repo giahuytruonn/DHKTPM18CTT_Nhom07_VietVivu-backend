@@ -21,7 +21,7 @@ public class GlobalHandlerException {
     private static final String MIN_ATTRIBUTE = "min";
 
     // Bad request
-    @ExceptionHandler(value = Exception.class)
+    @ExceptionHandler(value = RuntimeException.class) // Exception -> RuntimeEXception
     ResponseEntity<ApiResponse> handlingRunTimeException(RuntimeException exception) {
         log.error("Exception: ", exception);
 

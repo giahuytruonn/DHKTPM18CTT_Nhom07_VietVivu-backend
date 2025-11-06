@@ -23,6 +23,7 @@ public class Tour {
     String tourId;
 
     String title;
+    @Column(columnDefinition = "TEXT")
     String description;
     Integer quantity;
 
