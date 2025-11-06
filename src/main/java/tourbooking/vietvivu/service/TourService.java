@@ -63,6 +63,14 @@ public class TourService {
         return tourMapper.toTourResponse(tour);
     }
 
+    @Transactional
+    public void deleteTour(String tourId) {
+        if (!tourRepository.existsById(tourId)) {
+            throw new AppException(ErrorCode.TOUR_NOT_FOUND);
+        }
+        tourRepository.deleteById(tourId);
+    }
+
     public List<TourResponse> getAllTours() {
         return tourMapper.toTourResponseList(tourRepository.findAll());
     }
