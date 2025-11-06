@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.dto.request.BookingRequestStatusUpdateRequest;
 import tourbooking.vietvivu.dto.response.BookingRequestResponse;
+import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.BookingRequest;
 import tourbooking.vietvivu.entity.History;
 import tourbooking.vietvivu.entity.User;
@@ -36,10 +37,10 @@ public class BookingRequestService {
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_REQUEST_NOT_FOUND));
 
         // validate
-        if (bookingRequest.getRequestType() == ActionType.CANCEL) {
-            if (bookingRequest.getStatus() != BookingStatus.PENDING)
-                throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
-        } else {
+        if (bookingRequest.getRequestType() != ActionType.CANCEL) {
+            throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
+        }
+        if (bookingRequest.getStatus() != BookingStatus.PENDING) {
             throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
         }
 
@@ -52,12 +53,20 @@ public class BookingRequestService {
 
         // History
         if (request.getStatus() == BookingStatus.CONFIRMED) {
+            Booking booking = bookingRequest.getBooking();
+            booking.setBookingStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+
             History history = History.builder()
-                    .tourId(bookingRequest.getOldTour().getTourId())
+                    .tourId(
+                            bookingRequest.getOldTour() != null
+                                    ? bookingRequest.getOldTour().getTourId()
+                                    : bookingRequest.getBooking().getTour().getTourId())
                     .actionType(ActionType.CANCEL)
                     .timestamp(LocalDateTime.now())
                     .build();
 
+            // user != null ? setContact null : setUser null
             if (bookingRequest.getUser() != null) {
                 history.setUser(bookingRequest.getUser());
                 history.setContact(null);
@@ -77,8 +86,14 @@ public class BookingRequestService {
                 .createdAt(bookingRequest.getCreatedAt())
                 .adminId(admin.getId())
                 .bookingId(bookingRequest.getBooking().getBookingId())
-                .newTourId(bookingRequest.getNewTour().getTourId())
-                .oldTourId(bookingRequest.getOldTour().getTourId())
+                .newTourId(
+                        bookingRequest.getNewTour() != null
+                                ? bookingRequest.getNewTour().getTourId()
+                                : null)
+                .oldTourId(
+                        bookingRequest.getOldTour() != null
+                                ? bookingRequest.getOldTour().getTourId()
+                                : null)
                 .userId(bookingRequest.getUser().getId())
                 .build();
 
