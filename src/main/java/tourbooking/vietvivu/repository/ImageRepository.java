@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 import tourbooking.vietvivu.entity.Image;
 
 @Repository
-public interface ImageRepository extends JpaRepository<Image, String> {}
+public interface ImageRepository extends JpaRepository<Image, String> {
+    void deleteByTour_TourId(String id);
+}
