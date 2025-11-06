@@ -1,13 +1,13 @@
 package tourbooking.vietvivu.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.*;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -30,7 +30,6 @@ public class Contact implements Serializable {
     @Column(name = "phone_number")
     String phoneNumber;
 
-
     @OneToOne
     @JoinColumn(name = "booking_id")
     Booking booking;
@@ -38,5 +37,4 @@ public class Contact implements Serializable {
     @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     Set<History> histories = new HashSet<>();
-
 }

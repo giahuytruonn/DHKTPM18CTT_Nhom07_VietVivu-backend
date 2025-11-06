@@ -1,9 +1,6 @@
 package tourbooking.vietvivu.exception;
 
 import java.util.Map;
-import java.util.Objects;
-
-import jakarta.validation.ConstraintViolation;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,7 +29,7 @@ public class GlobalHandlerException {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    //Xu ly custom exception
+    // Xu ly custom exception
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         log.error("Exception", exception);
@@ -69,9 +66,7 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(err -> err.getDefaultMessage())
                 .orElse("Invalid request");
@@ -82,7 +77,6 @@ public class GlobalHandlerException {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
-
 
     private String mapAttribute(String message, Map<String, Object> attributes) {
         String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
