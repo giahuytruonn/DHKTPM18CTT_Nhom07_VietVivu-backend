@@ -25,7 +25,12 @@ public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
             "/auth/outbound/authentication",
-            "/tours/search",
+            "/tours/search"
+    };
+
+    private final String[] ADMIN_ENDPOINTS = {
+            "/tours",
+            "/tours/**",
     };
 
     @Autowired
@@ -33,40 +38,55 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+        httpSecurity
+                .authorizeHttpRequests(request -> request
 
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                        .decoder(customJwtDecoder)
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tours/search").permitAll()
+
+
+                        .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+
+
+                        .anyRequest().authenticated()
+                )
+
+
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwtConfigurer -> jwtConfigurer
+                                .decoder(customJwtDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                )
+
+
+                .csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
     }
 
     @Bean
     public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        authoritiesConverter.setAuthoritiesClaimName("scope");
 
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-        return jwtAuthenticationConverter;
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return converter;
     }
 
     @Bean
