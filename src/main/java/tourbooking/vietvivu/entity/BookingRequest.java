@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.ActionType;
 import tourbooking.vietvivu.enumm.BookingStatus;
 
 @Getter
@@ -28,8 +29,9 @@ public class BookingRequest {
     @Column(name = "reason", columnDefinition = "text")
     String reason;
 
-    @Column(name = "request_type", length = 20, nullable = false)
-    String requestType;
+    @Column(name = "request_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    ActionType requestType;
 
     @Column(name = "reviewed_at")
     LocalDateTime reviewedAt;

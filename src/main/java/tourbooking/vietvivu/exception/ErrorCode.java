@@ -26,7 +26,8 @@ public enum ErrorCode {
     PROMOTION_EXPIRED(1016, "Promotion expired", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_APPLICABLE(1017, "Promotion not applicable", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_AVAILABLE(1018, "Promotion not available", HttpStatus.BAD_REQUEST),
-    ;
+    BOOKING_REQUEST_NOT_FOUND(1019, "Booking Request not found", HttpStatus.BAD_REQUEST),
+    BOOKING_STATUS_INVALID(1020, "BookingRequest Invalid", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
