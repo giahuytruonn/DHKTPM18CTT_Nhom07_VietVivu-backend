@@ -35,7 +35,7 @@ jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
 
-# Nếu muốn kiểm tra queue mặc định
-app:
-  queue:
-    name: bookingQueue
+payos:
+  client-id: ${CLIENT_ID_PAYOS}
+  api-key: ${API_KEY}
+  checksum-key: ${CHECKSUM_KEY}

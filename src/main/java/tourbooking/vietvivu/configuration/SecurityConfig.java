@@ -29,41 +29,37 @@ public class SecurityConfig {
     };
 
     private final String[] ADMIN_ENDPOINTS = {
-            "/tours",
-            "/tours/**",
+            "/tours", "/tours/**",
+            "/bookings", "/bookings/**",
+            "/reviews", "/reviews/**"
     };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .authorizeHttpRequests(request -> request
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, "/tours/search").permitAll()
+                .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
 
-                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/tours/search").permitAll()
-
-
-                        .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
-
-
-                        .anyRequest().authenticated()
+           
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .decoder(customJwtDecoder)
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
                 )
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+            )
 
+            
+            .csrf(AbstractHttpConfigurer::disable);
 
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwtConfigurer -> jwtConfigurer
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-                )
-
-
-                .csrf(AbstractHttpConfigurer::disable);
-
-        return httpSecurity.build();
+        return http.build();
     }
 
     @Bean
@@ -82,7 +78,7 @@ public class SecurityConfig {
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         authoritiesConverter.setAuthorityPrefix("ROLE_");
-        authoritiesConverter.setAuthoritiesClaimName("scope");
+        authoritiesConverter.setAuthoritiesClaimName("scope"); 
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
