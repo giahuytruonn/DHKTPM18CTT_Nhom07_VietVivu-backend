@@ -15,6 +15,15 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+  main:
+    allow-bean-definition-overriding: true
+
 outbound:
   identity:
     client-id: ${CLIENT_ID}
@@ -25,3 +34,8 @@ jwt:
   signerKey: ${SIGNER_KEY}
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
+
+payos:
+  client-id: ${CLIENT_ID_PAYOS}
+  api-key: ${API_KEY}
+  checksum-key: ${CHECKSUM_KEY}

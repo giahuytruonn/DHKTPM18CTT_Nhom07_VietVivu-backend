@@ -1,11 +1,13 @@
 package tourbooking.vietvivu.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.ActionType;
 
 @Getter
 @Setter
@@ -25,11 +27,16 @@ public class History {
     String tourId;
 
     @Column(name = "action_type")
-    String actionType;
+    @Enumerated(EnumType.STRING)
+    ActionType actionType;
 
-    LocalDate timestamp;
+    LocalDateTime timestamp;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     User user;
+
+    @ManyToOne
+    @JoinColumn(name = "contact_id")
+    Contact contact;
 }
