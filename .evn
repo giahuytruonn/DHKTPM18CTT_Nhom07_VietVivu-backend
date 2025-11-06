@@ -1,0 +1,8 @@
+SPRING_DATASOURCE_URL= jdbc:postgresql://ep-quiet-bush-a1dj8gts-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+SPRING_DATASOURCE_USERNAME= neondb_owner
+SPRING_DATASOURCE_PASSWORD= npg_MXDopVtUy7G5
+SPRING_JPA_HIBERNATE_DDL_AUTO= update
+CLIENT_ID=536707215819-ojpnqoijo3srbq6pu9ft4m222u2raetm.apps.googleusercontent.com
+CLIENT_SECRET = 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
+REDIRECT_URI = http://localhost:5173/authenticate
+SIGNER_KEY = hQMaRJpbun57ndGo3KZGMJqLK9SAJ5IhMSR732IBcovZv0+7TAHBc89sjcYYm/Sy
