@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.PaymentRequest;
 import tourbooking.vietvivu.dto.request.PaymentSuccessRequest;
 import tourbooking.vietvivu.dto.response.PaymentResponse;
@@ -32,6 +33,7 @@ public class PaymentService {
     private final CheckoutRepository checkoutRepository;
     private final InvoiceRepository invoiceRepository;
     private final BookingRepository bookingRepository;
+    private final EmailService emailService;
 
     public CheckoutResponseData createPayment(PaymentRequest request) throws Exception {
         long orderCode = System.currentTimeMillis() / 1000;
@@ -80,6 +82,38 @@ public class PaymentService {
 
         booking.setPaymentStatus(PaymentStatus.PAID);
         bookingRepository.save(booking);
+        String email = "";
+
+        if(booking.getUser() != null) {
+            email = booking.getUser().getEmail();
+        }else{
+            email = booking.getContact().getEmail();
+        }
+        // Send invoice email
+        emailService.sendInvoiceEmail(
+                EmailRequest.builder()
+                        .recipient(email)
+                        .subject("Your Invoice for Booking " + booking.getBookingId())
+                        .bookingId(booking.getBookingId())
+                        .bookingDate(booking.getBookingDate())
+                        .tourTitle(booking.getTour().getTitle())
+                        .tourDestination(booking.getTour().getDestination())
+                        .tourDuration(booking.getTour().getDuration())
+                        .numAdults(booking.getNumAdults())
+                        .numChildren(booking.getNumChildren())
+                        .priceAdult(booking.getTour().getPriceAdult())
+                        .priceChild(booking.getTour().getPriceChild())
+                        .totalPrice(booking.getTotalPrice())
+                        .discountAmount(booking.getTotalPrice() - checkout.getAmount())
+                        .finalAmount(checkout.getAmount())
+                        .note(booking.getNote())
+                        .paymentMethod(checkout.getPaymentMethod())
+                        .paymentStatus(checkout.getPaymentStatus())
+                        .transactionId(checkout.getTransactionId())
+                        .invoiceId(invoice.getInvoiceId())
+                        .invoiceDate(invoice.getDateIssued())
+                        .build()
+        );
 
         return PaymentSuccessResponse.builder()
                 .checkoutId(checkout.getCheckoutId())
