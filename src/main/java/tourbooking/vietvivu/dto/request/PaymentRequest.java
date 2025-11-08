@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PaymentRequest {
-    private Long tourId;
+    private String tourId;
     private String description;
     private Long amount;
 }

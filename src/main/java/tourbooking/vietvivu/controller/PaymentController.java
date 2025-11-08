@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tourbooking.vietvivu.dto.request.PaymentRequest;
+import tourbooking.vietvivu.dto.request.PaymentSuccessRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.PaymentResponse;
+import tourbooking.vietvivu.dto.response.PaymentSuccessResponse;
 import tourbooking.vietvivu.service.PaymentService;
 import vn.payos.type.CheckoutResponseData;
 
@@ -23,6 +25,15 @@ public class PaymentController {
                 .result(paymentService.createPayment(req))
                 .message("Create link success")
                 .build();
+    };
+
+    @PostMapping("/success")
+    public ApiResponse<PaymentSuccessResponse> paymentSuccess(@RequestBody PaymentSuccessRequest request) {
+        return ApiResponse.<PaymentSuccessResponse>builder()
+                .result(paymentService.handlePaymentSuccess(request))
+                .message("Payment success processed")
+                .build();
     }
+
 }
 
