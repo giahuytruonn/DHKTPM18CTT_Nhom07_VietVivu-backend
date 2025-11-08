@@ -34,11 +34,13 @@ public class BookingRequestService {
                 .findById(requestId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_REQUEST_NOT_FOUND));
 
-        // validate
-        if (bookingRequest.getRequestType() != ActionType.CANCEL) {
+        if (bookingRequest.getRequestType() != ActionType.CANCEL
+                && bookingRequest.getRequestType() != ActionType.CHANGE) {
             throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
         }
-        if (bookingRequest.getStatus() != BookingStatus.PENDING_CANCELLATION) {
+
+        if (bookingRequest.getStatus() != BookingStatus.PENDING_CANCELLATION
+                && bookingRequest.getStatus() != BookingStatus.PENDING_CHANGE) {
             throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
         }
 
@@ -49,10 +51,30 @@ public class BookingRequestService {
         bookingRequest.setStatus(request.getStatus());
         bookingRequestRepository.save(bookingRequest);
 
-        // History
+        // CONFIRMED_CANCELLATION
         if (request.getStatus() == BookingStatus.CONFIRMED_CANCELLATION) {
+            if (bookingRequest.getRequestType() != ActionType.CANCEL) {
+                throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
+            }
+
             Booking booking = bookingRequest.getBooking();
             booking.setBookingStatus(BookingStatus.CONFIRMED_CANCELLATION);
+            bookingRepository.save(booking);
+
+            setHistoryRepository(bookingRequest);
+        } // CONFIRMED_CHANGE
+        else if (request.getStatus() == BookingStatus.CONFIRMED_CHANGE) {
+            if (bookingRequest.getRequestType() != ActionType.CHANGE) {
+                throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
+            }
+
+            if (bookingRequest.getNewTour() == null) {
+                throw new AppException(ErrorCode.TOUR_NOT_FOUND);
+            }
+
+            Booking booking = bookingRequest.getBooking();
+            booking.setBookingStatus(BookingStatus.CONFIRMED_CHANGE);
+            booking.setTour(bookingRequest.getNewTour());
             bookingRepository.save(booking);
 
             setHistoryRepository(bookingRequest);
