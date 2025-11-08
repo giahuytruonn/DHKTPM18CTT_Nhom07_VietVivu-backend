@@ -23,10 +23,10 @@ public class BookingRequest {
     @Column(name = "request_id")
     String requestId;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;
 
-    @Column(name = "reason", columnDefinition = "text")
+    @Column(name = "reason", columnDefinition = "text", nullable = false)
     String reason;
 
     @Column(name = "request_type", nullable = false)
@@ -53,7 +53,7 @@ public class BookingRequest {
     Tour newTour;
 
     @ManyToOne
-    @JoinColumn(name = "old_tour_id")
+    @JoinColumn(name = "old_tour_id", nullable = false)
     Tour oldTour;
 
     @ManyToOne

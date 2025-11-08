@@ -6,12 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import tourbooking.vietvivu.dto.request.BookingCancelUpdateRequest;
 import tourbooking.vietvivu.dto.request.BookingRequestStatusUpdateRequest;
 import tourbooking.vietvivu.dto.response.BookingRequestResponse;
-import tourbooking.vietvivu.entity.Booking;
-import tourbooking.vietvivu.entity.BookingRequest;
-import tourbooking.vietvivu.entity.History;
-import tourbooking.vietvivu.entity.User;
+import tourbooking.vietvivu.entity.*;
 import tourbooking.vietvivu.enumm.ActionType;
 import tourbooking.vietvivu.enumm.BookingStatus;
 import tourbooking.vietvivu.exception.AppException;
@@ -26,10 +24,10 @@ public class BookingRequestService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
-    private final ContactRepository contactRepository;
+    private final TourRepository tourRepository;
 
     @Transactional(rollbackFor = Exception.class)
-    public BookingRequestResponse updateBookingRequestStatus(
+    public BookingRequestResponse updateBookingRequestStatusAdmin(
             String requestId, String adminId, BookingRequestStatusUpdateRequest request) {
 
         BookingRequest bookingRequest = bookingRequestRepository
@@ -38,9 +36,9 @@ public class BookingRequestService {
 
         // validate
         if (bookingRequest.getRequestType() != ActionType.CANCEL) {
-            throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
+            throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
         }
-        if (bookingRequest.getStatus() != BookingStatus.PENDING) {
+        if (bookingRequest.getStatus() != BookingStatus.PENDING_CANCELLATION) {
             throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
         }
 
@@ -52,29 +50,12 @@ public class BookingRequestService {
         bookingRequestRepository.save(bookingRequest);
 
         // History
-        if (request.getStatus() == BookingStatus.CONFIRMED) {
+        if (request.getStatus() == BookingStatus.CONFIRMED_CANCELLATION) {
             Booking booking = bookingRequest.getBooking();
-            booking.setBookingStatus(BookingStatus.CANCELLED);
+            booking.setBookingStatus(BookingStatus.CONFIRMED_CANCELLATION);
             bookingRepository.save(booking);
 
-            History history = History.builder()
-                    .tourId(
-                            bookingRequest.getOldTour() != null
-                                    ? bookingRequest.getOldTour().getTourId()
-                                    : bookingRequest.getBooking().getTour().getTourId())
-                    .actionType(ActionType.CANCEL)
-                    .timestamp(LocalDateTime.now())
-                    .build();
-
-            // user != null ? setContact null : setUser null
-            if (bookingRequest.getUser() != null) {
-                history.setUser(bookingRequest.getUser());
-                history.setContact(null);
-            } else if (bookingRequest.getBooking().getContact() != null) {
-                history.setUser(null);
-                history.setContact(bookingRequest.getBooking().getContact());
-            }
-            historyRepository.save(history);
+            setHistoryRepository(bookingRequest);
         }
 
         BookingRequestResponse response = BookingRequestResponse.builder()
@@ -98,5 +79,97 @@ public class BookingRequestService {
                 .build();
 
         return response;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public BookingRequestResponse updateBookingRequestStatusCustomer(
+            String bookingId, String userId, BookingCancelUpdateRequest request) {
+
+        Booking booking =
+                bookingRepository.findById(bookingId).orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        //        // Validate booking belongs to user
+        //        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+        //            throw new AppException(ErrorCode.UNAUTHORIZED);
+        //        }
+
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
+        }
+
+        if (booking.getTour() == null) {
+            throw new AppException(ErrorCode.TOUR_NOT_FOUND);
+        }
+
+        BookingRequest bookingRequest = BookingRequest.builder()
+                .createdAt(LocalDateTime.now())
+                .reason(request.getReason())
+                .requestType(ActionType.CANCEL)
+                .status(BookingStatus.PENDING_CANCELLATION)
+                .booking(booking)
+                .oldTour(booking.getTour())
+                .user(booking.getUser())
+                .newTour(null)
+                .admin(null)
+                .reviewedAt(null)
+                .build();
+
+        bookingRequestRepository.save(bookingRequest);
+
+        booking.setBookingStatus(BookingStatus.PENDING_CANCELLATION);
+        bookingRepository.save(booking);
+
+        // History update
+        setHistoryRepository(bookingRequest);
+
+        BookingRequestResponse response = BookingRequestResponse.builder()
+                .requestId(bookingRequest.getRequestId())
+                .reason(bookingRequest.getReason())
+                .requestType(bookingRequest.getRequestType())
+                .status(bookingRequest.getStatus())
+                .reviewedAt(bookingRequest.getReviewedAt())
+                .createdAt(bookingRequest.getCreatedAt())
+                .adminId(
+                        bookingRequest.getAdmin() != null
+                                ? bookingRequest.getAdmin().getId()
+                                : null)
+                .bookingId(bookingRequest.getBooking().getBookingId())
+                .newTourId(
+                        bookingRequest.getNewTour() != null
+                                ? bookingRequest.getNewTour().getTourId()
+                                : null)
+                .oldTourId(
+                        bookingRequest.getOldTour() != null
+                                ? bookingRequest.getOldTour().getTourId()
+                                : null)
+                .userId(
+                        bookingRequest.getUser() != null
+                                ? bookingRequest.getUser().getId()
+                                : null)
+                .build();
+
+        return response;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void setHistoryRepository(BookingRequest bookingRequest) {
+        History history = History.builder()
+                .tourId(
+                        bookingRequest.getOldTour() != null
+                                ? bookingRequest.getOldTour().getTourId()
+                                : bookingRequest.getBooking().getTour().getTourId())
+                .actionType(ActionType.CANCEL)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        // user != null ? setContact null : setUser null
+        if (bookingRequest.getUser() != null) {
+            history.setUser(bookingRequest.getUser());
+            history.setContact(null);
+        } else if (bookingRequest.getBooking().getContact() != null) {
+            history.setUser(null);
+            history.setContact(bookingRequest.getBooking().getContact());
+        }
+        historyRepository.save(history);
     }
 }
