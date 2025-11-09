@@ -14,11 +14,15 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TourMapper {
 
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "tourStatus", ignore = true)
+    @Mapping(target = "availability", ignore = true)
     Tour toTour(TourCreateRequest request);
 
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "bookings", ignore = true)
+    @Mapping(target = "tourStatus", ignore = true)
     void updateTour(@MappingTarget Tour tour, TourUpdateRequest request);
 
     @Mapping(target = "imageUrls", expression = "java(mapImageUrls(tour))")
@@ -39,7 +43,6 @@ public interface TourMapper {
     default Integer mapTotalBookings(Tour tour) {
         return tour.getBookings() != null ? tour.getBookings().size() : 0;
     }
-
 
     default Integer mapFavoriteCount(Tour tour) {
         return tour.getUsersFavorited() != null ? tour.getUsersFavorited().size() : 0;

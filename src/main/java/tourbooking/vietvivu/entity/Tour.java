@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.*;
-
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.TourStatus;
 
 @Getter
 @Setter
@@ -33,8 +33,12 @@ public class Tour {
     @Size(max = 2000, message = "Mô tả tối đa 2000 ký tự")
     String description;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @PositiveOrZero(message = "Số lượng phải ≥ 0")
+    @PositiveOrZero(message = "Số lượng ban đầu phải ≥ 0")
+    @Column(name = "initial_quantity", nullable = true)
+    Integer initialQuantity;
+
+    @NotNull(message = "Số lượng còn lại không được để trống")
+    @PositiveOrZero(message = "Số lượng còn lại phải ≥ 0")
     Integer quantity;
 
     @NotNull(message = "Giá người lớn không được để trống")
@@ -62,6 +66,13 @@ public class Tour {
     @FutureOrPresent(message = "Ngày khởi hành phải từ hôm nay trở đi")
     @Column(name = "start_date")
     LocalDate startDate;
+
+    @Column(name = "end_date", nullable = true)
+    LocalDate endDate;
+
+    @Column(name = "tour_status")
+    @Enumerated(EnumType.STRING)
+    TourStatus tourStatus;
 
     @NotEmpty(message = "Lịch trình không được để trống")
     @Size(min = 1, max = 20, message = "Lịch trình phải có từ 1 đến 20 bước")

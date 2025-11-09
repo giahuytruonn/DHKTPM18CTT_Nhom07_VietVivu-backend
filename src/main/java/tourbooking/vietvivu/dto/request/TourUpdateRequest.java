@@ -14,12 +14,14 @@ import java.util.List;
 public class TourUpdateRequest {
     String title;
     String description;
+    Integer initialQuantity;
     Integer quantity;
     Double priceAdult;
     Double priceChild;
     String duration;
     String destination;
     LocalDate startDate;
+    LocalDate endDate;
     List<String> itinerary;
     List<String> imageUrls;
 }

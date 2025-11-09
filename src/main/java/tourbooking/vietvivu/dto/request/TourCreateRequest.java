@@ -20,7 +20,7 @@ public class TourCreateRequest {
 
     @NotNull
     @Positive
-    Integer quantity;
+    Integer initialQuantity;
 
     @NotNull
     @PositiveOrZero
@@ -38,6 +38,8 @@ public class TourCreateRequest {
 
     @NotNull
     LocalDate startDate;
+
+    LocalDate endDate;
 
     @NotEmpty
     List<String> itinerary;
