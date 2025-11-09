@@ -11,6 +11,7 @@ public enum ActionType {
     VIEW("View");
 
     private final String message;
+
     ActionType(String message) {
         this.message = message;
     }

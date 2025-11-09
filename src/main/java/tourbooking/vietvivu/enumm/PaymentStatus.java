@@ -12,5 +12,4 @@ public enum PaymentStatus {
     PaymentStatus(String message) {
         this.message = message;
     }
-
 }

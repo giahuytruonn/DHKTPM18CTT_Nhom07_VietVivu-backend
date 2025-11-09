@@ -10,6 +10,7 @@ public enum BookingStatus {
     COMPLETED("Completed");
 
     private final String message;
+
     BookingStatus(String message) {
         this.message = message;
     }

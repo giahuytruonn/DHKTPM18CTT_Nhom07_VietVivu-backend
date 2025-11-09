@@ -8,6 +8,7 @@ public enum PaymentMethod {
     VIETQR("VietQR");
 
     private final String method;
+
     PaymentMethod(String method) {
         this.method = method;
     }

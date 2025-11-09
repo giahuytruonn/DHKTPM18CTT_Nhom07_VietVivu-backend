@@ -21,8 +21,7 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.UUID)
     String conversationId;
 
-
-    //Them enum (26/10/2025)
+    // Them enum (26/10/2025)
     @Column(name = "reply_status")
     Boolean replyStatus;
 
