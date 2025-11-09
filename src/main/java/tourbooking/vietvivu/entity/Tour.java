@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.entity;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -77,4 +78,7 @@ public class Tour {
 
     @OneToMany(mappedBy = "tour")
     Set<Booking> bookings;
+
+    @ManyToMany(mappedBy = "favoriteTours")
+    private Set<User> usersFavorited = new HashSet<>();
 }

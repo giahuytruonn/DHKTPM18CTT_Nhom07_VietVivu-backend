@@ -25,4 +25,7 @@ public class TourResponse {
     List<String> itinerary;
     List<String> imageUrls;
     Integer totalBookings;
+
+    Integer favoriteCount;
+    Boolean isFavorited;
 }

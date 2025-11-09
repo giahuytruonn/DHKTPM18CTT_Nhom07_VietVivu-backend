@@ -7,5 +7,5 @@ import tourbooking.vietvivu.entity.Image;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, String> {
-    void deleteByTour_TourId(String id);
+    void deleteByTour_TourId(String tourId);
 }
