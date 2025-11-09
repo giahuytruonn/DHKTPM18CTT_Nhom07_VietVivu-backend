@@ -73,9 +73,26 @@ public class TourController {
     }
 
 
+//    @GetMapping
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ApiResponse<List<TourResponse>> getAllTours() {
+//        List<TourResponse> result = tourService.getAllTours();
+//        return ApiResponse.<List<TourResponse>>builder()
+//                .result(result)
+//                .build();
+//    }
+//
+//    @GetMapping("/{tourId}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ApiResponse<TourResponse> getTour(@PathVariable String tourId) {
+//        TourResponse result = tourService.getTour(tourId);
+//        return ApiResponse.<TourResponse>builder()
+//                .result(result)
+//                .build();
+//    }
+
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<TourResponse>> getAllTours() {
+    public ApiResponse<List<TourResponse>> getAllToursPublic() {
         List<TourResponse> result = tourService.getAllTours();
         return ApiResponse.<List<TourResponse>>builder()
                 .result(result)
@@ -83,8 +100,7 @@ public class TourController {
     }
 
     @GetMapping("/{tourId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<TourResponse> getTour(@PathVariable String tourId) {
+    public ApiResponse<TourResponse> getTourPublic(@PathVariable String tourId) {
         TourResponse result = tourService.getTour(tourId);
         return ApiResponse.<TourResponse>builder()
                 .result(result)

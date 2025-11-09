@@ -25,7 +25,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
             "/auth/outbound/authentication",
-            "/tours/search"
+            "/tours/search", "/tours", "/tours/{tourId}"
     };
 
     private final String[] ADMIN_ENDPOINTS = {
@@ -40,12 +40,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET, "/tours/search").permitAll()
-                .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tours", "/tours/**", "/tours/search").permitAll()
+                        .requestMatchers("/users/favorite-tours/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/users/favorite-tours/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/users/favorite-tours/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
 
            
             .oauth2ResourceServer(oauth2 -> oauth2

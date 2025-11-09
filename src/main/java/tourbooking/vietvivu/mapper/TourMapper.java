@@ -48,10 +48,12 @@ public interface TourMapper {
     default Boolean isFavoritedByCurrentUser(Tour tour) {
         var context = SecurityContextHolder.getContext();
         var authentication = context.getAuthentication();
+
         if (authentication == null || !authentication.isAuthenticated() ||
                 authentication.getPrincipal().equals("anonymousUser")) {
             return false;
         }
+
         String username = authentication.getName();
         return tour.getUsersFavorited().stream()
                 .anyMatch(user -> user.getUsername().equals(username));

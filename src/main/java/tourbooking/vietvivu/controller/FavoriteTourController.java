@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
@@ -11,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users/favorite-tours")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class FavoriteTourController {
 
     private final FavoriteTourService favoriteTourService;
