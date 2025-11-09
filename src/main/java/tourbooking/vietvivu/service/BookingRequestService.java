@@ -24,7 +24,6 @@ public class BookingRequestService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
-    private final TourRepository tourRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public BookingRequestResponse updateBookingRequestStatusAdmin(
