@@ -30,6 +30,15 @@ spring:
         table-name: tour_vectors     # tên bảng chứa vector
         dimensions: 1536          # số chiều vector (phải đúng với model embedding)
         distance-type: cosine_distance
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+  main:
+    allow-bean-definition-overriding: true
+
 outbound:
   identity:
     client-id: ${CLIENT_ID}
@@ -40,3 +49,8 @@ jwt:
   signerKey: ${SIGNER_KEY}
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
+
+payos:
+  client-id: ${CLIENT_ID_PAYOS}
+  api-key: ${API_KEY}
+  checksum-key: ${CHECKSUM_KEY}

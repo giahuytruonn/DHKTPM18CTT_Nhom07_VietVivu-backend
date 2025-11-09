@@ -1,11 +1,14 @@
 package tourbooking.vietvivu.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.BookingStatus;
+import tourbooking.vietvivu.enumm.PaymentStatus;
 
 @Getter
 @Setter
@@ -22,7 +25,7 @@ public class Booking {
     String bookingId;
 
     @Column(name = "booking_date")
-    LocalDate bookingDate;
+    LocalDateTime bookingDate;
 
     @Column(name = "num_adults")
     Integer numAdults;
@@ -33,11 +36,18 @@ public class Booking {
     @Column(name = "total_price")
     Double totalPrice;
 
+    String note;
+
     @Column(name = "payment_status")
-    String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    PaymentStatus paymentStatus;
 
     @Column(name = "booking_status")
-    String bookingStatus;
+    @Enumerated(EnumType.STRING)
+    BookingStatus bookingStatus;
+
+    @Column(name = "payment_term")
+    LocalDateTime paymentTerm;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -59,4 +69,7 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     Review review;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+    Contact contact;
 }
