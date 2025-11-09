@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,10 @@ public class BookingRequestService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
+
+    public List<BookingRequest> getAll() {
+        return bookingRequestRepository.findAll();
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public BookingRequestResponse updateBookingRequestStatusAdmin(
