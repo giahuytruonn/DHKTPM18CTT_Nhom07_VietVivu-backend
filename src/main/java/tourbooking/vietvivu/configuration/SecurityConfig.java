@@ -23,15 +23,19 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {
-            "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
-            "/auth/outbound/authentication",
-            "/tours/search"
+        "/users",
+        "/auth/token",
+        "/auth/introspect",
+        "/auth/logout",
+        "/auth/refresh",
+        "/auth/outbound/authentication",
+        "/tours/search"
     };
 
     private final String[] ADMIN_ENDPOINTS = {
-            "/tours", "/tours/**",
-            "/bookings", "/bookings/**",
-            "/reviews", "/reviews/**"
+        "/tours", "/tours/**",
+        "/bookings", "/bookings/**",
+        "/reviews", "/reviews/**"
     };
 
     @Autowired
@@ -39,25 +43,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET, "/tours/search").permitAll()
-                .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-
-           
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .decoder(customJwtDecoder)
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                )
-                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-            )
-
-            
-            .csrf(AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tours/search")
+                        .permitAll()
+                        .requestMatchers(ADMIN_ENDPOINTS)
+                        .hasRole("ADMIN")
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+                                jwt.decoder(customJwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+                .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
@@ -78,7 +75,7 @@ public class SecurityConfig {
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         authoritiesConverter.setAuthorityPrefix("ROLE_");
-        authoritiesConverter.setAuthoritiesClaimName("scope"); 
+        authoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);

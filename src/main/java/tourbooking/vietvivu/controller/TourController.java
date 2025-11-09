@@ -1,19 +1,21 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.service.TourService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/tours")
@@ -24,7 +26,7 @@ public class TourController {
 
     TourService tourService;
 
-    //public
+    // public
 
     @GetMapping("/search")
     public ApiResponse<List<TourResponse>> searchTours(
@@ -34,60 +36,45 @@ public class TourController {
             @RequestParam(required = false) Double maxPrice) {
 
         List<TourResponse> result = tourService.searchTours(keyword, destination, minPrice, maxPrice);
-        return ApiResponse.<List<TourResponse>>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<List<TourResponse>>builder().result(result).build();
     }
 
-    //admin
-
+    // admin
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> createTour(@RequestBody @Valid TourCreateRequest request) {
         TourResponse result = tourService.createTour(request);
-        return ApiResponse.<TourResponse>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<TourResponse>builder().result(result).build();
     }
 
     @PutMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> updateTour(
-            @PathVariable String tourId,
-            @RequestBody @Valid TourUpdateRequest request) {
+            @PathVariable String tourId, @RequestBody @Valid TourUpdateRequest request) {
 
         TourResponse result = tourService.updateTour(tourId, request);
-        return ApiResponse.<TourResponse>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<TourResponse>builder().result(result).build();
     }
 
     @DeleteMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteTour(@PathVariable String tourId) {
         tourService.deleteTour(tourId);
-        return ApiResponse.<Void>builder()
-                .message("Tour deleted successfully")
-                .build();
+        return ApiResponse.<Void>builder().message("Tour deleted successfully").build();
     }
-
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<TourResponse>> getAllTours() {
         List<TourResponse> result = tourService.getAllTours();
-        return ApiResponse.<List<TourResponse>>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<List<TourResponse>>builder().result(result).build();
     }
 
     @GetMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> getTour(@PathVariable String tourId) {
         TourResponse result = tourService.getTour(tourId);
-        return ApiResponse.<TourResponse>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<TourResponse>builder().result(result).build();
     }
 }
