@@ -37,6 +37,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
 
+    //CREATE
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
 
@@ -76,9 +77,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    //UPDATE
     @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         userMapper.updateUser(user, request);
         // user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -89,11 +91,28 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    //DELETE
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String id) {
         userRepository.deleteById(id);
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void updateStatusUser(String id, Boolean isActive) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        user.setIsActive(isActive);
+        userRepository.save(user);
+    }
+
+    //SEARCH With Name, phone
+    public List<UserResponse> searchUsers(String keyword) {
+        List<User> users = userRepository.findByUsernameContainingIgnoreCaseOrPhoneNumberContaining(keyword, keyword);
+        return users.stream().map(userMapper::toUserResponse).toList();
+    }
+
+
+    //READ
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         log.info("In method get Users");

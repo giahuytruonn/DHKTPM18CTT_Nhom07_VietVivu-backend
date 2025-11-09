@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.entity;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ public class Tour {
     String description;
     Integer quantity;
 
-    @Column(name = "prica_adult")
+    @Column(name = "price_adult")
     Double priceAdult;
 
     @Column(name = "price_child")
@@ -36,6 +37,9 @@ public class Tour {
     String duration;
     String destination;
     Boolean availability;
+
+    @Column(name = "start_date")
+    LocalDate startDate;
 
     @ElementCollection
     @CollectionTable(name = "tour_itinerary", joinColumns = @JoinColumn(name = "tour_id"))

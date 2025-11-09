@@ -117,7 +117,7 @@ public class AuthenticationService {
         // Change token
         var token = generateToken(user);
 
-        return AuthenticationResponse.builder().token(token).build();
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {

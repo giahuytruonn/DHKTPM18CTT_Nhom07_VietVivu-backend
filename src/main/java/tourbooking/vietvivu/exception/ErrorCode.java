@@ -19,6 +19,13 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(1009, "Invalid credentials, please try again", HttpStatus.BAD_REQUEST),
     PASSWORD_EXISTED(1010, "Password existed", HttpStatus.BAD_REQUEST),
     INVALID_SERIALIZED_TOKEN(1011, "Invalid serialized unsecured/JWS/JWE", HttpStatus.BAD_REQUEST),
+    TOUR_NOT_FOUND(1012, "Tour not found", HttpStatus.BAD_REQUEST),
+    QUANTITY_NOT_ENOUGH(1013, "Quantity not enough", HttpStatus.BAD_REQUEST),
+    DATE_NOT_AVAILABLE(1014, "Date not available", HttpStatus.BAD_REQUEST),
+    PROMOTION_NOT_FOUND(1015, "Promotion not found", HttpStatus.BAD_REQUEST),
+    PROMOTION_EXPIRED(1016, "Promotion expired", HttpStatus.BAD_REQUEST),
+    PROMOTION_NOT_APPLICABLE(1017, "Promotion not applicable", HttpStatus.BAD_REQUEST),
+    PROMOTION_NOT_AVAILABLE(1018, "Promotion not available", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
