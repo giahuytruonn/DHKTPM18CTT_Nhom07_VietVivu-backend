@@ -26,7 +26,13 @@ public enum ErrorCode {
     PROMOTION_EXPIRED(1016, "Promotion expired", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_APPLICABLE(1017, "Promotion not applicable", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_AVAILABLE(1018, "Promotion not available", HttpStatus.BAD_REQUEST),
-    ;
+    BOOKING_REQUEST_NOT_FOUND(1019, "Booking Request not found", HttpStatus.BAD_REQUEST),
+    BOOKING_STATUS_INVALID(1020, "BookingRequest Invalid", HttpStatus.BAD_REQUEST),
+    ACTION_TYPE_INVALID(1021, "Action Type Invalid", HttpStatus.BAD_REQUEST),
+    BOOKING_NOT_FOUND(1022, "Booking not found", HttpStatus.BAD_REQUEST),
+    OLD_TOUR_NOT_FOUND(1023, "Old tour not found", HttpStatus.BAD_REQUEST),
+    NEW_TOUR_NOT_FOUND(1024, "New tour not found", HttpStatus.BAD_REQUEST),
+    USER_NOT_BELONG_BOOKING(1025, "User does not belong to the booking", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

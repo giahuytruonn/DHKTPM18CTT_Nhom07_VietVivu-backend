@@ -8,7 +8,9 @@ public enum ActionType {
     BOOK_TOUR("Book Tour"),
     UPDATE("Update"),
     DELETE("Delete"),
-    VIEW("View");
+    VIEW("View"),
+    CHANGE("Change Tour"),
+    CANCEL("Cancel Tour");
 
     private final String message;
 
