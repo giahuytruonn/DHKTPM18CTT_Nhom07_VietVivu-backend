@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -26,8 +27,46 @@ public class BookingRequestService {
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
 
-    public List<BookingRequest> getAll() {
-        return bookingRequestRepository.findAll();
+    public List<BookingRequestResponse> getPendingRequests() {
+        List<BookingStatus> pendingStatuses =
+                Arrays.asList(BookingStatus.PENDING_CANCELLATION, BookingStatus.PENDING_CHANGE);
+        List<BookingRequest> requests = bookingRequestRepository.findByStatusIn(pendingStatuses);
+        return requests.stream().map(this::mapToResponse).toList();
+    }
+
+    public BookingRequestResponse getById(String requestId) {
+        BookingRequest bookingRequest = bookingRequestRepository
+                .findById(requestId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_REQUEST_NOT_FOUND));
+        return mapToResponse(bookingRequest);
+    }
+
+    private BookingRequestResponse mapToResponse(BookingRequest bookingRequest) {
+        return BookingRequestResponse.builder()
+                .requestId(bookingRequest.getRequestId())
+                .reason(bookingRequest.getReason())
+                .requestType(bookingRequest.getRequestType())
+                .status(bookingRequest.getStatus())
+                .reviewedAt(bookingRequest.getReviewedAt())
+                .createdAt(bookingRequest.getCreatedAt())
+                .adminId(
+                        bookingRequest.getAdmin() != null
+                                ? bookingRequest.getAdmin().getId()
+                                : null)
+                .bookingId(bookingRequest.getBooking().getBookingId())
+                .newTourId(
+                        bookingRequest.getNewTour() != null
+                                ? bookingRequest.getNewTour().getTourId()
+                                : null)
+                .oldTourId(
+                        bookingRequest.getOldTour() != null
+                                ? bookingRequest.getOldTour().getTourId()
+                                : null)
+                .userId(
+                        bookingRequest.getUser() != null
+                                ? bookingRequest.getUser().getId()
+                                : null)
+                .build();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -79,6 +118,29 @@ public class BookingRequestService {
             Booking booking = bookingRequest.getBooking();
             booking.setBookingStatus(BookingStatus.CONFIRMED_CHANGE);
             booking.setTour(bookingRequest.getNewTour());
+            bookingRepository.save(booking);
+
+            setHistoryRepository(bookingRequest);
+        } // DENIED_CANCELLATION
+        else if (request.getStatus() == BookingStatus.DENIED_CANCELLATION) {
+            if (bookingRequest.getRequestType() != ActionType.CANCEL) {
+                throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
+            }
+
+            // Restore booking status to CONFIRMED
+            Booking booking = bookingRequest.getBooking();
+            booking.setBookingStatus(BookingStatus.DENIED_CANCELLATION);
+            bookingRepository.save(booking);
+
+            setHistoryRepository(bookingRequest);
+        } // DENIED_CHANGE
+        else if (request.getStatus() == BookingStatus.DENIED_CHANGE) {
+            if (bookingRequest.getRequestType() != ActionType.CHANGE) {
+                throw new AppException(ErrorCode.ACTION_TYPE_INVALID);
+            }
+
+            Booking booking = bookingRequest.getBooking();
+            booking.setBookingStatus(BookingStatus.DENIED_CHANGE);
             bookingRepository.save(booking);
 
             setHistoryRepository(bookingRequest);

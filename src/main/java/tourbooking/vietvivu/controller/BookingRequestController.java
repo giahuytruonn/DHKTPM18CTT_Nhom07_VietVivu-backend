@@ -1,5 +1,7 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +31,22 @@ public class BookingRequestController {
 
     final BookingRequestService bookingRequestService;
     final UserRepository userRepository;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<List<BookingRequestResponse>> getPendingRequests() {
+        return ApiResponse.<List<BookingRequestResponse>>builder()
+                .result(bookingRequestService.getPendingRequests())
+                .build();
+    }
+
+    @GetMapping("/{requestId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<BookingRequestResponse> getBookingRequest(@PathVariable String requestId) {
+        return ApiResponse.<BookingRequestResponse>builder()
+                .result(bookingRequestService.getById(requestId))
+                .build();
+    }
 
     @PutMapping("/{requestId}/status")
     @PreAuthorize("hasRole('ADMIN')")
