@@ -27,8 +27,8 @@ spring:
           model: text-embedding-3-small
     vectorstore:
       pgvector:
-        table-name: tour_vectors        # tên bảng chứa vector
-        dimensions: 1536                # số chiều vector (phải đúng với model embedding)
+        table-name: tour_vectors     # tên bảng chứa vector
+        dimensions: 1536          # số chiều vector (phải đúng với model embedding)
         distance-type: cosine_distance
 outbound:
   identity:
