@@ -27,7 +27,34 @@ public class TourController {
 
     TourService tourService;
 
+    // ===== PUBLIC ENDPOINTS (User & Guest) =====
 
+    /**
+     * Get all tours that are OPEN_BOOKING (for public)
+     * User và Guest chỉ xem được tours đang mở booking
+     */
+    @GetMapping
+    public ApiResponse<List<TourResponse>> getAllToursPublic() {
+        List<TourResponse> result = tourService.getAllToursForPublic();
+        return ApiResponse.<List<TourResponse>>builder()
+                .result(result)
+                .build();
+    }
+
+    /**
+     * Get tour by ID (public can access)
+     */
+    @GetMapping("/{tourId}")
+    public ApiResponse<TourResponse> getTourPublic(@PathVariable String tourId) {
+        TourResponse result = tourService.getTour(tourId);
+        return ApiResponse.<TourResponse>builder()
+                .result(result)
+                .build();
+    }
+
+    /**
+     * Search tours with filters (public)
+     */
     @GetMapping("/search")
     public ApiResponse<List<TourResponse>> searchTours(
             @RequestParam(required = false) String keyword,
@@ -56,6 +83,24 @@ public class TourController {
                 .build();
     }
 
+    // ===== ADMIN ENDPOINTS =====
+
+    /**
+     * Get ALL tours (for admin only)
+     * Admin có thể xem tất cả tours bất kể trạng thái
+     */
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<TourResponse>> getAllToursAdmin() {
+        List<TourResponse> result = tourService.getAllToursForAdmin();
+        return ApiResponse.<List<TourResponse>>builder()
+                .result(result)
+                .build();
+    }
+
+    /**
+     * Create new tour (admin only)
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> createTour(@RequestBody @Valid TourCreateRequest request) {
@@ -65,6 +110,9 @@ public class TourController {
                 .build();
     }
 
+    /**
+     * Update tour (admin only)
+     */
     @PutMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> updateTour(
@@ -77,28 +125,15 @@ public class TourController {
                 .build();
     }
 
+    /**
+     * Delete tour (admin only)
+     */
     @DeleteMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteTour(@PathVariable String tourId) {
         tourService.deleteTour(tourId);
         return ApiResponse.<Void>builder()
                 .message("Tour deleted successfully")
-                .build();
-    }
-
-    @GetMapping
-    public ApiResponse<List<TourResponse>> getAllToursPublic() {
-        List<TourResponse> result = tourService.getAllTours();
-        return ApiResponse.<List<TourResponse>>builder()
-                .result(result)
-                .build();
-    }
-
-    @GetMapping("/{tourId}")
-    public ApiResponse<TourResponse> getTourPublic(@PathVariable String tourId) {
-        TourResponse result = tourService.getTour(tourId);
-        return ApiResponse.<TourResponse>builder()
-                .result(result)
                 .build();
     }
 }

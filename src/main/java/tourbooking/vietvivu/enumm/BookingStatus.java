@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum BookingStatus {
     PENDING("Pending"),
     CONFIRMED("Confirmed"),
+    CONFIRMED_CANCELLATION("Confirmed Cancellation"),
     CANCELLED("Cancelled"),
     COMPLETED("Completed");
 
