@@ -2,10 +2,7 @@ package tourbooking.vietvivu.entity;
 
 import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -25,6 +22,11 @@ public class Role {
     String description;
 
     @ManyToMany
+    @JoinTable(
+            name = "roles_permissions",
+            joinColumns = @JoinColumn(name = "role_name", referencedColumnName = "name"),
+            inverseJoinColumns = @JoinColumn(name = "permissions_name", referencedColumnName = "name")
+    )
     Set<Permission> permissions;
 
     public Role(String name, String description) {

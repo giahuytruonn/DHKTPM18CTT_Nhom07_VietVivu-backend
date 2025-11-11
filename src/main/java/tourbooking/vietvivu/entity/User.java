@@ -2,6 +2,7 @@ package tourbooking.vietvivu.entity;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.*;
@@ -39,6 +40,11 @@ public class User implements Serializable {
     LocalDate createdDate;
 
     @ManyToMany
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_user_id", referencedColumnName = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_name", referencedColumnName = "name")
+    )
     Set<Role> roles;
 
     @OneToMany(mappedBy = "user")
@@ -63,4 +69,12 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user")
     @ToString.Exclude
     Set<InvalidatedToken> invalidatedTokens;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorite",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "tour_id", referencedColumnName = "tour_id")
+    )
+    private Set<Tour> favoriteTours = new HashSet<>();
 }

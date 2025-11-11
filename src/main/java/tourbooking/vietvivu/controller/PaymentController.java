@@ -25,8 +25,7 @@ public class PaymentController {
                 .result(paymentService.createPayment(req))
                 .message("Create link success")
                 .build();
-    }
-    ;
+    }; 
 
     @PostMapping("/success")
     public ApiResponse<PaymentSuccessResponse> paymentSuccess(@RequestBody PaymentSuccessRequest request) {
@@ -35,4 +34,6 @@ public class PaymentController {
                 .message("Payment success processed")
                 .build();
     }
+    
+    
 }

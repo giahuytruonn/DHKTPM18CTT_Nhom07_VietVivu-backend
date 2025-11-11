@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.entity;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -9,6 +10,8 @@ import jakarta.validation.constraints.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Formula;
+import tourbooking.vietvivu.enumm.TourStatus;
 
 @Getter
 @Setter
@@ -25,56 +28,78 @@ public class Tour {
     @Column(name = "tour_id")
     String tourId;
 
-    @NotBlank(message = "Tiêu đề tour không được để trống")
-    @Size(max = 200, message = "Tiêu đề tối đa 200 ký tự")
+    @NotBlank
+    @Size(max = 200)
     String title;
 
-    @Size(max = 2000, message = "Mô tả tối đa 2000 ký tự")
+    @Size(max = 2000)
     String description;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @PositiveOrZero(message = "Số lượng phải ≥ 0")
+    @PositiveOrZero
+    @Column(name = "initial_quantity")
+    Integer initialQuantity;
+
+    @NotNull
+    @PositiveOrZero
     Integer quantity;
 
-    @NotNull(message = "Giá người lớn không được để trống")
-    @PositiveOrZero(message = "Giá người lớn phải ≥ 0")
+    @NotNull
+    @PositiveOrZero
     @Column(name = "price_adult")
     Double priceAdult;
 
-    @NotNull(message = "Giá trẻ em không được để trống")
-    @PositiveOrZero(message = "Giá trẻ em phải ≥ 0")
+    @NotNull
+    @PositiveOrZero
     @Column(name = "price_child")
     Double priceChild;
 
-    @NotBlank(message = "Thời gian tour không được để trống")
-    @Pattern(regexp = "^\\d+ ngày( \\d+ đêm)?$", message = "Thời gian phải có định dạng: 'X ngày' hoặc 'X ngày Y đêm'")
+    @NotBlank
+    // @Pattern(regexp = "^\\d+ ngày( \\d+ đêm)?$") // Đã comment ở lần trước
     String duration;
 
-    @NotBlank(message = "Điểm đến không được để trống")
-    @Size(max = 100, message = "Điểm đến tối đa 100 ký tự")
+    @NotBlank
+    @Size(max = 100)
     String destination;
 
-    @NotNull(message = "Trạng thái khả dụng không được để trống")
+    @NotNull
     Boolean availability;
 
-    @NotNull(message = "Ngày khởi hành không được để trống")
-    @FutureOrPresent(message = "Ngày khởi hành phải từ hôm nay trở đi")
+    @NotNull
+    @FutureOrPresent
     @Column(name = "start_date")
     LocalDate startDate;
 
-    @NotEmpty(message = "Lịch trình không được để trống")
-    @Size(min = 1, max = 20, message = "Lịch trình phải có từ 1 đến 20 bước")
+    @Column(name = "end_date")
+    LocalDate endDate;
+
+    @Column(name = "tour_status")
+    @Enumerated(EnumType.STRING)
+    TourStatus tourStatus;
+
+    @NotEmpty
+    @Size(min = 1, max = 20)
     @ElementCollection
     @CollectionTable(name = "tour_itinerary", joinColumns = @JoinColumn(name = "tour_id"))
     @Column(name = "step")
-    List<@Size(max = 500, message = "Mỗi bước tối đa 500 ký tự") String> itinerary;
+    List<@Size(max = 500) String> itinerary;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Image> images;
 
-    @OneToMany(mappedBy = "tour")
-    Set<Review> reviews;
 
-    @OneToMany(mappedBy = "tour")
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
+            Set<Review> reviews;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
     Set<Booking> bookings;
+
+
+    @ManyToMany(mappedBy = "favoriteTours")
+    private Set<User> usersFavorited = new HashSet<>();
+
+    @Formula("(SELECT COUNT(*) FROM bookings b WHERE b.tour_id = tour_id)")
+    Integer totalBookings;
+
+    @Formula("(SELECT COUNT(*) FROM user_favorite uf WHERE uf.tour_id = tour_id)")
+    Integer favoriteCount;
 }
