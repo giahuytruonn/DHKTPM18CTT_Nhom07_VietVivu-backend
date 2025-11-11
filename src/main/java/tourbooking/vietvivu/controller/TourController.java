@@ -1,13 +1,14 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
@@ -19,7 +20,6 @@ import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/tours")
@@ -142,8 +142,7 @@ public class TourController {
     @PutMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourResponse> updateTour(
-            @PathVariable String tourId,
-            @RequestBody @Valid TourUpdateRequest request) {
+            @PathVariable String tourId, @RequestBody @Valid TourUpdateRequest request) {
 
         log.info("PUT /tours/{} - Updating tour", tourId);
         try {

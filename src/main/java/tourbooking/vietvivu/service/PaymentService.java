@@ -1,13 +1,16 @@
 package tourbooking.vietvivu.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
+import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.PaymentRequest;
 import tourbooking.vietvivu.dto.request.PaymentSuccessRequest;
-import tourbooking.vietvivu.dto.response.PaymentResponse;
+
 import tourbooking.vietvivu.dto.response.PaymentSuccessResponse;
 import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.Checkout;
@@ -16,17 +19,14 @@ import tourbooking.vietvivu.enumm.PaymentStatus;
 import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.CheckoutRepository;
 import tourbooking.vietvivu.repository.InvoiceRepository;
+
 import vn.payos.PayOS;
-import vn.payos.*;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.ItemData;
 import vn.payos.type.PaymentData;
 
-import java.time.LocalDate;
-
-
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor 
 public class PaymentService {
     private final PayOS payOS;
 
@@ -34,6 +34,7 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
+
 
     public CheckoutResponseData createPayment(PaymentRequest request) throws Exception {
         long orderCode = System.currentTimeMillis() / 1000;
@@ -56,6 +57,7 @@ public class PaymentService {
         return payOS.createPaymentLink(data);
     }
 
+ 
     @Transactional
     public PaymentSuccessResponse handlePaymentSuccess(PaymentSuccessRequest request) {
         Booking booking = bookingRepository.findById(request.getBookingId())
@@ -89,7 +91,7 @@ public class PaymentService {
         }else{
             email = booking.getContact().getEmail();
         }
-        // Send invoice email
+ 
         emailService.sendInvoiceEmail(
                 EmailRequest.builder()
                         .recipient(email)
@@ -125,5 +127,6 @@ public class PaymentService {
                 .invoiceDate(invoice.getDateIssued())
                 .build();
     }
-}
+    
 
+}

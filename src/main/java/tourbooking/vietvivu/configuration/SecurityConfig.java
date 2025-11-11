@@ -22,6 +22,7 @@ import org.springframework.web.filter.CorsFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    // Đây là phiên bản PUBLIC_ENDPOINTS từ nhánh 'Chuc'.
     private final String[] PUBLIC_ENDPOINTS = {
             "/users",
             "/auth/token",
@@ -36,6 +37,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // Đây là phiên bản filterChain chi tiết từ nhánh 'Chuc'.
         http
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
@@ -99,7 +101,9 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("");
+        // Đây là phiên bản setAuthorityPrefix từ nhánh 'main',
+        // nó cần thiết để 'hasRole("ADMIN")' hoạt động chính xác.
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
         authoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
