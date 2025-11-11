@@ -50,8 +50,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/tours/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/tours/admin/**").hasRole("ADMIN")
 
-                        // Favorite tours - USER & ADMIN
-                        .requestMatchers("/users/favorite-tours/**").hasAnyRole("USER", "ADMIN")
+                        // ===== FIX: Favorite tours - Cho phép cả USER và ADMIN =====
+                        .requestMatchers(HttpMethod.GET, "/users/favorite-tours").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users/favorite-tours/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/users/favorite-tours/**").authenticated()
+
+                        // User endpoints
+                        .requestMatchers(HttpMethod.GET, "/users/my-info").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users/create-password").authenticated()
 
                         // Booking & Review endpoints - ADMIN only
                         .requestMatchers("/bookings/**").hasRole("ADMIN")
@@ -79,9 +85,11 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -91,7 +99,7 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        authoritiesConverter.setAuthorityPrefix("");
         authoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();

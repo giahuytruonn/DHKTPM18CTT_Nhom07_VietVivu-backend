@@ -1,3 +1,4 @@
+// TourService.java - FIXED VERSION
 package tourbooking.vietvivu.service;
 
 import jakarta.transaction.Transactional;
@@ -43,38 +44,77 @@ public class TourService {
      * Chỉ trả về tours có availability = true và tourStatus = OPEN_BOOKING
      */
     public List<TourResponse> getAllToursForPublic() {
+        log.info("Getting all tours for public");
         List<Tour> tours = tourRepository.findAll();
 
+        // Update status for all tours
         tours.forEach(this::updateTourStatus);
 
+        // Filter OPEN_BOOKING tours
         List<Tour> openTours = tours.stream()
                 .filter(tour -> tour.getAvailability() && tour.getTourStatus() == TourStatus.OPEN_BOOKING)
                 .collect(Collectors.toList());
 
+        log.info("Found {} OPEN_BOOKING tours out of {} total tours", openTours.size(), tours.size());
         return tourMapper.toTourResponseList(openTours);
     }
 
     /**
      * Get ALL tours for ADMIN
      * Trả về tất cả tours bất kể trạng thái
+     * FIX: Đảm bảo update status và không bị lỗi khi map
      */
     public List<TourResponse> getAllToursForAdmin() {
-        List<Tour> tours = tourRepository.findAll();
-        tours.forEach(this::updateTourStatus);
-        return tourMapper.toTourResponseList(tours);
+        log.info("Getting all tours for admin");
+
+        try {
+            List<Tour> tours = tourRepository.findAll();
+            log.info("Retrieved {} tours from database", tours.size());
+
+            // Update status for each tour
+            tours.forEach(tour -> {
+                try {
+                    updateTourStatus(tour);
+                } catch (Exception e) {
+                    log.error("Error updating status for tour {}: {}", tour.getTourId(), e.getMessage());
+                }
+            });
+
+            // Save all tours after status update
+            tourRepository.saveAll(tours);
+
+            // Map to response with error handling
+            List<TourResponse> responses = tours.stream()
+                    .map(tour -> {
+                        try {
+                            return tourMapper.toTourResponse(tour);
+                        } catch (Exception e) {
+                            log.error("Error mapping tour {} to response: {}", tour.getTourId(), e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(response -> response != null)
+                    .collect(Collectors.toList());
+
+            log.info("Successfully mapped {} tours for admin", responses.size());
+            return responses;
+
+        } catch (Exception e) {
+            log.error("Error in getAllToursForAdmin: ", e);
+            throw new RuntimeException("Failed to get tours for admin", e);
+        }
     }
 
     /**
      * Search tours with filters
-     * - Public: chỉ tìm OPEN_BOOKING tours
-     * - Admin: tìm tất cả + filter theo tourStatus
      */
     public List<TourResponse> searchTours(TourSearchRequest request) {
         boolean isAdmin = isAdmin();
+        log.info("Searching tours - isAdmin: {}, request: {}", isAdmin, request);
+
         List<Tour> tours;
 
         if (isAdmin) {
-            // ADMIN: Tìm kiếm tất cả tours + có thể filter theo tourStatus
             tours = tourRepository.searchToursAdmin(
                     request.getKeyword(),
                     request.getDestination(),
@@ -82,10 +122,9 @@ public class TourService {
                     request.getMaxPrice(),
                     request.getStartDate(),
                     request.getMinQuantity(),
-                    request.getTourStatus()  // Admin có thể filter theo status
+                    request.getTourStatus()
             );
         } else {
-            // USER/GUEST: Chỉ tìm OPEN_BOOKING tours
             tours = tourRepository.searchToursPublic(
                     request.getKeyword(),
                     request.getDestination(),
@@ -93,24 +132,22 @@ public class TourService {
                     request.getMaxPrice(),
                     request.getStartDate(),
                     request.getMinQuantity()
-                    // KHÔNG có tourStatus - đã fix cứng trong query
             );
         }
 
-        // Update tour status (quan trọng để cập nhật trạng thái realtime)
+        log.info("Found {} tours matching search criteria", tours.size());
+
+        // Update tour status
         tours.forEach(this::updateTourStatus);
 
-        // Filter by durationDays nếu có
+        // Filter by durationDays if specified
         if (request.getDurationDays() != null) {
             tours = tours.stream()
                     .filter(tour -> {
                         if (tour.getStartDate() == null || tour.getEndDate() == null) {
                             return false;
                         }
-                        long days = ChronoUnit.DAYS.between(
-                                tour.getStartDate(),
-                                tour.getEndDate()
-                        );
+                        long days = ChronoUnit.DAYS.between(tour.getStartDate(), tour.getEndDate());
                         return days == request.getDurationDays();
                     })
                     .collect(Collectors.toList());
@@ -121,12 +158,13 @@ public class TourService {
 
     /**
      * Get tour by ID
-     * Bất kỳ ai cũng có thể xem chi tiết tour
      */
     public TourResponse getTour(String tourId) {
+        log.info("Getting tour by id: {}", tourId);
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
         updateTourStatus(tour);
+        tourRepository.save(tour);
         return tourMapper.toTourResponse(tour);
     }
 
@@ -134,6 +172,7 @@ public class TourService {
 
     @Transactional
     public TourResponse createTour(TourCreateRequest request) {
+        log.info("Creating new tour: {}", request.getTitle());
         Tour tour = tourMapper.toTour(request);
 
         if (tour.getInitialQuantity() == null) {
@@ -143,23 +182,29 @@ public class TourService {
         tour.setQuantity(request.getInitialQuantity());
         tour.setAvailability(true);
 
-        if (tour.getEndDate() == null) {
+        if (tour.getEndDate() == null && request.getStartDate() != null) {
             int durationDays = extractDaysFromDuration(tour.getDuration());
             tour.setEndDate(request.getStartDate().plusDays(durationDays));
         }
 
-        if (tour.getEndDate().isBefore(tour.getStartDate())) {
+        if (tour.getEndDate() != null && tour.getEndDate().isBefore(tour.getStartDate())) {
             throw new IllegalArgumentException("End date must be after start date");
         }
 
         updateTourStatus(tour);
         tour = tourRepository.save(tour);
-        saveImages(tour, request.getImageUrls());
+
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            saveImages(tour, request.getImageUrls());
+        }
+
+        log.info("Tour created successfully with id: {}", tour.getTourId());
         return tourMapper.toTourResponse(tour);
     }
 
     @Transactional
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
+        log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
@@ -172,15 +217,18 @@ public class TourService {
 
         updateTourStatus(tour);
         tour = tourRepository.save(tour);
+        log.info("Tour updated successfully: {}", tourId);
         return tourMapper.toTourResponse(tour);
     }
 
     @Transactional
     public void deleteTour(String tourId) {
+        log.info("Deleting tour: {}", tourId);
         if (!tourRepository.existsById(tourId)) {
             throw new AppException(ErrorCode.TOUR_NOT_FOUND);
         }
         tourRepository.deleteById(tourId);
+        log.info("Tour deleted successfully: {}", tourId);
     }
 
     // ===== PRIVATE HELPER METHODS =====
@@ -227,19 +275,16 @@ public class TourService {
             return;
         }
 
-        // Xác định trạng thái tour
+        // Determine tour status
         if (now.isBefore(startDate.minusDays(1))) {
-            // Trước ngày bắt đầu
             if (!tour.getAvailability()) {
                 tour.setTourStatus(TourStatus.IN_PROGRESS);
             } else {
                 tour.setTourStatus(TourStatus.OPEN_BOOKING);
             }
         } else if (!now.isAfter(endDate)) {
-            // Trong khoảng thời gian tour
             tour.setTourStatus(TourStatus.IN_PROGRESS);
         } else {
-            // Sau khi tour kết thúc
             tour.setTourStatus(TourStatus.COMPLETED);
         }
     }
@@ -258,7 +303,7 @@ public class TourService {
                 return Integer.parseInt(matcher1.group(1));
             }
 
-            // Pattern 2: "3N", "3N2Đ"
+            // Pattern 2: "3N", "3N2D"
             Pattern pattern2 = Pattern.compile("(\\d+)\\s*N", Pattern.CASE_INSENSITIVE);
             Matcher matcher2 = pattern2.matcher(duration);
             if (matcher2.find()) {
@@ -276,11 +321,16 @@ public class TourService {
     }
 
     private boolean isAdmin() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        try {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return false;
+            }
+            return authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        } catch (Exception e) {
+            log.error("Error checking admin role", e);
             return false;
         }
-        return authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
     }
 }

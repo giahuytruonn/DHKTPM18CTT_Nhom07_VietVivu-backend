@@ -96,15 +96,11 @@ public class AuthenticationService {
 
         log.info("TOKEN RESPONSE {}", response);
 
-        // Get user info
         var userInfo = outboundUserClient.getUserInfo("json", response.getAccessToken());
-
         log.info("User info {}", userInfo);
 
         Set<Role> roles = new HashSet<>();
         roles.add(Role.builder().name(PredefinedRole.USER_ROLE).build());
-
-        // Onboard user
 
         var user = userRepository
                 .findByUsername(userInfo.getEmail())
@@ -114,7 +110,6 @@ public class AuthenticationService {
                         .roles(roles)
                         .build()));
 
-        // Change token
         var token = generateToken(user);
 
         return AuthenticationResponse.builder().token(token).authenticated(true).build();
@@ -206,11 +201,11 @@ public class AuthenticationService {
 
         Date expiryTime = (isRefresh)
                 ? new Date(signedJWT
-                        .getJWTClaimsSet()
-                        .getIssueTime()
-                        .toInstant()
-                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
-                        .toEpochMilli())
+                .getJWTClaimsSet()
+                .getIssueTime()
+                .toInstant()
+                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);
@@ -223,16 +218,28 @@ public class AuthenticationService {
         return signedJWT;
     }
 
+    /**
+     * FIXED: Build scope with proper ROLE_ prefix
+     */
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        if (!CollectionUtils.isEmpty(user.getRoles()))
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> {
+                // Add ROLE_ prefix for Spring Security
                 stringJoiner.add("ROLE_" + role.getName());
-                if (!CollectionUtils.isEmpty(role.getPermissions()))
-                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
-            });
 
-        return stringJoiner.toString();
+                // Also add permissions if any
+                if (!CollectionUtils.isEmpty(role.getPermissions())) {
+                    role.getPermissions().forEach(permission -> {
+                        stringJoiner.add(permission.getName());
+                    });
+                }
+            });
+        }
+
+        String scope = stringJoiner.toString();
+        log.info("Built scope for user {}: {}", user.getUsername(), scope);
+        return scope;
     }
 }
