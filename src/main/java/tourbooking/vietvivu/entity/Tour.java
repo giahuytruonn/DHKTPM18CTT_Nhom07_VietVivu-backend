@@ -53,7 +53,7 @@ public class Tour {
     Double priceChild;
 
     @NotBlank
-    @Pattern(regexp = "^\\d+ ngày( \\d+ đêm)?$")
+    // @Pattern(regexp = "^\\d+ ngày( \\d+ đêm)?$") // Đã comment ở lần trước
     String duration;
 
     @NotBlank
@@ -85,11 +85,13 @@ public class Tour {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Image> images;
 
-    @OneToMany(mappedBy = "tour")
-    Set<Review> reviews;
 
-    @OneToMany(mappedBy = "tour")
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
+            Set<Review> reviews;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
     Set<Booking> bookings;
+
 
     @ManyToMany(mappedBy = "favoriteTours")
     private Set<User> usersFavorited = new HashSet<>();

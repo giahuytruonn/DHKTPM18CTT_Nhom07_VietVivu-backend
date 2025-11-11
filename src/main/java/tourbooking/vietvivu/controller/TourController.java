@@ -1,4 +1,3 @@
-// TourController.java - FIXED VERSION
 package tourbooking.vietvivu.controller;
 
 import jakarta.validation.Valid;
@@ -6,14 +5,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.enumm.TourStatus;
+import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
 
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ import java.util.List;
 public class TourController {
 
     TourService tourService;
+    CloudinaryService cloudinaryService;
 
     // ===== PUBLIC ENDPOINTS =====
 
@@ -171,6 +174,49 @@ public class TourController {
             return ApiResponse.<Void>builder()
                     .code(500)
                     .message("Error: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Upload ảnh lên Cloudinary
+     */
+    @PostMapping(value = "/upload-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<String>> uploadImages(@RequestParam("files") List<MultipartFile> files) {
+        log.info("Uploading {} images", files.size());
+        try {
+            List<String> imageUrls = cloudinaryService.uploadMultipleImages(files);
+            return ApiResponse.<List<String>>builder()
+                    .result(imageUrls)
+                    .message("Upload successful")
+                    .build();
+        } catch (Exception e) {
+            log.error("Upload failed", e);
+            return ApiResponse.<List<String>>builder()
+                    .code(500)
+                    .message("Upload failed: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Xóa ảnh từ Cloudinary
+     */
+    @DeleteMapping("/delete-image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deleteImage(@RequestParam String imageUrl) {
+        log.info("Deleting image: {}", imageUrl);
+        try {
+            cloudinaryService.deleteImage(imageUrl);
+            return ApiResponse.<Void>builder()
+                    .message("Image deleted successfully")
+                    .build();
+        } catch (Exception e) {
+            log.error("Delete failed", e);
+            return ApiResponse.<Void>builder()
+                    .code(500)
+                    .message("Delete failed: " + e.getMessage())
                     .build();
         }
     }

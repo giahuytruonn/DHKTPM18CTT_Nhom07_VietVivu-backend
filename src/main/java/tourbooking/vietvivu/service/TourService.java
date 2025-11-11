@@ -1,4 +1,3 @@
-// TourService.java - FIXED VERSION
 package tourbooking.vietvivu.service;
 
 import jakarta.transaction.Transactional;
@@ -14,6 +13,7 @@ import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.entity.Image;
 import tourbooking.vietvivu.entity.Tour;
+import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.exception.AppException;
 import tourbooking.vietvivu.exception.ErrorCode;
@@ -38,6 +38,9 @@ public class TourService {
     TourRepository tourRepository;
     ImageRepository imageRepository;
     TourMapper tourMapper;
+    CloudinaryService cloudinaryService;
+
+    // ... (Các hàm getAllToursForPublic, getAllToursForAdmin, searchTours, getTour không đổi) ...
 
     /**
      * Get all tours for PUBLIC (User & Guest)
@@ -66,7 +69,6 @@ public class TourService {
      */
     public List<TourResponse> getAllToursForAdmin() {
         log.info("Getting all tours for admin");
-
         try {
             List<Tour> tours = tourRepository.findAll();
             log.info("Retrieved {} tours from database", tours.size());
@@ -113,7 +115,6 @@ public class TourService {
         log.info("Searching tours - isAdmin: {}, request: {}", isAdmin, request);
 
         List<Tour> tours;
-
         if (isAdmin) {
             tours = tourRepository.searchToursAdmin(
                     request.getKeyword(),
@@ -163,17 +164,19 @@ public class TourService {
         log.info("Getting tour by id: {}", tourId);
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+
         updateTourStatus(tour);
         tourRepository.save(tour);
         return tourMapper.toTourResponse(tour);
     }
+
 
     // ===== ADMIN OPERATIONS =====
 
     @Transactional
     public TourResponse createTour(TourCreateRequest request) {
         log.info("Creating new tour: {}", request.getTitle());
-        Tour tour = tourMapper.toTour(request);
+        Tour tour = tourMapper.toTour(request); // Biến 'tour' này là effectively final
 
         if (tour.getInitialQuantity() == null) {
             tour.setInitialQuantity(request.getInitialQuantity());
@@ -184,7 +187,7 @@ public class TourService {
 
         if (tour.getEndDate() == null && request.getStartDate() != null) {
             int durationDays = extractDaysFromDuration(tour.getDuration());
-            tour.setEndDate(request.getStartDate().plusDays(durationDays));
+            tour.setEndDate(request.getStartDate().plusDays(durationDays - 1)); // Sửa logic tính ngày
         }
 
         if (tour.getEndDate() != null && tour.getEndDate().isBefore(tour.getStartDate())) {
@@ -192,11 +195,21 @@ public class TourService {
         }
 
         updateTourStatus(tour);
-        tour = tourRepository.save(tour);
 
+        // Thêm ảnh VÀO tour (nhưng chưa save)
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            saveImages(tour, request.getImageUrls());
+            Set<Image> images = request.getImageUrls().stream()
+                    .map(url -> Image.builder()
+                            .imageUrl(url)
+                            .uploadDate(LocalDate.now())
+                            .tour(tour) // Lambda này dùng biến 'tour' (effectively final) -> HỢP LỆ
+                            .build())
+                    .collect(Collectors.toSet());
+            tour.setImages(images);
         }
+
+        // Lưu tour 1 LẦN DUY NHẤT. CascadeType.ALL sẽ tự động lưu các Image
+        tourRepository.save(tour);
 
         log.info("Tour created successfully with id: {}", tour.getTourId());
         return tourMapper.toTourResponse(tour);
@@ -207,32 +220,81 @@ public class TourService {
         log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        // Biến 'tour' này là effectively final vì nó không bị gán lại
 
-        tourMapper.updateTour(tour, request);
-
+        // Xử lý logic cập nhật ảnh
         if (request.getImageUrls() != null) {
-            imageRepository.deleteByTour_TourId(tourId);
-            saveImages(tour, request.getImageUrls());
+            // Lấy URL ảnh cũ để xóa khỏi Cloudinary
+            List<String> oldImageUrls = tour.getImages().stream()
+                    .map(Image::getImageUrl)
+                    .collect(Collectors.toList());
+
+            // Xóa ảnh cũ trên Cloudinary
+            cloudinaryService.deleteMultipleImages(oldImageUrls);
+
+            // Xóa ảnh cũ khỏi collection của tour
+            // orphanRemoval=true sẽ tự động xóa chúng khỏi DB khi save
+            tour.getImages().clear();
+
+            // Tạo và thêm ảnh mới vào collection
+            Set<Image> newImages = request.getImageUrls().stream()
+                    .map(url -> Image.builder()
+                            .imageUrl(url)
+                            .uploadDate(LocalDate.now())
+                            .tour(tour) // Lambda này dùng biến 'tour' (effectively final) -> HỢP LỆ
+                            .build())
+                    .collect(Collectors.toSet());
+
+            tour.getImages().addAll(newImages);
         }
 
+        // Cập nhật các trường khác
+        tourMapper.updateTour(tour, request);
         updateTourStatus(tour);
-        tour = tourRepository.save(tour);
-        log.info("Tour updated successfully: {}", tourId);
+
+        // Chỉ cần save, không gán lại
+        tourRepository.save(tour);
+
         return tourMapper.toTourResponse(tour);
     }
 
     @Transactional
     public void deleteTour(String tourId) {
         log.info("Deleting tour: {}", tourId);
-        if (!tourRepository.existsById(tourId)) {
-            throw new AppException(ErrorCode.TOUR_NOT_FOUND);
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+
+        // XÓA ẢNH TRÊN CLOUDINARY
+        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+            List<String> imageUrls = tour.getImages().stream()
+                    .map(Image::getImageUrl)
+                    .toList();
+            cloudinaryService.deleteMultipleImages(imageUrls);
         }
+
+        // Phá vỡ mối quan hệ ManyToMany (User favorites)
+        // Lấy tất cả user đã favorite tour này
+        Set<User> users = tour.getUsersFavorited();
+        if (users != null && !users.isEmpty()) {
+            // Duyệt qua từng user và gỡ tour này ra khỏi danh sách favorites của họ
+            for (User user : users) {
+                user.getFavoriteTours().remove(tour);
+            }
+        }
+        // Xóa tham chiếu ngược lại từ tour
+        tour.getUsersFavorited().clear();
+
+        // Xóa tour trong database
+        // CascadeType.REMOVE (thêm ở Tour.java) sẽ tự động xóa Bookings, Reviews
+        // orphanRemoval=true (có sẵn ở Tour.java) sẽ tự động xóa Images
         tourRepository.deleteById(tourId);
         log.info("Tour deleted successfully: {}", tourId);
     }
 
+
     // ===== PRIVATE HELPER METHODS =====
 
+    /*
     private void saveImages(Tour tour, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
@@ -243,8 +305,11 @@ public class TourService {
                         .tour(tour)
                         .build())
                 .collect(Collectors.toSet());
-        imageRepository.saveAll(images);
+
+        // Thêm ảnh vào collection của tour
+        tour.getImages().addAll(images);
     }
+    */
 
     private void updateTourStatus(Tour tour) {
         LocalDate now = LocalDate.now();
@@ -260,7 +325,8 @@ public class TourService {
         if (endDate == null && tour.getDuration() != null) {
             int durationDays = extractDaysFromDuration(tour.getDuration());
             if (durationDays > 0) {
-                endDate = startDate.plusDays(durationDays);
+                // Sửa logic: 3 ngày 2 đêm (durationDays = 3) -> endDate = startDate + 2 ngày
+                endDate = startDate.plusDays(durationDays - 1);
                 tour.setEndDate(endDate);
             } else {
                 log.warn("Tour {} has invalid duration format: {}", tour.getTourId(), tour.getDuration());
@@ -276,15 +342,16 @@ public class TourService {
         }
 
         // Determine tour status
-        if (now.isBefore(startDate.minusDays(1))) {
+        if (now.isBefore(startDate)) { // Sửa: chỉ cần trước ngày bắt đầu
             if (!tour.getAvailability()) {
-                tour.setTourStatus(TourStatus.IN_PROGRESS);
+                // Nếu set thủ công là không có sẵn (ví dụ: admin tự khóa)
+                tour.setTourStatus(TourStatus.IN_PROGRESS); // Hoặc một status "TẠM DỪNG"
             } else {
                 tour.setTourStatus(TourStatus.OPEN_BOOKING);
             }
-        } else if (!now.isAfter(endDate)) {
+        } else if (!now.isAfter(endDate)) { // Từ ngày bắt đầu ĐẾN ngày kết thúc
             tour.setTourStatus(TourStatus.IN_PROGRESS);
-        } else {
+        } else { // Sau ngày kết thúc
             tour.setTourStatus(TourStatus.COMPLETED);
         }
     }
