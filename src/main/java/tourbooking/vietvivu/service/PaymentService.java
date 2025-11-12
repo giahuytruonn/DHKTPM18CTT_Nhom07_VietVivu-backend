@@ -1,13 +1,12 @@
 package tourbooking.vietvivu.service;
 
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.PaymentRequest;
 import tourbooking.vietvivu.dto.request.PaymentSuccessRequest;
-import tourbooking.vietvivu.dto.response.PaymentResponse;
 import tourbooking.vietvivu.dto.response.PaymentSuccessResponse;
 import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.Checkout;
@@ -16,14 +15,11 @@ import tourbooking.vietvivu.enumm.PaymentStatus;
 import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.CheckoutRepository;
 import tourbooking.vietvivu.repository.InvoiceRepository;
-import vn.payos.PayOS;
 import vn.payos.*;
+import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.ItemData;
 import vn.payos.type.PaymentData;
-
-import java.time.LocalDate;
-
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +54,8 @@ public class PaymentService {
 
     @Transactional
     public PaymentSuccessResponse handlePaymentSuccess(PaymentSuccessRequest request) {
-        Booking booking = bookingRepository.findById(request.getBookingId())
+        Booking booking = bookingRepository
+                .findById(request.getBookingId())
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         Checkout checkout = Checkout.builder()
@@ -84,36 +81,34 @@ public class PaymentService {
         bookingRepository.save(booking);
         String email = "";
 
-        if(booking.getUser() != null) {
+        if (booking.getUser() != null) {
             email = booking.getUser().getEmail();
-        }else{
+        } else {
             email = booking.getContact().getEmail();
         }
         // Send invoice email
-        emailService.sendInvoiceEmail(
-                EmailRequest.builder()
-                        .recipient(email)
-                        .subject("Your Invoice for Booking " + booking.getBookingId())
-                        .bookingId(booking.getBookingId())
-                        .bookingDate(booking.getBookingDate())
-                        .tourTitle(booking.getTour().getTitle())
-                        .tourDestination(booking.getTour().getDestination())
-                        .tourDuration(booking.getTour().getDuration())
-                        .numAdults(booking.getNumAdults())
-                        .numChildren(booking.getNumChildren())
-                        .priceAdult(booking.getTour().getPriceAdult())
-                        .priceChild(booking.getTour().getPriceChild())
-                        .totalPrice(booking.getTotalPrice())
-                        .discountAmount(booking.getTotalPrice() - checkout.getAmount())
-                        .finalAmount(checkout.getAmount())
-                        .note(booking.getNote())
-                        .paymentMethod(checkout.getPaymentMethod())
-                        .paymentStatus(checkout.getPaymentStatus())
-                        .transactionId(checkout.getTransactionId())
-                        .invoiceId(invoice.getInvoiceId())
-                        .invoiceDate(invoice.getDateIssued())
-                        .build()
-        );
+        emailService.sendInvoiceEmail(EmailRequest.builder()
+                .recipient(email)
+                .subject("Your Invoice for Booking " + booking.getBookingId())
+                .bookingId(booking.getBookingId())
+                .bookingDate(booking.getBookingDate())
+                .tourTitle(booking.getTour().getTitle())
+                .tourDestination(booking.getTour().getDestination())
+                .tourDuration(booking.getTour().getDuration())
+                .numAdults(booking.getNumAdults())
+                .numChildren(booking.getNumChildren())
+                .priceAdult(booking.getTour().getPriceAdult())
+                .priceChild(booking.getTour().getPriceChild())
+                .totalPrice(booking.getTotalPrice())
+                .discountAmount(booking.getTotalPrice() - checkout.getAmount())
+                .finalAmount(checkout.getAmount())
+                .note(booking.getNote())
+                .paymentMethod(checkout.getPaymentMethod())
+                .paymentStatus(checkout.getPaymentStatus())
+                .transactionId(checkout.getTransactionId())
+                .invoiceId(invoice.getInvoiceId())
+                .invoiceDate(invoice.getDateIssued())
+                .build());
 
         return PaymentSuccessResponse.builder()
                 .checkoutId(checkout.getCheckoutId())
@@ -126,4 +121,3 @@ public class PaymentService {
                 .build();
     }
 }
-

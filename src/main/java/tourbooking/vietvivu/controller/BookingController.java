@@ -21,16 +21,13 @@ import tourbooking.vietvivu.service.BookingService;
 @Slf4j
 public class BookingController {
 
-   BookingService bookingService;
+    BookingService bookingService;
 
-   @PostMapping
-    ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request){
-       log.info("Received booking request: {}", request);
-       BookingResponse response = bookingService.bookTour(request);
-       log.info("Booking successful: {}", response);
-       return ApiResponse.<BookingResponse>builder()
-                .result(response)
-                .build();
-}
-
+    @PostMapping
+    ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request) {
+        log.info("Received booking request: {}", request);
+        BookingResponse response = bookingService.bookTour(request);
+        log.info("Booking successful: {}", response);
+        return ApiResponse.<BookingResponse>builder().result(response).build();
+    }
 }

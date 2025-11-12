@@ -1,7 +1,7 @@
 package tourbooking.vietvivu.dto.response;
 
-import lombok.*;
 import java.time.LocalDate;
+import lombok.*;
 
 @Getter
 @Setter

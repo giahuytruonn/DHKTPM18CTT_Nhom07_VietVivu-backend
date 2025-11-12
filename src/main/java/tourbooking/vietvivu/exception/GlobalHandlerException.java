@@ -1,18 +1,13 @@
 package tourbooking.vietvivu.exception;
 
 import java.util.Map;
-import java.util.Objects;
-
-import jakarta.validation.ConstraintViolation;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 
 @ControllerAdvice
@@ -32,7 +27,7 @@ public class GlobalHandlerException {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    //Xu ly custom exception
+    // Xu ly custom exception
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         log.error("Exception", exception);
@@ -69,9 +64,7 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(err -> err.getDefaultMessage())
                 .orElse("Invalid request");
@@ -82,7 +75,6 @@ public class GlobalHandlerException {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
-
 
     private String mapAttribute(String message, Map<String, Object> attributes) {
         String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));

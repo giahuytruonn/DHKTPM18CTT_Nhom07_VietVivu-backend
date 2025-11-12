@@ -1,10 +1,8 @@
 package tourbooking.vietvivu.entity;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.Set;
-
-import jakarta.persistence.*;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -21,8 +19,7 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.UUID)
     String conversationId;
 
-
-    //Them enum (26/10/2025)
+    // Them enum (26/10/2025)
     @Column(name = "reply_status")
     Boolean replyStatus;
 

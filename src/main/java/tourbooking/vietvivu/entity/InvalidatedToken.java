@@ -1,9 +1,7 @@
 package tourbooking.vietvivu.entity;
 
-import java.util.Date;
-
 import jakarta.persistence.*;
-
+import java.util.Date;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.configuration;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,20 +18,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/users",
-            "/auth/token",
-            "/auth/introspect",
-            "/auth/logout",
-            "/auth/refresh",
-            "/auth/outbound/authentication"
+        "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh", "/auth/outbound/authentication","/ai/**"
     };
 
     @Autowired
@@ -38,23 +32,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
+        return http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-                )
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+                                jwt.decoder(customJwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .build();
     }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -80,7 +68,6 @@ public class SecurityConfig {
         converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return converter;
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {

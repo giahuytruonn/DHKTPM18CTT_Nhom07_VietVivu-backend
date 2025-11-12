@@ -17,8 +17,7 @@ public class PayOSConfig {
     String checksumKey;
 
     @Bean
-    public PayOS payOS(){
+    public PayOS payOS() {
         return new PayOS(clientId, apiKey, checksumKey);
     }
-
 }

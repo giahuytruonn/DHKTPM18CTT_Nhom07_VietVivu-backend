@@ -15,12 +15,14 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
+
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
       chat:
         options:
           model: gpt-5-mini
+          max-completion-tokens: 2048
           temperature: 1.0
       embedding:
         options:

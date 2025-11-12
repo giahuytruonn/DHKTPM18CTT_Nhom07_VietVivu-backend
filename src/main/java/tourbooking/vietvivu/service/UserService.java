@@ -2,18 +2,16 @@ package tourbooking.vietvivu.service;
 
 import java.util.HashSet;
 import java.util.List;
-
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.constant.PredefinedRole;
 import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
 import tourbooking.vietvivu.dto.request.UserCreationRequest;
@@ -37,7 +35,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
 
-    //CREATE
+    // CREATE
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
 
@@ -77,7 +75,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    //UPDATE
+    // UPDATE
     @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -91,12 +89,11 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    //DELETE
+    // DELETE
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String id) {
         userRepository.deleteById(id);
     }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     public void updateStatusUser(String id, Boolean isActive) {
@@ -105,14 +102,13 @@ public class UserService {
         userRepository.save(user);
     }
 
-    //SEARCH With Name, phone
+    // SEARCH With Name, phone
     public List<UserResponse> searchUsers(String keyword) {
         List<User> users = userRepository.findByUsernameContainingIgnoreCaseOrPhoneNumberContaining(keyword, keyword);
         return users.stream().map(userMapper::toUserResponse).toList();
     }
 
-
-    //READ
+    // READ
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         log.info("In method get Users");

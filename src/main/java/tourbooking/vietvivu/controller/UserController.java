@@ -1,16 +1,13 @@
 package tourbooking.vietvivu.controller;
 
-import java.util.List;
-
 import jakarta.validation.Valid;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
 import tourbooking.vietvivu.dto.request.UserCreationRequest;
 import tourbooking.vietvivu.dto.request.UserUpdateRequest;
@@ -86,6 +83,8 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> updateStatusUser(@PathVariable String userId, @RequestParam("isActive") Boolean isActive) {
         userService.updateStatusUser(userId, isActive);
-        return ApiResponse.<Void>builder().message("User status has been updated").build();
+        return ApiResponse.<Void>builder()
+                .message("User status has been updated")
+                .build();
     }
 }
