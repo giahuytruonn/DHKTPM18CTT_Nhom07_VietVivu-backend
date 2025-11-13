@@ -33,7 +33,6 @@ public class BookingRequestController {
     final UserRepository userRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<BookingRequestResponse>> getPendingRequests() {
         return ApiResponse.<List<BookingRequestResponse>>builder()
                 .result(bookingRequestService.getPendingRequests())
@@ -41,7 +40,6 @@ public class BookingRequestController {
     }
 
     @GetMapping("/{requestId}")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<BookingRequestResponse> getBookingRequest(@PathVariable String requestId) {
         return ApiResponse.<BookingRequestResponse>builder()
                 .result(bookingRequestService.getById(requestId))
@@ -49,7 +47,6 @@ public class BookingRequestController {
     }
 
     @PutMapping("/{requestId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<BookingRequestResponse> updateStatusBooking(
             @PathVariable String requestId, @RequestBody @Valid BookingRequestStatusUpdateRequest request) {
 
@@ -71,7 +68,6 @@ public class BookingRequestController {
     }
 
     @PutMapping("/{bookingId}/cancel-booking")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<BookingRequestResponse> cancelBooking(
             @PathVariable String bookingId, @RequestBody @Valid BookingCancelUpdateRequest request) {
 
