@@ -38,13 +38,6 @@ public class ExploreVideoService {
         video.setUploadedAt(LocalDateTime.now());
         video.setApproved(false); // chờ duyệt
 
-        if (req.getTourId() != null) {
-            Tour tour = tourRepository
-                    .findById(req.getTourId())
-                    .orElseThrow(() -> new RuntimeException("Tour không tồn tại"));
-            video.setTour(tour);
-        }
-
         ExploreVideo saved = exploreVideoRepository.save(video);
         return toResponse(saved);
     }
@@ -55,11 +48,6 @@ public class ExploreVideoService {
                 .collect(Collectors.toList());
     }
 
-    public List<ExploreVideoResponse> getApprovedVideosByTour(String tourId) {
-        return exploreVideoRepository.findByTour_TourIdAndApprovedTrueOrderByUploadedAtDesc(tourId).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
 
     public List<ExploreVideoResponse> getPendingVideos() {
         return exploreVideoRepository.findByApprovedFalseOrderByUploadedAtDesc().stream()
@@ -86,15 +74,6 @@ public class ExploreVideoService {
         video.setDescription(req.getDescription());
         video.setVideoUrl(req.getVideoUrl());
 
-        if (req.getTourId() != null) {
-            Tour tour = tourRepository
-                    .findById(req.getTourId())
-                    .orElseThrow(() -> new RuntimeException("Tour không tồn tại"));
-            video.setTour(tour);
-        } else {
-            video.setTour(null);
-        }
-
         return toResponse(exploreVideoRepository.save(video));
     }
 
@@ -105,7 +84,6 @@ public class ExploreVideoService {
                 video.getDescription(),
                 video.getVideoUrl(),
                 video.getUploader().getUsername(),
-                video.getTour() != null ? video.getTour().getTourId() : null,
                 video.getApproved(),
                 video.getUploadedAt());
     }

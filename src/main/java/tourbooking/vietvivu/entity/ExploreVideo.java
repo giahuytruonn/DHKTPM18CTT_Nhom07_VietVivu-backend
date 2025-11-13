@@ -33,10 +33,6 @@ public class ExploreVideo {
     @JoinColumn(name = "user_id", nullable = false)
     User uploader;
 
-    @ManyToOne
-    @JoinColumn(name = "tour_id")
-    Tour tour;
-
     @Column(name = "uploaded_at")
     LocalDateTime uploadedAt;
 
