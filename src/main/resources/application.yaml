@@ -33,12 +33,6 @@ spring:
         dimensions: 1536          # số chiều vector (phải đúng với model embedding)
         distance-type: cosine_distance
         index-type: none
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: admin
-    password: admin
-    virtual-host: /
   main:
     allow-bean-definition-overriding: true
 
