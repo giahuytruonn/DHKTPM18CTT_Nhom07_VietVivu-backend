@@ -1,13 +1,19 @@
 package tourbooking.vietvivu.service;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import jakarta.transaction.Transactional;
+
+import org.springframework.stereotype.Service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
@@ -22,11 +28,7 @@ import tourbooking.vietvivu.mapper.TourMapper;
 import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.repository.TourRepository;
 
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -144,6 +146,7 @@ public class TourService {
         tours.forEach(this::updateTourStatus);
 
         // Filter by durationDays if specified
+        // Giữ lại logic filter của nhánh Chuc
         if (request.getDurationDays() != null) {
             tours = tours.stream()
                     .filter(tour -> {
@@ -151,11 +154,14 @@ public class TourService {
                             return false;
                         }
                         long days = ChronoUnit.DAYS.between(tour.getStartDate(), tour.getEndDate());
-                        return days == request.getDurationDays();
+                        // Sửa logic: "3 ngày 2 đêm" (duration 3) = 2 ngày chênh lệch.
+                        // Nếu durationDays = 3, thì (days + 1) == 3
+                        return (days + 1) == request.getDurationDays();
                     })
                     .collect(Collectors.toList());
         }
 
+        // Xóa code cũ của nhánh 'main' (public List<TourResponse> searchTours(String...))
         return tourMapper.toTourResponseList(tours);
     }
 
@@ -226,6 +232,7 @@ public class TourService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
+        // Giữ lại logging của nhánh Chuc
         log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
@@ -287,6 +294,7 @@ public class TourService {
 
 
     // ===== PRIVATE HELPER METHODS =====
+    // Xóa method getTour bị lặp lại từ nhánh main
 
     private void updateTourStatus(Tour tour) {
         LocalDate now = LocalDate.now();

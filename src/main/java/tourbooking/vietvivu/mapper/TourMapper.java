@@ -1,18 +1,20 @@
 package tourbooking.vietvivu.mapper;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.entity.Tour;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface TourMapper {
+
 
     @Mapping(target = "quantity", ignore = true)
     @Mapping(target = "tourStatus", ignore = true)
@@ -34,6 +36,7 @@ public interface TourMapper {
     List<TourResponse> toTourResponseList(List<Tour> tours);
 
     default List<String> mapImageUrls(Tour tour) {
+        // Giữ lại phiên bản an toàn hơn của nhánh 'Chuc'
         try {
             if (tour.getImages() == null || tour.getImages().isEmpty()) return List.of();
             return tour.getImages().stream()

@@ -3,7 +3,10 @@ package tourbooking.vietvivu.service;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,94 @@ public class BookingService {
     private final PromotionRepository promotionRepository;
     private final ContactRepository contactRepository;
     private final HistoryRepository historyRepository;
+
+    public List<BookingResponse> getBookingByUserId(String userId) {
+        List<Booking> bookings = bookingRepository.findByUser_Id(userId);
+        return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
+    }
+
+    public List<BookingResponse> getMyBookings() {
+        var context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        System.out.println(user.getUsername());
+        System.out.println(user.getId());
+        List<Booking> bookings = bookingRepository.findByUser_Id(user.getId());
+        return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
+    }
+
+    private BookingResponse mapToBookingResponse(Booking booking) {
+        Tour tour = booking.getTour();
+        Promotion promotion = booking.getPromotion();
+
+        BookingResponse response = BookingResponse.builder()
+                .bookingId(booking.getBookingId())
+                .bookingDate(booking.getBookingDate())
+                .totalPrice(booking.getTotalPrice())
+                .bookingStatus(booking.getBookingStatus())
+                .paymentTerm(booking.getPaymentTerm())
+                .note(booking.getNote())
+                .build();
+
+        // Map user or contact information
+        if (booking.getUser() != null) {
+            User user = booking.getUser();
+            response.setName(user.getName());
+            response.setEmail(user.getEmail());
+            response.setPhone(user.getPhoneNumber());
+            response.setAddress(user.getAddress());
+        } else if (booking.getContact() != null) {
+            Contact contact = booking.getContact();
+            response.setName(contact.getName());
+            response.setEmail(contact.getEmail());
+            response.setPhone(contact.getPhoneNumber());
+            response.setAddress(contact.getAddress());
+        }
+
+        // Map tour information
+        if (tour != null) {
+            response.setTourId(tour.getTourId());
+            response.setTourTitle(tour.getTitle());
+            response.setTourDuration(tour.getDuration());
+            response.setTourDestination(tour.getDestination());
+            response.setImageUrl(
+                    tour.getImages() != null && !tour.getImages().isEmpty()
+                            ? tour.getImages().stream()
+                                    .findFirst()
+                                    .map(Image::getImageUrl)
+                                    .orElse(null)
+                            : null);
+            response.setPriceAdult(tour.getPriceAdult());
+            response.setPriceChild(tour.getPriceChild());
+        }
+
+        // Map promotion information
+        if (promotion != null) {
+            response.setPromotionCode(promotion.getPromotionId());
+            response.setDiscountAmount(promotion.getDiscount());
+            if (booking.getTotalPrice() != null && promotion.getDiscount() != null) {
+                response.setRemainingAmount(booking.getTotalPrice() - promotion.getDiscount());
+            }
+        }
+
+        // Map booking details
+        if (booking.getNumAdults() != null) {
+            response.setNumOfAdults(booking.getNumAdults());
+            if (tour != null && tour.getPriceAdult() != null) {
+                response.setTotalPriceAdults(booking.getNumAdults() * tour.getPriceAdult());
+            }
+        }
+
+        if (booking.getNumChildren() != null) {
+            response.setNumOfChildren(booking.getNumChildren());
+            if (tour != null && tour.getPriceChild() != null) {
+                response.setTotalPriceChildren(booking.getNumChildren() * tour.getPriceChild());
+            }
+        }
+
+        return response;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public BookingResponse bookTour(BookingRequest request) {

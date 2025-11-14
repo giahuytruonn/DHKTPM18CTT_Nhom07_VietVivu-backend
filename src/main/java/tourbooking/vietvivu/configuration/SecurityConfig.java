@@ -57,6 +57,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // Đây là phiên bản filterChain chi tiết từ nhánh 'Chuc'.
         http
                 .authorizeHttpRequests(auth -> auth
                         // ===== PUBLIC ENDPOINTS =====
@@ -110,7 +111,9 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("");
+        // Đây là phiên bản setAuthorityPrefix từ nhánh 'main',
+        // nó cần thiết để 'hasRole("ADMIN")' hoạt động chính xác.
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
         authoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
