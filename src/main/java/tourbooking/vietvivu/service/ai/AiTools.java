@@ -1,17 +1,23 @@
-package tourbooking.vietvivu.service;
+package tourbooking.vietvivu.service.ai;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
-import tourbooking.vietvivu.entity.Tour;
+import org.springframework.ai.vectorstore.filter.Filter;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.stereotype.Component;
+import tourbooking.vietvivu.service.TourService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Component
 @RequiredArgsConstructor
 public class AiTools {
     private final TourService tourService;
@@ -122,9 +128,20 @@ public class AiTools {
     }
 
     @Tool(description = "Tìm thông tin tóm tắt của tour dựa trên mã tourId")
-    public Map<String, Object> findTour(String tourId) {
-        return tourService.findTourSummaryById(tourId);
+    public Document findTour(String query) {
+
+        List<Document> results = vectorStore.similaritySearch(
+                SearchRequest.builder()
+                        .query(query) // framework tự embed
+                        .topK(1)
+                        .build()
+        );
+
+        System.out.println(results);
+
+        return results.isEmpty() ? null : results.get(0);
     }
+
 
 
 

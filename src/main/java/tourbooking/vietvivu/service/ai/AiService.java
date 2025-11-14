@@ -1,20 +1,22 @@
-package tourbooking.vietvivu.service;
+package tourbooking.vietvivu.service.ai;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
-import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import reactor.core.publisher.Flux;
+import tourbooking.vietvivu.service.TourService;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,8 @@ public class AiService {
     private final TourService tourService;
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
+    private final AiTools aiTools;
+
 
     public String getAiReply(String query) {
         // ✅ 1. Định nghĩa prompt hệ thống (system prompt)
@@ -40,20 +44,23 @@ public class AiService {
                   “Xin lỗi, tôi chỉ hỗ trợ các vấn đề liên quan đến tour du lịch VietViVu.”
 
                 🧭 **Khi gợi ý tour:**
-                - Dựa trên yêu cầu người dùng (địa điểm, thời gian, số ngày, mùa, ngân sách, v.v)
-                - Sau đó, dùng công cụ `findTour` để lấy thông tin tóm tắt (tên, giá, số ngày).
-                - Cuối cùng, trả về kết quả JSON như sau:
-                                {
-                                  "tourId": "<mã_tour>",
-                                  "summary": {
-                                    "name": "<tên tour>",
-                                    "price": "<giá>",
-                                    "days": "<số ngày>"
-                                  }
-                                }
-                - Dựa vào description trong Tour để ghi ra điểm nổi bật ngắn gọn nhất có thể. Và không lấy thông tin từ nơi khác.
-                - Chỉ trả lời nhiêu đó thông tin thôi không thêm thắt gì khác.
-                - Nếu không tìm thấy tour nào phù hợp, trả lời: “Hiện tại VietViVu chưa có tour phù hợp, bạn có muốn tôi gợi ý điểm đến tương tự không?”
+                - Dựa trên yêu cầu của người dùng, hãy chọn ra tour phù hợp nhất.
+                - Dùng công cụ `findTour` nếu cần tìm trong cơ sở dữ liệu.
+                - Sau đó, chỉ trả về kết quả JSON theo mẫu sau — không thêm text, không giải thích:
+                
+                {
+                  "tourId": "<mã_tour>",
+                  "summary": {
+                    "name": "<tên tour>",
+                    "price": "<giá>",
+                    "days": "<số ngày>"
+                  }
+                }
+                
+                Nếu không có tour nào phù hợp, chỉ trả về:
+                {
+                  "tourId": null
+                }
 
                 🧩 **Khi người dùng hỏi về quy trình:**
                 - Nếu họ hỏi về cách **đặt tour**, **hủy tour**, hoặc **đổi tour**, hãy gọi đúng công cụ tương ứng:
@@ -81,10 +88,11 @@ public class AiService {
         // ✅ 3. Tạo Prompt
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
         return chatClient.prompt(prompt)
-                .tools(new AiTools(tourService, vectorStore, embeddingModel))
+                .tools(aiTools)
                 .call()
                 .content();
     }
+
 
 }
 

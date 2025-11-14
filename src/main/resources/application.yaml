@@ -21,7 +21,7 @@ spring:
       api-key: ${OPENAI_API_KEY}
       chat:
         options:
-          model: gpt-5-mini
+          model: gpt-3.5-turbo
           max-completion-tokens: 2048
           temperature: 1.0
       embedding:
@@ -32,6 +32,7 @@ spring:
         table-name: tour_vectors     # tên bảng chứa vector
         dimensions: 1536          # số chiều vector (phải đúng với model embedding)
         distance-type: cosine_distance
+        index-type: none
   rabbitmq:
     host: localhost
     port: 5672

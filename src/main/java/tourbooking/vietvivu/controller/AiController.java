@@ -1,20 +1,16 @@
 package tourbooking.vietvivu.controller;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.entity.Tour;
-import tourbooking.vietvivu.service.AiService;
+import tourbooking.vietvivu.service.ai.AiService;
 import tourbooking.vietvivu.service.TourRagService;
 import tourbooking.vietvivu.service.TourService;
 
@@ -32,12 +28,17 @@ public class AiController {
     @PostMapping(value = "/chat")
     public ApiResponse<String> chat(@RequestBody Map<String, String> payload) {
         String query = payload.get("message");
-        String response = aiService.handleUserQuery(query);
+        String response = aiService.getAiReply(query);
+        System.out.println(response);
         return ApiResponse.<String>builder()
                 .result(response)
                 .build();
 
     }
+
+
+
+
 
     @PostMapping("/reindex")
     public ApiResponse<String> reindexData() {

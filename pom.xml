@@ -127,10 +127,6 @@
             <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-client-chat</artifactId>
             <version>1.1.0-M4</version>

@@ -25,9 +25,25 @@ public class TourRagService {
 
     public String indexTourData(List<Tour> tours) {
         List<Document> docs = tours.stream()
-                .map(tour -> new Document(
-                        tour.getTitle() + "\n" + tour.getDescription(),
-                        Map.of("id", tour.getTourId(), "title", tour.getTitle())))
+                .map(tour -> {
+                    String content = tour.getTitle() + "\n"
+                            + "Destination: " + tour.getDestination() + "\n"
+                            + "Duration: " + tour.getDuration() + " ngày\n"
+                            + "Giá người lớn: " + tour.getPriceAdult() + " vnđ\n"
+                            + "Giá trẻ em: " + tour.getPriceChild() + " vnđ\n"
+                            + tour.getDescription();
+
+                    return new Document(content,
+                            Map.of(
+                                    "id", tour.getTourId(),
+                                    "title", tour.getTitle(),
+                                    "destination", tour.getDestination(),
+                                    "duration", tour.getDuration(),
+                                    "priceAdult", tour.getPriceAdult(),
+                                    "priceChild", tour.getPriceChild()
+                            )
+                    );
+                })
                 .toList();
 
         vectorStore.add(docs);
