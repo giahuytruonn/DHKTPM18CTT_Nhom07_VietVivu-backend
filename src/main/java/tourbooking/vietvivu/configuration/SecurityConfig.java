@@ -19,16 +19,37 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    // ===== PUBLIC ENDPOINTS =====
     private final String[] PUBLIC_ENDPOINTS = {
             "/users",
             "/auth/token",
             "/auth/introspect",
             "/auth/logout",
             "/auth/refresh",
-            "/auth/outbound/authentication"
+            "/auth/outbound/authentication",
+            "/tours",
+            "/tours/**",
+            "/tours/search"
+    };
+
+    // ===== ADMIN ENDPOINTS =====
+    private final String[] ADMIN_ENDPOINTS = {
+            "/tours",
+            "/tours/**",
+            "/tours/admin/**",
+            "/bookings/**",
+            "/reviews/**"
+    };
+
+    // ===== USER AUTHENTICATED ENDPOINTS =====
+    private final String[] USER_ENDPOINTS = {
+            "/users/favorite-tours",
+            "/users/favorite-tours/**",
+            "/users/my-info",
+            "/users/create-password"
     };
 
     @Autowired
@@ -38,30 +59,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // ===== PUBLIC ENDPOINTS =====
                         .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
 
-                        // Tour endpoints - PUBLIC (User & Guest)
-                        .requestMatchers(HttpMethod.GET, "/tours", "/tours/**", "/tours/search").permitAll()
+                        // ===== ADMIN ENDPOINTS =====
+                        .requestMatchers(HttpMethod.POST, ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, ADMIN_ENDPOINTS).hasRole("ADMIN")
 
-                        // Tour endpoints - ADMIN only
-                        .requestMatchers(HttpMethod.POST, "/tours").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/tours/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/tours/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/tours/admin/**").hasRole("ADMIN")
-
-                        // ===== FIX: Favorite tours - Cho phép cả USER và ADMIN =====
-                        .requestMatchers(HttpMethod.GET, "/users/favorite-tours").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/users/favorite-tours/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/users/favorite-tours/**").authenticated()
-
-                        // User endpoints
-                        .requestMatchers(HttpMethod.GET, "/users/my-info").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/users/create-password").authenticated()
-
-                        // Booking & Review endpoints - ADMIN only
-                        .requestMatchers("/bookings/**").hasRole("ADMIN")
-                        .requestMatchers("/reviews/**").hasRole("ADMIN")
+                        // ===== USER AUTHENTICATED ENDPOINTS =====
+                        .requestMatchers(HttpMethod.GET, USER_ENDPOINTS).authenticated()
+                        .requestMatchers(HttpMethod.POST, USER_ENDPOINTS).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, USER_ENDPOINTS).authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
