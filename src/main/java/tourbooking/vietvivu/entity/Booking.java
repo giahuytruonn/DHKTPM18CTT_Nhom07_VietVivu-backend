@@ -3,7 +3,7 @@ package tourbooking.vietvivu.entity;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.enumm.BookingStatus;

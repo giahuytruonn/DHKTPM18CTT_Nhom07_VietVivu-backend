@@ -1,19 +1,20 @@
-    package tourbooking.vietvivu.dto.response;
+package tourbooking.vietvivu.dto.response;
 
-    import com.fasterxml.jackson.annotation.JsonInclude;
-    import lombok.*;
-    import lombok.experimental.FieldDefaults;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public class ApiResponse<T> {
-        @Builder.Default
-        private int code = 1000;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-        private String message;
-        private T result;
-    }
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApiResponse<T> {
+    @Builder.Default
+    private int code = 1000;
+
+    private String message;
+    private T result;
+}
