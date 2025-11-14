@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.repository;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,12 @@ import tourbooking.vietvivu.entity.Tour;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, String> {
+    List<Tour> findByTitleContainingIgnoreCase(String title);
+
+    List<Tour> findByDestinationContainingIgnoreCase(String destination);
+
+    List<Tour> findByAvailability(Boolean availability);
+
     Tour findByTourId(String tourId);
 
     @Query(
