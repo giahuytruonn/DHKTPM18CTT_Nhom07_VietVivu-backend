@@ -1,9 +1,9 @@
-// FavoriteTourService.java - FIXED VERSION
 package tourbooking.vietvivu.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import tourbooking.vietvivu.dto.response.TourResponse;
@@ -27,7 +27,11 @@ public class FavoriteTourService {
     private final UserRepository userRepository;
     private final TourMapper tourMapper;
 
+    /**
+     * Add tour to favorites - AUTHENTICATED USER
+     */
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void addToFavorites(String tourId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -63,7 +67,11 @@ public class FavoriteTourService {
         }
     }
 
+    /**
+     * Remove tour from favorites - AUTHENTICATED USER
+     */
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void removeFromFavorites(String tourId) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -94,6 +102,10 @@ public class FavoriteTourService {
         }
     }
 
+    /**
+     * Get my favorite tours - AUTHENTICATED USER
+     */
+    @PreAuthorize("isAuthenticated()")
     public List<TourResponse> getMyFavoriteTours() {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
