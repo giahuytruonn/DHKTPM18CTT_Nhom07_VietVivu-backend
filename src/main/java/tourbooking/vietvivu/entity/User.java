@@ -61,4 +61,9 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user")
     @ToString.Exclude
     Set<InvalidatedToken> invalidatedTokens;
+
+    @ElementCollection
+    @CollectionTable(name = "user_favourite_tours", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "tour_id")
+    Set<String> favouriteTours;
 }
