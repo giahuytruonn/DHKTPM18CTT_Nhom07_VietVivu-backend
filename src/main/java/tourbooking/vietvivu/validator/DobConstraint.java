@@ -2,8 +2,9 @@ package tourbooking.vietvivu.validator;
 
 import static java.lang.annotation.ElementType.*;
 
-import jakarta.validation.Payload;
 import java.lang.annotation.Target;
+
+import jakarta.validation.Payload;
 
 @Target({FIELD})
 public @interface DobConstraint {

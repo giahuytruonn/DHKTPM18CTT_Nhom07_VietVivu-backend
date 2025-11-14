@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.dto.request.ExploreVideoRequest;
 import tourbooking.vietvivu.dto.response.ExploreVideoResponse;
 import tourbooking.vietvivu.entity.ExploreVideo;
-import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.repository.ExploreVideoRepository;
 import tourbooking.vietvivu.repository.TourRepository;
@@ -47,7 +46,6 @@ public class ExploreVideoService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-
 
     public List<ExploreVideoResponse> getPendingVideos() {
         return exploreVideoRepository.findByApprovedFalseOrderByUploadedAtDesc().stream()

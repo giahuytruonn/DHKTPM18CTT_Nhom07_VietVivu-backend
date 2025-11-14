@@ -1,7 +1,6 @@
 package tourbooking.vietvivu.exception;
 
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,7 +32,7 @@ public class GlobalHandlerException {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    //Xu ly custom exception
+    // Xu ly custom exception
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse<?>> handlingAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
@@ -128,7 +127,6 @@ public class GlobalHandlerException {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
-
 
     private String mapAttribute(String message, Map<String, Object> attributes) {
         String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
