@@ -1,6 +1,8 @@
 package tourbooking.vietvivu.dto.response;
 
 import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.enumm.BookingStatus;
@@ -18,7 +20,8 @@ public class BookingResponse {
     String address;
     String note;
 
-    // Booking details
+
+    //Booking details
     String bookingId;
     LocalDateTime bookingDate;
     Double totalPrice;
@@ -28,7 +31,7 @@ public class BookingResponse {
     BookingStatus bookingStatus;
     LocalDateTime paymentTerm;
 
-    // Tour details
+    //Tour details
     String tourId;
     String tourTitle;
     String tourDuration;

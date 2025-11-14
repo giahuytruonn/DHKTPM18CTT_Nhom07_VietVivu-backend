@@ -1,9 +1,16 @@
 package tourbooking.vietvivu.dto.request;
 
+import java.io.Serializable;
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDate;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,7 +21,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingRequest implements Serializable {
 
-    String tourId;
+    String tourId;  
     String userId;
     LocalDate bookingDate;
 

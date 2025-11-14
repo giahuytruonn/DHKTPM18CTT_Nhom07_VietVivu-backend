@@ -1,6 +1,11 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +27,13 @@ import tourbooking.vietvivu.service.BookingService;
 public class BookingController {
 
     BookingService bookingService;
+
+    @GetMapping
+    public ApiResponse<List<BookingResponse>> getMyBookings() {
+        return ApiResponse.<List<BookingResponse>>builder()
+                .result(bookingService.getMyBookings())
+                .build();
+    }
 
     @PostMapping
     ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request) {

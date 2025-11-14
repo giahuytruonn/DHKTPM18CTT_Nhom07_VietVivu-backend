@@ -7,7 +7,13 @@ public enum BookingStatus {
     PENDING("Pending"),
     CONFIRMED("Confirmed"),
     CANCELLED("Cancelled"),
-    COMPLETED("Completed");
+    COMPLETED("Completed"),
+    CONFIRMED_CHANGE("Confirmed change"),
+    CONFIRMED_CANCELLATION("Confirmed cancellation"),
+    PENDING_CANCELLATION("Pending cancellation"),
+    PENDING_CHANGE("Pending change"),
+    DENIED_CANCELLATION("Denied cancellation"),
+    DENIED_CHANGE("Denied change");
 
     private final String message;
 
