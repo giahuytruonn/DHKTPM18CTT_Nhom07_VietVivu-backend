@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
+import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.service.TourService;
 
 import java.util.List;
@@ -25,10 +26,11 @@ public class AiService {
     private final TourService tourService;
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
+    private final ImageRepository imageRepository;
     private final AiTools aiTools;
 
 
-    public String getAiReply(String query) {
+    public Object getAiReply(String query) {
         // ✅ 1. Định nghĩa prompt hệ thống (system prompt)
         String systemText = """
                 Bạn là **VietViVu Assistant**, trợ lý AI chính thức của công ty du lịch VietViVu (vietvivu.vn).
@@ -52,8 +54,10 @@ public class AiService {
                   "tourId": "<mã_tour>",
                   "summary": {
                     "name": "<tên tour>",
-                    "price": "<giá>",
+                    "priceAdult": "<giá>",
+                    "priceChild": "<giá>",
                     "days": "<số ngày>"
+                    "imageUrls": ["<url_hình_ảnh_1>", "<url_hình_ảnh_2>", ...]
                   }
                 }
                 
@@ -90,10 +94,8 @@ public class AiService {
         return chatClient.prompt(prompt)
                 .tools(aiTools)
                 .call()
-                .content();
+                .entity(Object.class);
     }
 
 
 }
-
-
