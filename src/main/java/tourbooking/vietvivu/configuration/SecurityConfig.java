@@ -113,7 +113,7 @@ public class SecurityConfig {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         // Đây là phiên bản setAuthorityPrefix từ nhánh 'main',
         // nó cần thiết để 'hasRole("ADMIN")' hoạt động chính xác.
-        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        authoritiesConverter.setAuthorityPrefix("");
         authoritiesConverter.setAuthoritiesClaimName("scope");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
