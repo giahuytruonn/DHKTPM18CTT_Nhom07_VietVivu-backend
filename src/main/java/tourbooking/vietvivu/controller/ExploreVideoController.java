@@ -5,7 +5,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +31,6 @@ public class ExploreVideoController {
         ExploreVideoResponse response = exploreVideoService.uploadVideo(username, videoRequest);
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/videos")
     public ResponseEntity<List<ExploreVideoResponse>> getApprovedVideos() {

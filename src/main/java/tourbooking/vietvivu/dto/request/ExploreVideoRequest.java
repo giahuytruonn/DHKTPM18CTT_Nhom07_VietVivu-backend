@@ -15,5 +15,4 @@ public class ExploreVideoRequest {
 
     @NotBlank(message = "Video URL không được để trống")
     private String videoUrl;
-
 }

@@ -3,16 +3,17 @@ package tourbooking.vietvivu.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.entity.Tour;
-import tourbooking.vietvivu.service.ai.AiService;
 import tourbooking.vietvivu.service.TourRagService;
 import tourbooking.vietvivu.service.TourService;
+import tourbooking.vietvivu.service.ai.AiService;
 
 @RestController
 @RequestMapping("/ai")
@@ -30,10 +31,7 @@ public class AiController {
         String query = payload.get("message");
         Object response = aiService.getAiReply(query);
         System.out.println(response);
-        return ApiResponse.<Object>builder()
-                .result(response)
-                .build();
-
+        return ApiResponse.<Object>builder().result(response).build();
     }
 
     @PostMapping("/reindex")
@@ -44,5 +42,4 @@ public class AiController {
                 .result(tourRagService.indexTourData(tours))
                 .build();
     }
-
 }

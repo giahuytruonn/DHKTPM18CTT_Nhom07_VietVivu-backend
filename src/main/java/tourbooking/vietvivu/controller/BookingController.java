@@ -5,15 +5,15 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import tourbooking.vietvivu.dto.request.BookingRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.BookingResponse;
@@ -36,7 +36,7 @@ public class BookingController {
     }
 
     @PostMapping
-    ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request) {
+    ApiResponse<BookingResponse> bookTour(@RequestBody BookingRequest request) {
         log.info("Received booking request: {}", request);
         BookingResponse response = bookingService.bookTour(request);
         log.info("Booking successful: {}", response);

@@ -4,8 +4,6 @@ import java.time.Year;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.time.Year;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;

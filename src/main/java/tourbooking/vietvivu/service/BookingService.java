@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,32 +121,32 @@ public class BookingService {
 
     @Transactional(rollbackFor = Exception.class)
     public BookingResponse bookTour(BookingRequest request) {
-        Tour tour = tourRepository.findById(request.getTourId())
+        Tour tour = tourRepository
+                .findById(request.getTourId())
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        //Check truoc 10 ngay moi duoc dat tour
-        if(request.getBookingDate().isAfter(tour.getStartDate().minusDays(10))){
+        // Check truoc 10 ngay moi duoc dat tour
+        if (request.getBookingDate().isAfter(tour.getStartDate().minusDays(10))) {
             throw new AppException(ErrorCode.DATE_NOT_AVAILABLE);
         }
 
-        //Check so luong nguoi dat tour
-        if((request.getNumOfAdults() + request.getNumOfChildren() > tour.getQuantity())){
+        // Check so luong nguoi dat tour
+        if ((request.getNumOfAdults() + request.getNumOfChildren() > tour.getQuantity())) {
             throw new AppException(ErrorCode.QUANTITY_NOT_ENOUGH);
         }
 
-
-        //Check promotion not found
-        Promotion promotion = promotionRepository.findById(request.getPromotionId())
+        // Check promotion not found
+        Promotion promotion = promotionRepository
+                .findById(request.getPromotionId())
                 .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
 
-        //Check promotion expired
-        if(promotion.getEndDate().isBefore(ChronoLocalDate.from(LocalDateTime.now()))){
+        // Check promotion expired
+        if (promotion.getEndDate().isBefore(ChronoLocalDate.from(LocalDateTime.now()))) {
             throw new AppException(ErrorCode.PROMOTION_EXPIRED);
         }
 
-        //Check promotion not available
-        if(!promotion.getStatus())
-        {
+        // Check promotion not available
+        if (!promotion.getStatus()) {
             throw new AppException(ErrorCode.PROMOTION_NOT_AVAILABLE);
         }
 
@@ -157,8 +156,8 @@ public class BookingService {
 
         booking.setTour(tour);
 
-        //Check user
-        if(request.getUserId() == null){
+        // Check user
+        if (request.getUserId() == null) {
             response = BookingResponse.builder()
                     .name(request.getName())
                     .email(request.getEmail())
@@ -166,7 +165,6 @@ public class BookingService {
                     .address(request.getAddress())
                     .note(request.getNote())
                     .build();
-
 
             contact = Contact.builder()
                     .name(request.getName())
@@ -177,8 +175,9 @@ public class BookingService {
             booking.setContact(contact);
             booking.setUser(null);
         } else {
-            //Lay thong tin user de luu vao booking response
-            var user = userRepository.findById(request.getUserId())
+            // Lay thong tin user de luu vao booking response
+            var user = userRepository
+                    .findByUsername(request.getUserId())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             response = BookingResponse.builder()
                     .name(user.getName())
@@ -194,8 +193,8 @@ public class BookingService {
         booking.setBookingDate(LocalDateTime.now());
         booking.setNumAdults(request.getNumOfAdults());
         booking.setNumChildren(request.getNumOfChildren());
-        Double totalPrice = (request.getNumOfAdults() * tour.getPriceAdult()) +
-                (request.getNumOfChildren() * tour.getPriceChild());
+        Double totalPrice =
+                (request.getNumOfAdults() * tour.getPriceAdult()) + (request.getNumOfChildren() * tour.getPriceChild());
         booking.setTotalPrice(totalPrice);
         booking.setNote(request.getNote());
         booking.setPaymentStatus(PaymentStatus.UNPAID);
@@ -203,12 +202,12 @@ public class BookingService {
         booking.setPaymentTerm(tour.getStartDate().minusDays(7).atStartOfDay());
         booking.setPromotion(promotion);
         promotion.setQuantity(promotion.getQuantity() - 1);
-        if(promotion.getQuantity() == 0){
+        if (promotion.getQuantity() == 0) {
             promotion.setStatus(false);
         }
 
-//        Booking savedBooking = bookingRepository.save(booking);
-        if(request.getNumOfChildren() + request.getNumOfAdults() <= tour.getQuantity()){
+        //        Booking savedBooking = bookingRepository.save(booking);
+        if (request.getNumOfChildren() + request.getNumOfAdults() <= tour.getQuantity()) {
             tour.setQuantity(tour.getQuantity() - (request.getNumOfChildren() + request.getNumOfAdults()));
             if (tour.getQuantity() == 0) {
                 tour.setAvailability(false);
@@ -271,8 +270,7 @@ public class BookingService {
         response.setImageUrl(tour.getImages().stream()
                 .findFirst()
                 .map(image -> image.getImageUrl())
-                .orElse(null)
-        );
+                .orElse(null));
         response.setNumOfAdults(booking.getNumAdults());
         response.setPriceAdult(tour.getPriceAdult());
         response.setTotalPriceAdults(booking.getNumAdults() * tour.getPriceAdult());

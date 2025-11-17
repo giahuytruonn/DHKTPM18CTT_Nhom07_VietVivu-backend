@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
@@ -39,7 +40,6 @@ public class TourService {
     public Map<String, Object> findTourSummaryById(String tourId) {
         return tourRepository.findTourSummaryById(tourId);
     }
-
 
     public List<TourResponse> getAllTours() {
         List<Tour> tours = tourRepository.findAll();
@@ -124,7 +124,4 @@ public class TourService {
                 .isFavorite(isFavorite)
                 .build();
     }
-
-
-
 }

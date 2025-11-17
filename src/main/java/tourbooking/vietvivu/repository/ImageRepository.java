@@ -1,12 +1,13 @@
 package tourbooking.vietvivu.repository;
 
-import feign.Param;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import tourbooking.vietvivu.entity.Image;
 
-import java.util.List;
+import feign.Param;
+import tourbooking.vietvivu.entity.Image;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, String> {

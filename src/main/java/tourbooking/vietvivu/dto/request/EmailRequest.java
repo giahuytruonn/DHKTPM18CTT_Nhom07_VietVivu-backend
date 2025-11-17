@@ -2,8 +2,6 @@ package tourbooking.vietvivu.dto.request;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import tourbooking.vietvivu.enumm.PaymentMethod;
 import tourbooking.vietvivu.enumm.PaymentStatus;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
