@@ -15,6 +15,7 @@ import tourbooking.vietvivu.dto.response.PaymentSuccessResponse;
 import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.Checkout;
 import tourbooking.vietvivu.entity.Invoice;
+import tourbooking.vietvivu.enumm.BookingStatus;
 import tourbooking.vietvivu.enumm.PaymentStatus;
 import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.CheckoutRepository;
@@ -83,6 +84,7 @@ public class PaymentService {
         invoiceRepository.save(invoice);
 
         booking.setPaymentStatus(PaymentStatus.PAID);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
         String email = "";
 

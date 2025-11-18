@@ -1,13 +1,17 @@
 package tourbooking.vietvivu.service;
 
+import java.util.ArrayList;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +31,7 @@ import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.mapper.TourMapper;
 import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.repository.TourRepository;
+import tourbooking.vietvivu.repository.UserRepository;
 
 import java.time.temporal.ChronoUnit;
 import java.util.regex.Matcher;
@@ -42,6 +47,105 @@ public class TourService {
     ImageRepository imageRepository;
     TourMapper tourMapper;
     CloudinaryService cloudinaryService;
+    private final UserRepository userRepository;
+
+
+    public List<Tour> findAllTours() {
+        return tourRepository.findAll();
+    }
+
+    public Tour findTourById(String tourId) {
+        return tourRepository.findByTourId(tourId);
+    }
+
+    public Map<String, Object> findTourSummaryById(String tourId) {
+        return tourRepository.findTourSummaryById(tourId);
+    }
+
+    public List<TourResponse> getAllTours() {
+        List<Tour> tours = tourRepository.findAll();
+        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
+    }
+
+    public List<TourResponse> getAvailableTours() {
+        List<Tour> tours = tourRepository.findAll().stream()
+                .filter(tour -> tour.getAvailability() != null && tour.getAvailability())
+                .collect(Collectors.toList());
+        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public TourResponse getTourById(String tourId) {
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        return mapToTourResponse(tour);
+    }
+
+    public List<TourResponse> searchTours(String keyword) {
+        List<Tour> tours = tourRepository.findByTitleContainingIgnoreCase(keyword);
+        if (tours.isEmpty()) {
+            tours = tourRepository.findByDestinationContainingIgnoreCase(keyword);
+        }
+        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
+    }
+
+    private TourResponse mapToTourResponse(Tour tour) {
+        // Calculate average rating
+        Double averageRating = null;
+        Integer reviewCount = 0;
+        if (tour.getReviews() != null && !tour.getReviews().isEmpty()) {
+            reviewCount = tour.getReviews().size();
+            averageRating = tour.getReviews().stream()
+                    .filter(review -> review.getRating() != null)
+                    .mapToInt(review -> review.getRating())
+                    .average()
+                    .orElse(0.0);
+        }
+
+        // Get image URLs
+        List<String> imageUrls = new ArrayList<>();
+        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+            imageUrls = tour.getImages().stream()
+                    .map(image -> image.getImageUrl())
+                    .filter(url -> url != null)
+                    .collect(Collectors.toList());
+        }
+
+        // Check if tour is favorite for current user
+        Boolean isFavorite = false;
+        try {
+            var context = SecurityContextHolder.getContext();
+            if (context.getAuthentication() != null
+                    && context.getAuthentication().isAuthenticated()) {
+                String username = context.getAuthentication().getName();
+                User user = userRepository.findByUsername(username).orElse(null);
+                if (user != null && user.getFavouriteTours() != null) {
+                    isFavorite = user.getFavouriteTours().contains(tour.getTourId());
+                }
+            }
+        } catch (Exception e) {
+            // User not authenticated, isFavorite remains false
+            log.debug("User not authenticated, setting isFavorite to false");
+        }
+
+        return TourResponse.builder()
+                .tourId(tour.getTourId())
+                .title(tour.getTitle())
+                .description(tour.getDescription())
+                .quantity(tour.getQuantity())
+                .priceAdult(tour.getPriceAdult())
+                .priceChild(tour.getPriceChild())
+                .duration(tour.getDuration())
+                .destination(tour.getDestination())
+                .availability(tour.getAvailability())
+                .startDate(tour.getStartDate())
+                .itinerary(tour.getItinerary())
+                .imageUrls(imageUrls)
+                .averageRating(averageRating)
+                .reviewCount(reviewCount)
+                .isFavorite(isFavorite)
+                .build();
+    }
+
 
     /**
      * Get all tours for PUBLIC (User & Guest)
@@ -379,4 +483,6 @@ public class TourService {
             return false;
         }
     }
+        // Check if tour is favorite for current user
+        Boolean isFavorite = false;
 }

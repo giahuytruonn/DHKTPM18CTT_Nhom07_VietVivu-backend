@@ -6,13 +6,13 @@ import lombok.Getter;
 public enum BookingStatus {
     PENDING("Pending"),
     CONFIRMED("Confirmed"),
-    CONFIRMED_CANCELLATION("Confirmed Cancellation"),
     CANCELLED("Cancelled"),
     COMPLETED("Completed"),
     PENDING_CANCELLATION("Pending cancellation"),
-
+    CONFIRMED_CANCELLATION("Confirmed cancellation"),
     PENDING_CHANGE("Pending change"),
-    CONFIRMED_CHANGE("Confirmed change");
+    DENIED_CANCELLATION("Denied cancellation"),
+    DENIED_CHANGE("Denied change");
 
     private final String message;
 

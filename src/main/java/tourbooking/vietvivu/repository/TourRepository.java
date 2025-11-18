@@ -1,11 +1,18 @@
 package tourbooking.vietvivu.repository;
 
 import java.util.List;
+import java.util.Map;
 
+import java.util.List;
+import java.util.Map;
+
+import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import feign.Param;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.enumm.TourStatus;
 
@@ -14,6 +21,19 @@ import java.util.List;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, String> {
+
+    List<Tour> findByTitleContainingIgnoreCase(String title);
+
+    List<Tour> findByDestinationContainingIgnoreCase(String destination);
+
+    List<Tour> findByAvailability(Boolean availability);
+
+    Tour findByTourId(String tourId);
+
+    @Query(
+            "SELECT t.tourId as id, t.title as title, t.priceAdult as priceAdult, t.priceChild as priceChild, t.duration as duration FROM Tour t WHERE t.tourId = :tourId")
+    Map<String, Object> findTourSummaryById(@Param("tourId") String tourId);
+
 
     /**
      * Search tours cho PUBLIC (User & Guest)
@@ -35,12 +55,12 @@ public interface TourRepository extends JpaRepository<Tour, String> {
               AND t.tourStatus = tourbooking.vietvivu.enumm.TourStatus.OPEN_BOOKING
             """)
     List<Tour> searchToursPublic(
-            @Param("keyword") String keyword,
-            @Param("destination") String destination,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            @Param("startDate") LocalDate startDate,
-            @Param("minQuantity") Integer minQuantity);
+            @org.springframework.data.repository.query.Param("keyword") String keyword,
+            @org.springframework.data.repository.query.Param("destination") String destination,
+            @org.springframework.data.repository.query.Param("minPrice") Double minPrice,
+            @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice,
+            @org.springframework.data.repository.query.Param("startDate") LocalDate startDate,
+            @org.springframework.data.repository.query.Param("minQuantity") Integer minQuantity);
 
     /**
      * Search tours cho ADMIN
@@ -61,11 +81,11 @@ public interface TourRepository extends JpaRepository<Tour, String> {
               AND (:tourStatus IS NULL OR t.tourStatus = :tourStatus)
             """)
     List<Tour> searchToursAdmin(
-            @Param("keyword") String keyword,
-            @Param("destination") String destination,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            @Param("startDate") LocalDate startDate,
-            @Param("minQuantity") Integer minQuantity,
-            @Param("tourStatus") TourStatus tourStatus);
+            @org.springframework.data.repository.query.Param("keyword") String keyword,
+            @org.springframework.data.repository.query.Param("destination") String destination,
+            @org.springframework.data.repository.query.Param("minPrice") Double minPrice,
+            @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice,
+            @org.springframework.data.repository.query.Param("startDate") LocalDate startDate,
+            @org.springframework.data.repository.query.Param("minQuantity") Integer minQuantity,
+            @org.springframework.data.repository.query.Param("tourStatus") TourStatus tourStatus);
 }

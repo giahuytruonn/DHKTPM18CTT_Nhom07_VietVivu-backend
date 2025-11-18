@@ -1,8 +1,9 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,8 +11,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import tourbooking.vietvivu.dto.request.BookingCancelUpdateRequest;
 import tourbooking.vietvivu.dto.request.BookingRequestStatusUpdateRequest;
+import tourbooking.vietvivu.dto.request.BookingStatusUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.BookingRequestResponse;
 import tourbooking.vietvivu.entity.User;
@@ -30,8 +31,21 @@ public class BookingRequestController {
     final BookingRequestService bookingRequestService;
     final UserRepository userRepository;
 
+    @GetMapping
+    ApiResponse<List<BookingRequestResponse>> getPendingRequests() {
+        return ApiResponse.<List<BookingRequestResponse>>builder()
+                .result(bookingRequestService.getPendingRequests())
+                .build();
+    }
+
+    @GetMapping("/{requestId}")
+    ApiResponse<BookingRequestResponse> getBookingRequest(@PathVariable String requestId) {
+        return ApiResponse.<BookingRequestResponse>builder()
+                .result(bookingRequestService.getById(requestId))
+                .build();
+    }
+
     @PutMapping("/{requestId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<BookingRequestResponse> updateStatusBooking(
             @PathVariable String requestId, @RequestBody @Valid BookingRequestStatusUpdateRequest request) {
 
@@ -53,9 +67,8 @@ public class BookingRequestController {
     }
 
     @PutMapping("/{bookingId}/cancel-booking")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<BookingRequestResponse> cancelBooking(
-            @PathVariable String bookingId, @RequestBody @Valid BookingCancelUpdateRequest request) {
+            @PathVariable String bookingId, @RequestBody @Valid BookingStatusUpdateRequest request) {
 
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
@@ -68,6 +81,28 @@ public class BookingRequestController {
                 bookingId,
                 request.getReason(),
                 userId);
+
+        return ApiResponse.<BookingRequestResponse>builder()
+                .result(bookingRequestService.updateBookingRequestStatusCustomer(bookingId, userId, request))
+                .build();
+    }
+
+    @PutMapping("/{bookingId}/change-booking")
+    ApiResponse<BookingRequestResponse> changeBooking(
+            @PathVariable String bookingId, @RequestBody @Valid BookingStatusUpdateRequest request) {
+
+        var context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        String userId = user.getId();
+
+        log.info(
+                "Canceling booking request: bookingId={}, reason={}, userId={}, newTour={}",
+                bookingId,
+                request.getReason(),
+                userId,
+                request.getNewTourId());
 
         return ApiResponse.<BookingRequestResponse>builder()
                 .result(bookingRequestService.updateBookingRequestStatusCustomer(bookingId, userId, request))

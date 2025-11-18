@@ -34,4 +34,7 @@ public class TourResponse {
     Integer totalBookings;
     Integer favoriteCount;
     Boolean isFavorited;
+    Double averageRating;
+    Integer reviewCount;
+    Boolean isFavorite;
 }
