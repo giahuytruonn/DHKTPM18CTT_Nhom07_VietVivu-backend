@@ -1,23 +1,16 @@
 package tourbooking.vietvivu.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-import java.util.List;
-import java.util.Map;
-
-import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import feign.Param;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.enumm.TourStatus;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, String> {
@@ -34,26 +27,26 @@ public interface TourRepository extends JpaRepository<Tour, String> {
             "SELECT t.tourId as id, t.title as title, t.priceAdult as priceAdult, t.priceChild as priceChild, t.duration as duration FROM Tour t WHERE t.tourId = :tourId")
     Map<String, Object> findTourSummaryById(@Param("tourId") String tourId);
 
-
     /**
      * Search tours cho PUBLIC (User & Guest)
      * - Chỉ trả về tours có availability = true và tourStatus = OPEN_BOOKING
      * - KHÔNG có filter tourStatus
      */
-    @Query("""
-            SELECT t FROM Tour t
-            WHERE (:keyword IS NULL OR :keyword = '' 
-                OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-                OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
-              AND (:destination IS NULL OR :destination = '' 
-                OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%')))
-              AND (:minPrice IS NULL OR t.priceAdult >= :minPrice)
-              AND (:maxPrice IS NULL OR t.priceAdult <= :maxPrice)
-              AND (:startDate IS NULL OR t.startDate = :startDate)
-              AND (:minQuantity IS NULL OR t.quantity >= :minQuantity)
-              AND t.availability = true
-              AND t.tourStatus = tourbooking.vietvivu.enumm.TourStatus.OPEN_BOOKING
-            """)
+    @Query(
+            """
+			SELECT t FROM Tour t
+			WHERE (:keyword IS NULL OR :keyword = ''
+				OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+				OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+			AND (:destination IS NULL OR :destination = ''
+				OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%')))
+			AND (:minPrice IS NULL OR t.priceAdult >= :minPrice)
+			AND (:maxPrice IS NULL OR t.priceAdult <= :maxPrice)
+			AND (:startDate IS NULL OR t.startDate = :startDate)
+			AND (:minQuantity IS NULL OR t.quantity >= :minQuantity)
+			AND t.availability = true
+			AND t.tourStatus = tourbooking.vietvivu.enumm.TourStatus.OPEN_BOOKING
+			""")
     List<Tour> searchToursPublic(
             @org.springframework.data.repository.query.Param("keyword") String keyword,
             @org.springframework.data.repository.query.Param("destination") String destination,
@@ -67,19 +60,20 @@ public interface TourRepository extends JpaRepository<Tour, String> {
      * - Trả về tất cả tours
      * - CÓ filter theo tourStatus
      */
-    @Query("""
-            SELECT t FROM Tour t
-            WHERE (:keyword IS NULL OR :keyword = '' 
-                OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-                OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
-              AND (:destination IS NULL OR :destination = '' 
-                OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%')))
-              AND (:minPrice IS NULL OR t.priceAdult >= :minPrice)
-              AND (:maxPrice IS NULL OR t.priceAdult <= :maxPrice)
-              AND (:startDate IS NULL OR t.startDate = :startDate)
-              AND (:minQuantity IS NULL OR t.quantity >= :minQuantity)
-              AND (:tourStatus IS NULL OR t.tourStatus = :tourStatus)
-            """)
+    @Query(
+            """
+			SELECT t FROM Tour t
+			WHERE (:keyword IS NULL OR :keyword = ''
+				OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+				OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+			AND (:destination IS NULL OR :destination = ''
+				OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%')))
+			AND (:minPrice IS NULL OR t.priceAdult >= :minPrice)
+			AND (:maxPrice IS NULL OR t.priceAdult <= :maxPrice)
+			AND (:startDate IS NULL OR t.startDate = :startDate)
+			AND (:minQuantity IS NULL OR t.quantity >= :minQuantity)
+			AND (:tourStatus IS NULL OR t.tourStatus = :tourStatus)
+			""")
     List<Tour> searchToursAdmin(
             @org.springframework.data.repository.query.Param("keyword") String keyword,
             @org.springframework.data.repository.query.Param("destination") String destination,

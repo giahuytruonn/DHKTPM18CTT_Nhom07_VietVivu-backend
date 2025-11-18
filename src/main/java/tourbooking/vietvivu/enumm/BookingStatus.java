@@ -8,8 +8,9 @@ public enum BookingStatus {
     CONFIRMED("Confirmed"),
     CANCELLED("Cancelled"),
     COMPLETED("Completed"),
-    PENDING_CANCELLATION("Pending cancellation"),
     CONFIRMED_CANCELLATION("Confirmed cancellation"),
+    CONFIRMED_CHANGE("Confirmed change"),
+    PENDING_CANCELLATION("Pending cancellation"),
     PENDING_CHANGE("Pending change"),
     DENIED_CANCELLATION("Denied cancellation"),
     DENIED_CHANGE("Denied change");

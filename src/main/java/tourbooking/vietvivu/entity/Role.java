@@ -25,8 +25,7 @@ public class Role {
     @JoinTable(
             name = "roles_permissions",
             joinColumns = @JoinColumn(name = "role_name", referencedColumnName = "name"),
-            inverseJoinColumns = @JoinColumn(name = "permissions_name", referencedColumnName = "name")
-    )
+            inverseJoinColumns = @JoinColumn(name = "permissions_name", referencedColumnName = "name"))
     Set<Permission> permissions;
 
     public Role(String name, String description) {

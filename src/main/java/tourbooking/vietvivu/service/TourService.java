@@ -1,23 +1,25 @@
 package tourbooking.vietvivu.service;
 
-import java.util.ArrayList;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
@@ -33,10 +35,6 @@ import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.repository.TourRepository;
 import tourbooking.vietvivu.repository.UserRepository;
 
-import java.time.temporal.ChronoUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -48,7 +46,6 @@ public class TourService {
     TourMapper tourMapper;
     CloudinaryService cloudinaryService;
     private final UserRepository userRepository;
-
 
     public List<Tour> findAllTours() {
         return tourRepository.findAll();
@@ -146,7 +143,6 @@ public class TourService {
                 .build();
     }
 
-
     /**
      * Get all tours for PUBLIC (User & Guest)
      * Chỉ trả về tours có availability = true và tourStatus = OPEN_BOOKING
@@ -231,8 +227,7 @@ public class TourService {
                     request.getMaxPrice(),
                     request.getStartDate(),
                     request.getMinQuantity(),
-                    request.getTourStatus()
-            );
+                    request.getTourStatus());
         } else {
             tours = tourRepository.searchToursPublic(
                     request.getKeyword(),
@@ -240,8 +235,7 @@ public class TourService {
                     request.getMinPrice(),
                     request.getMaxPrice(),
                     request.getStartDate(),
-                    request.getMinQuantity()
-            );
+                    request.getMinQuantity());
         }
 
         log.info("Found {} tours matching search criteria", tours.size());
@@ -275,14 +269,12 @@ public class TourService {
     @PreAuthorize("permitAll()")
     public TourResponse getTour(String tourId) {
         log.info("Getting tour by id: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         updateTourStatus(tour);
         tourRepository.save(tour);
         return tourMapper.toTourResponse(tour);
     }
-
 
     // ===== ADMIN OPERATIONS =====
 
@@ -338,13 +330,11 @@ public class TourService {
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
         // Giữ lại logging của nhánh Chuc
         log.info("Updating tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         if (request.getImageUrls() != null) {
-            List<String> oldImageUrls = tour.getImages().stream()
-                    .map(Image::getImageUrl)
-                    .collect(Collectors.toList());
+            List<String> oldImageUrls =
+                    tour.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList());
 
             cloudinaryService.deleteMultipleImages(oldImageUrls);
             tour.getImages().clear();
@@ -374,13 +364,11 @@ public class TourService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteTour(String tourId) {
         log.info("Deleting tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            List<String> imageUrls = tour.getImages().stream()
-                    .map(Image::getImageUrl)
-                    .toList();
+            List<String> imageUrls =
+                    tour.getImages().stream().map(Image::getImageUrl).toList();
             cloudinaryService.deleteMultipleImages(imageUrls);
         }
 
@@ -395,7 +383,6 @@ public class TourService {
         tourRepository.deleteById(tourId);
         log.info("Tour deleted successfully: {}", tourId);
     }
-
 
     // ===== PRIVATE HELPER METHODS =====
     // Xóa method getTour bị lặp lại từ nhánh main
@@ -483,6 +470,6 @@ public class TourService {
             return false;
         }
     }
-        // Check if tour is favorite for current user
-        Boolean isFavorite = false;
+    // Check if tour is favorite for current user
+    Boolean isFavorite = false;
 }

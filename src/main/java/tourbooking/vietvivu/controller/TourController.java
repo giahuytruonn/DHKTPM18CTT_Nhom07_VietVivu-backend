@@ -1,15 +1,19 @@
 package tourbooking.vietvivu.controller;
 
+import java.time.LocalDate;
 import java.util.List;
+
 import jakarta.validation.Valid;
+
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.web.multipart.MultipartFile;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
@@ -18,8 +22,6 @@ import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/tours")
@@ -39,9 +41,7 @@ public class TourController {
         try {
             List<TourResponse> result = tourService.getAllToursForPublic();
             log.info("Successfully retrieved {} public tours", result.size());
-            return ApiResponse.<List<TourResponse>>builder()
-                    .result(result)
-                    .build();
+            return ApiResponse.<List<TourResponse>>builder().result(result).build();
         } catch (Exception e) {
             log.error("Error getting public tours", e);
             throw e;
@@ -54,9 +54,7 @@ public class TourController {
         try {
             TourResponse result = tourService.getTour(tourId);
             log.info("Successfully retrieved tour {}", tourId);
-            return ApiResponse.<TourResponse>builder()
-                    .result(result)
-                    .build();
+            return ApiResponse.<TourResponse>builder().result(result).build();
         } catch (Exception e) {
             log.error("Error getting tour {}", tourId, e);
             throw e;
@@ -74,8 +72,13 @@ public class TourController {
             @RequestParam(required = false) Integer minQuantity,
             @RequestParam(required = false) TourStatus tourStatus) {
 
-        log.info("GET /tours/search - keyword: {}, destination: {}, minPrice: {}, maxPrice: {}, tourStatus: {}",
-                keyword, destination, minPrice, maxPrice, tourStatus);
+        log.info(
+                "GET /tours/search - keyword: {}, destination: {}, minPrice: {}, maxPrice: {}, tourStatus: {}",
+                keyword,
+                destination,
+                minPrice,
+                maxPrice,
+                tourStatus);
 
         try {
             TourSearchRequest request = TourSearchRequest.builder()
@@ -91,9 +94,7 @@ public class TourController {
 
             List<TourResponse> result = tourService.searchTours(request);
             log.info("Search found {} tours", result.size());
-            return ApiResponse.<List<TourResponse>>builder()
-                    .result(result)
-                    .build();
+            return ApiResponse.<List<TourResponse>>builder().result(result).build();
         } catch (Exception e) {
             log.error("Error searching tours", e);
             throw e;
