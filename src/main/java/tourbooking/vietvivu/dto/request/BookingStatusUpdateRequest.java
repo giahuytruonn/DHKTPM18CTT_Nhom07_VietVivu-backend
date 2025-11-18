@@ -12,7 +12,6 @@ import lombok.experimental.FieldDefaults;
 @Builder
 public class BookingStatusUpdateRequest {
 
-    @NotNull
     String newTourId;
 
     @NotNull
