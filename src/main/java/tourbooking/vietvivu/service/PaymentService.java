@@ -1,6 +1,8 @@
 package tourbooking.vietvivu.service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,11 @@ import tourbooking.vietvivu.enumm.PaymentStatus;
 import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.CheckoutRepository;
 import tourbooking.vietvivu.repository.InvoiceRepository;
+import vn.payos.*;
 import vn.payos.PayOS;
-import vn.payos.type.CheckoutResponseData;
-import vn.payos.type.ItemData;
-import vn.payos.type.PaymentData;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
+import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 
 @Service
 @RequiredArgsConstructor
@@ -33,25 +36,31 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
 
-    public CheckoutResponseData createPayment(PaymentRequest request) throws Exception {
+    public Map<String, Object> createPayment(PaymentRequest request) throws Exception {
+
         long orderCode = System.currentTimeMillis() / 1000;
 
-        ItemData item = ItemData.builder()
-                .name("Tour ID: " + request.getTourId())
-                .quantity(1)
-                .price(Math.toIntExact(request.getAmount()))
-                .build();
-
-        PaymentData data = PaymentData.builder()
+        CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCode)
-                .amount(Math.toIntExact(request.getAmount()))
-                .description(request.getDescription())
+                .amount(request.getAmount())
+                .description("Thanh toan tour")
                 .returnUrl("http://localhost:5173/payment-success")
                 .cancelUrl("http://localhost:5173/payment-cancel")
-                .item(item)
+                .item(PaymentLinkItem.builder()
+                        .name("Thanh toán tour")
+                        .price(request.getAmount())
+                        .quantity(1)
+                        .build())
                 .build();
 
-        return payOS.createPaymentLink(data);
+        CreatePaymentLinkResponse response = payOS.paymentRequests().create(paymentData);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("checkoutUrl", response.getCheckoutUrl());
+        result.put("qrCode", response.getQrCode()); // QR IMAGE URL
+        result.put("paymentLinkId", response.getPaymentLinkId()); // dùng nhúng iframe
+
+        return result;
     }
 
     @Transactional
@@ -89,7 +98,7 @@ public class PaymentService {
         } else {
             email = booking.getContact().getEmail();
         }
-
+        // Send invoice email
         emailService.sendInvoiceEmail(EmailRequest.builder()
                 .recipient(email)
                 .subject("Your Invoice for Booking " + booking.getBookingId())

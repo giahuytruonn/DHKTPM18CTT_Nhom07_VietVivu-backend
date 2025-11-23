@@ -40,7 +40,13 @@ public class SecurityConfig {
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
     private final String[] USER_ENDPOINTS = {
-        "/users/favorite-tours", "/users/favorite-tours/**", "/users/my-info", "/users/create-password", "/bookings/**"
+        "/users/favorite-tours",
+        "/users/favorite-tours/**",
+        "/users/my-info",
+        "/users/create-password",
+        "/bookings/**",
+        "/bookings-request/**",
+        "/change-tour/**"
     };
 
     @Autowired
@@ -72,6 +78,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, USER_ENDPOINTS)
                         .authenticated()
                         .requestMatchers(HttpMethod.DELETE, USER_ENDPOINTS)
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PUT, USER_ENDPOINTS)
                         .authenticated()
 
                         // All other requests need authentication

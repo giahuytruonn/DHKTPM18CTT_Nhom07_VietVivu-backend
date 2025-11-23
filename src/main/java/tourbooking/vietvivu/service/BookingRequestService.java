@@ -182,7 +182,9 @@ public class BookingRequestService {
             throw new AppException(ErrorCode.USER_NOT_BELONG_BOOKING);
         }
 
-        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED
+                && booking.getBookingStatus() != BookingStatus.DENIED_CANCELLATION
+                && booking.getBookingStatus() != BookingStatus.DENIED_CHANGE) {
             throw new AppException(ErrorCode.BOOKING_STATUS_INVALID);
         }
 
