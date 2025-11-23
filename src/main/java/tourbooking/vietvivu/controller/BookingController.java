@@ -2,8 +2,6 @@ package tourbooking.vietvivu.controller;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

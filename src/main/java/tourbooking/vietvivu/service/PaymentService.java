@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +43,7 @@ public class PaymentService {
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCode)
                 .amount(request.getAmount())
-                .description("Thanh toán tour #" )
+                .description("Thanh toán tour #")
                 .returnUrl("http://localhost:5173/payment-success")
                 .cancelUrl("http://localhost:5173/payment-cancel")
                 .item(PaymentLinkItem.builder()
@@ -63,7 +62,6 @@ public class PaymentService {
 
         return result;
     }
-
 
     @Transactional
     public PaymentSuccessResponse handlePaymentSuccess(PaymentSuccessRequest request) {
