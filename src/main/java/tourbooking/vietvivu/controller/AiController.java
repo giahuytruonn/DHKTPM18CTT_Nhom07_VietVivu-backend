@@ -27,11 +27,11 @@ public class AiController {
     AiService aiService;
 
     @PostMapping(value = "/chat")
-    public ApiResponse<String> chat(@RequestBody Map<String, String> payload) {
+    public ApiResponse<Object> chat(@RequestBody Map<String, String> payload) {
         String query = payload.get("message");
-        String response = aiService.getAiReply(query);
+        Object response = aiService.getAiReply(query);
         System.out.println(response);
-        return ApiResponse.<String>builder().result(response).build();
+        return ApiResponse.<Object>builder().result(response).build();
     }
 
     @PostMapping("/reindex")

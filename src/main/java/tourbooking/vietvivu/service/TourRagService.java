@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.entity.Tour;
+import tourbooking.vietvivu.repository.ImageRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,8 @@ public class TourRagService {
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
     private final ChatClient chatClient;
+
+    private final ImageRepository imageRepository;
 
     public String indexTourData(List<Tour> tours) {
         List<Document> docs = tours.stream()
@@ -32,12 +35,16 @@ public class TourRagService {
                     return new Document(
                             content,
                             Map.of(
-                                    "id", tour.getTourId(),
+                                    "tourId", tour.getTourId(),
                                     "title", tour.getTitle(),
                                     "destination", tour.getDestination(),
                                     "duration", tour.getDuration(),
                                     "priceAdult", tour.getPriceAdult(),
-                                    "priceChild", tour.getPriceChild()));
+                                    "priceChild", tour.getPriceChild(),
+                                    "imageUrls",
+                                            String.join(
+                                                    ",",
+                                                    imageRepository.findImageUrlsByTour_TourId(tour.getTourId()))));
                 })
                 .toList();
 

@@ -43,7 +43,7 @@ public class PaymentService {
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCode)
                 .amount(request.getAmount())
-                .description("Thanh toan tour")
+                .description("Thanh toán tour #")
                 .returnUrl("http://localhost:5173/payment-success")
                 .cancelUrl("http://localhost:5173/payment-cancel")
                 .item(PaymentLinkItem.builder()

@@ -2,8 +2,6 @@ package tourbooking.vietvivu.controller;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,7 +34,7 @@ public class BookingController {
     }
 
     @PostMapping
-    ApiResponse<BookingResponse> bookTour(@RequestBody @Valid BookingRequest request) {
+    ApiResponse<BookingResponse> bookTour(@RequestBody BookingRequest request) {
         log.info("Received booking request: {}", request);
         BookingResponse response = bookingService.bookTour(request);
         log.info("Booking successful: {}", response);

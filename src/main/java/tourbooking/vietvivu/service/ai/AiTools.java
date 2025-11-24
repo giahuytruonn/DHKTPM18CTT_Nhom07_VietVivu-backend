@@ -10,6 +10,9 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import tourbooking.vietvivu.dto.response.ChatResponse;
+import tourbooking.vietvivu.dto.response.TourSummary;
+import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.service.TourService;
 
 @Component
@@ -18,11 +21,13 @@ public class AiTools {
     private final TourService tourService;
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
+    private final ImageRepository imageRepository;
 
     // Hướng dẫn quy trình đặt Tour
     @Tool(description = "Hướng dẫn người dùng quy trình đặt tour trên website VietViVu")
-    public String getInstructionToBookingTour() {
-        return """
+    public ChatResponse getInstructionToBookingTour() {
+        return new ChatResponse(
+                """
 			✈️ **Hướng dẫn đặt tour trên VietViVu**
 
 			1️⃣ **Tìm kiếm tour:**
@@ -49,12 +54,13 @@ public class AiTools {
 			- Bạn chỉ cần chuẩn bị hành lý và tận hưởng chuyến đi!
 
 			📞 **Hỗ trợ:** Hotline 1900-888-555 hoặc email: support@vietvivu.vn
-		""";
+		""");
     }
 
     @Tool(description = "Hướng dẫn người dùng quy trình hủy Tour trên website VietViVu")
-    public String getInstructionToCancelBookingTour() {
-        return """
+    public ChatResponse getInstructionToCancelBookingTour() {
+        return new ChatResponse(
+                """
 		❌ **Hướng dẫn hủy tour trên VietViVu**
 
 		1️⃣ **Đăng nhập tài khoản:**
@@ -82,12 +88,13 @@ public class AiTools {
 
 		ℹ️ *Lưu ý:*
 		- Một số tour khuyến mãi hoặc tour đặc biệt có chính sách hủy riêng, vui lòng xem chi tiết trong điều khoản tour của bạn.
-	""";
+	""");
     }
 
     @Tool(description = "Hướng dẫn người dùng quy trình đổi Tour trên website VietViVu")
-    public String getInstructionToChangeBookingTour() {
-        return """
+    public ChatResponse getInstructionToChangeBookingTour() {
+        return new ChatResponse(
+                """
 		🔄 **Hướng dẫn đổi tour trên VietViVu**
 
 		1️⃣ **Truy cập tài khoản:**
@@ -119,19 +126,28 @@ public class AiTools {
 		ℹ️ *Lưu ý:*
 		- Một số tour khuyến mãi hoặc tour theo đoàn có thể **không áp dụng đổi lịch hoặc đổi điểm đến**.
 		- Vui lòng đọc kỹ điều khoản cụ thể trong hợp đồng tour trước khi gửi yêu cầu.
-	""";
+	""");
     }
 
-    @Tool(description = "Tìm thông tin tóm tắt của tour dựa trên mã tourId")
-    public Document findTour(String query) {
+    @Tool(description = "Tìm kiếm và gợi ý tour du lịch phù hợp dựa trên truy vấn của người dùng")
+    public TourSummary findTour(String query) {
+        List<Document> results = vectorStore.similaritySearch(
+                SearchRequest.builder().query(query).topK(1).build());
 
-        List<Document> results = vectorStore.similaritySearch(SearchRequest.builder()
-                .query(query) // framework tự embed
-                .topK(1)
-                .build());
+        if (results.isEmpty()) {
+            return null; // BeanOutputConverter sẽ parse null thành null
+        }
 
-        System.out.println(results);
+        Document doc = results.getFirst();
 
-        return results.isEmpty() ? null : results.get(0);
+        System.out.println(imageRepository.findImageUrlsByTour_TourId(
+                doc.getMetadata().get("tourId").toString()));
+        return new TourSummary(
+                doc.getMetadata().get("tourId").toString(),
+                doc.getMetadata().get("title").toString(),
+                doc.getMetadata().get("priceAdult").toString(),
+                doc.getMetadata().get("priceChild").toString(),
+                doc.getMetadata().get("duration").toString(),
+                doc.getMetadata().get("imageUrls").toString().split(","));
     }
 }

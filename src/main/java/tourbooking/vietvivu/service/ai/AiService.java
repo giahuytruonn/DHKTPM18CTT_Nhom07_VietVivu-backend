@@ -11,6 +11,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.service.TourService;
 
 @Service
@@ -20,9 +21,10 @@ public class AiService {
     private final TourService tourService;
     private final VectorStore vectorStore;
     private final EmbeddingModel embeddingModel;
+    private final ImageRepository imageRepository;
     private final AiTools aiTools;
 
-    public String getAiReply(String query) {
+    public Object getAiReply(String query) {
         // ✅ 1. Định nghĩa prompt hệ thống (system prompt)
         String systemText =
                 """
@@ -47,8 +49,10 @@ public class AiService {
 				"tourId": "<mã_tour>",
 				"summary": {
 					"name": "<tên tour>",
-					"price": "<giá>",
+					"priceAdult": "<giá>",
+					"priceChild": "<giá>",
 					"days": "<số ngày>"
+					"imageUrls": ["<url_hình_ảnh_1>", "<url_hình_ảnh_2>", ...]
 				}
 				}
 
@@ -81,6 +85,6 @@ public class AiService {
 
         // ✅ 3. Tạo Prompt
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
-        return chatClient.prompt(prompt).tools(aiTools).call().content();
+        return chatClient.prompt(prompt).tools(aiTools).call().entity(Object.class);
     }
 }

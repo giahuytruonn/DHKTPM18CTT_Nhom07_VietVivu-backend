@@ -106,6 +106,7 @@ public class AuthenticationService {
                 .findByUsername(userInfo.getEmail())
                 .orElseGet(() -> userRepository.save(User.builder()
                         .username(userInfo.getEmail())
+                        .email(userInfo.getEmail())
                         .name(userInfo.getFamilyName())
                         .roles(roles)
                         .build()));
