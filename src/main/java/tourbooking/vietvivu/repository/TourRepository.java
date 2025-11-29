@@ -3,6 +3,7 @@ package tourbooking.vietvivu.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -68,4 +69,15 @@ public interface TourRepository extends JpaRepository<Tour, String> {
             @Param("startDate") LocalDate startDate,
             @Param("minQuantity") Integer minQuantity,
             @Param("tourStatus") TourStatus tourStatus);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+    UPDATE Tour t SET t.tourStatus =
+        CASE
+            WHEN t.endDate < CURRENT_TIMESTAMP THEN 'COMPLETED'
+            WHEN t.startDate <= CURRENT_TIMESTAMP THEN 'IN_PROGRESS'
+            ELSE 'OPEN_BOOKING'
+        END
+    """)
+    void updateAllTourStatuses();
 }
