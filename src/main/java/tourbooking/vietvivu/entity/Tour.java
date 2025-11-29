@@ -8,9 +8,13 @@ import java.util.Set;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import org.hibernate.annotations.Formula;
+
+
+import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.Formula;
 import tourbooking.vietvivu.enumm.TourStatus;
 
 @Getter
@@ -86,13 +90,11 @@ public class Tour {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Image> images;
 
-
     @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
-            Set<Review> reviews;
+    Set<Review> reviews;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.REMOVE)
     Set<Booking> bookings;
-
 
     @ManyToMany(mappedBy = "favoriteTours")
     private Set<User> usersFavorited = new HashSet<>();

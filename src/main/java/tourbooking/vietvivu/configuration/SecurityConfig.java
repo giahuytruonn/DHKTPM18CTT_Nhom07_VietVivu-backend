@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.configuration;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
@@ -32,24 +34,22 @@ public class SecurityConfig {
             "/auth/outbound/authentication",
             "/tours",
             "/tours/**",
-            "/tours/search"
+            "/tours/search",
+            "/ai/**"
     };
 
     // ===== ADMIN ENDPOINTS =====
-    private final String[] ADMIN_ENDPOINTS = {
-            "/tours",
-            "/tours/**",
-            "/tours/admin/**",
-            "/bookings/**",
-            "/reviews/**"
-    };
+    private final String[] ADMIN_ENDPOINTS = {"/tours", "/tours/**", "/tours/admin/**", "/reviews/**"};
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
     private final String[] USER_ENDPOINTS = {
             "/users/favorite-tours",
             "/users/favorite-tours/**",
             "/users/my-info",
-            "/users/create-password"
+            "/users/create-password",
+            "/bookings/**",
+            "/bookings-request/**",
+            "/change-tour/**"
     };
 
     @Autowired
@@ -58,35 +58,41 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // Đây là phiên bản filterChain chi tiết từ nhánh 'Chuc'.
-        http
-                .authorizeHttpRequests(auth -> auth
+        http.authorizeHttpRequests(auth -> auth
                         // ===== PUBLIC ENDPOINTS =====
-                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS)
+                        .permitAll()
 
                         // ===== ADMIN ENDPOINTS =====
-                        .requestMatchers(HttpMethod.POST, ADMIN_ENDPOINTS).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, ADMIN_ENDPOINTS).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, ADMIN_ENDPOINTS).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, ADMIN_ENDPOINTS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, ADMIN_ENDPOINTS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ADMIN_ENDPOINTS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ADMIN_ENDPOINTS)
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, ADMIN_ENDPOINTS)
+                        .hasRole("ADMIN")
 
                         // ===== USER AUTHENTICATED ENDPOINTS =====
-                        .requestMatchers(HttpMethod.GET, USER_ENDPOINTS).authenticated()
-                        .requestMatchers(HttpMethod.POST, USER_ENDPOINTS).authenticated()
-                        .requestMatchers(HttpMethod.DELETE, USER_ENDPOINTS).authenticated()
+                        .requestMatchers(HttpMethod.GET, USER_ENDPOINTS)
+                        .authenticated()
+                        .requestMatchers(HttpMethod.POST, USER_ENDPOINTS)
+                        .authenticated()
+                        .requestMatchers(HttpMethod.DELETE, USER_ENDPOINTS)
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PUT, USER_ENDPOINTS)
+                        .authenticated()
 
                         // All other requests need authentication
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest()
+                        .authenticated())
 
                 // OAuth2 Resource Server configuration
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+                                jwt.decoder(customJwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
 
                 // Disable CSRF
                 .csrf(AbstractHttpConfigurer::disable);
@@ -102,6 +108,7 @@ public class SecurityConfig {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -122,7 +129,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 }

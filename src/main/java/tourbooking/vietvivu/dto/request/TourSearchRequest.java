@@ -1,10 +1,10 @@
 package tourbooking.vietvivu.dto.request;
 
+import java.time.LocalDate;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.enumm.TourStatus;
-
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +20,6 @@ public class TourSearchRequest {
     LocalDate startDate;
     Integer durationDays;
     Integer minQuantity;
-
 
     TourStatus tourStatus;
     Boolean availability;

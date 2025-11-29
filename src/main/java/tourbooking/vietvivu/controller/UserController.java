@@ -16,6 +16,7 @@ import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
 import tourbooking.vietvivu.dto.request.UserCreationRequest;
 import tourbooking.vietvivu.dto.request.UserUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
+import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.UserResponse;
 import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.exception.AppException;
@@ -40,11 +41,23 @@ public class UserController {
     }
 
     @GetMapping
-    ApiResponse<List<UserResponse>> getUsers() {
-        return ApiResponse.<List<UserResponse>>builder()
-                .result(userService.getUsers())
+    public ApiResponse<PaginationResponse<UserResponse>> getUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<PaginationResponse<UserResponse>>builder()
+                .result(userService.getUsers(page, size))
+                .message("Get users successfully")
                 .build();
     }
+
+
+//    @GetMapping
+//    ApiResponse<List<UserResponse>> getUsers() {
+//        return ApiResponse.<List<UserResponse>>builder()
+//                .result(userService.getUsers())
+//                .build();
+//    }
 
     @GetMapping("/my-info")
     ApiResponse<UserResponse> getMyInfo() {

@@ -43,8 +43,7 @@ public class User implements Serializable {
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_user_id", referencedColumnName = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_name", referencedColumnName = "name")
-    )
+            inverseJoinColumns = @JoinColumn(name = "roles_name", referencedColumnName = "name"))
     Set<Role> roles;
 
     @OneToMany(mappedBy = "user")
@@ -74,7 +73,11 @@ public class User implements Serializable {
     @JoinTable(
             name = "user_favorite",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "tour_id", referencedColumnName = "tour_id")
-    )
+            inverseJoinColumns = @JoinColumn(name = "tour_id", referencedColumnName = "tour_id"))
     private Set<Tour> favoriteTours = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "user_favourite_tours", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "tour_id")
+    Set<String> favouriteTours;
 }

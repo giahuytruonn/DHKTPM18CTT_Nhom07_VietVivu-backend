@@ -1,14 +1,11 @@
 package tourbooking.vietvivu.dto.response;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-import tourbooking.vietvivu.enumm.TourStatus;
-
 import java.time.LocalDate;
 import java.util.List;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.TourStatus;
 
 @Data
 @NoArgsConstructor
@@ -34,4 +31,7 @@ public class TourResponse {
     Integer totalBookings;
     Integer favoriteCount;
     Boolean isFavorited;
+    Double averageRating;
+    Integer reviewCount;
+    Boolean isFavorite;
 }

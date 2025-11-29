@@ -1,5 +1,7 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +13,6 @@ import tourbooking.vietvivu.dto.request.PaymentSuccessRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.PaymentSuccessResponse;
 import tourbooking.vietvivu.service.PaymentService;
-import vn.payos.type.CheckoutResponseData;
 
 @RestController
 @RequestMapping("/payment")
@@ -20,12 +21,13 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/create")
-    public ApiResponse<CheckoutResponseData> createPayment(@RequestBody PaymentRequest req) throws Exception {
-        return ApiResponse.<CheckoutResponseData>builder()
+    public ApiResponse<Map<String, Object>> createPayment(@RequestBody PaymentRequest req) throws Exception {
+        return ApiResponse.<Map<String, Object>>builder()
                 .result(paymentService.createPayment(req))
                 .message("Create link success")
                 .build();
-    }; 
+    }
+    ;
 
     @PostMapping("/success")
     public ApiResponse<PaymentSuccessResponse> paymentSuccess(@RequestBody PaymentSuccessRequest request) {
@@ -34,6 +36,4 @@ public class PaymentController {
                 .message("Payment success processed")
                 .build();
     }
-    
-    
 }

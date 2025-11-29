@@ -16,4 +16,3 @@ public class PaymentSuccessRequest {
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
 }
-

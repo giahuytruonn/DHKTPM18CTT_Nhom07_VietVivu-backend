@@ -32,7 +32,14 @@ public enum ErrorCode {
     BOOKING_NOT_FOUND(1022, "Booking not found", HttpStatus.BAD_REQUEST),
     OLD_TOUR_NOT_FOUND(1023, "Old tour not found", HttpStatus.BAD_REQUEST),
     NEW_TOUR_NOT_FOUND(1024, "New tour not found", HttpStatus.BAD_REQUEST),
-    USER_NOT_BELONG_BOOKING(1025, "User does not belong to the booking", HttpStatus.BAD_REQUEST);
+    USER_NOT_BELONG_BOOKING(1025, "User does not belong to the booking", HttpStatus.BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(1026, "Review already exists for this booking", HttpStatus.BAD_REQUEST),
+    BOOKING_NOT_COMPLETED(1027, "Booking is not completed yet", HttpStatus.BAD_REQUEST),
+    TOUR_ALREADY_IN_FAVORITES(1028, "Tour is already in favorites", HttpStatus.BAD_REQUEST),
+    TOUR_NOT_IN_FAVORITES(1029, "Tour is not in favorites", HttpStatus.BAD_REQUEST),
+    REVIEW_NOT_FOUND(1030, "Review not found", HttpStatus.NOT_FOUND),
+    CANNOT_CHANGE_TO_SAME_TOUR(1031, "Cannot change to the same tour", HttpStatus.BAD_REQUEST),
+    USER_INACTIVE(1032, "User not available", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

@@ -16,7 +16,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingRequest implements Serializable {
 
-    String tourId;  
+    String tourId;
     String userId;
     LocalDate bookingDate;
 

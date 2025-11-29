@@ -177,7 +177,7 @@ public class BookingService {
         } else {
             // Lay thong tin user de luu vao booking response
             var user = userRepository
-                    .findById(request.getUserId())
+                    .findByUsername(request.getUserId())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             response = BookingResponse.builder()
                     .name(user.getName())

@@ -1,13 +1,14 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.service.FavoriteTourService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/users/favorite-tours")
@@ -59,9 +60,7 @@ public class FavoriteTourController {
         try {
             List<TourResponse> result = favoriteTourService.getMyFavoriteTours();
             log.info("Successfully retrieved {} favorite tours", result.size());
-            return ApiResponse.<List<TourResponse>>builder()
-                    .result(result)
-                    .build();
+            return ApiResponse.<List<TourResponse>>builder().result(result).build();
         } catch (Exception e) {
             log.error("Error getting favorite tours: {}", e.getMessage(), e);
             return ApiResponse.<List<TourResponse>>builder()

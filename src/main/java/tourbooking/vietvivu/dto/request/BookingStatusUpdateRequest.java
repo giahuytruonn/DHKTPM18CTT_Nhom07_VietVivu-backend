@@ -10,7 +10,9 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class BookingCancelUpdateRequest {
+public class BookingStatusUpdateRequest {
+
+    String newTourId;
 
     @NotNull
     String reason;

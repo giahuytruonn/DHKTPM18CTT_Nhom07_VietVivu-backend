@@ -106,6 +106,7 @@ public class AuthenticationService {
                 .findByUsername(userInfo.getEmail())
                 .orElseGet(() -> userRepository.save(User.builder()
                         .username(userInfo.getEmail())
+                        .email(userInfo.getEmail())
                         .name(userInfo.getFamilyName())
                         .roles(roles)
                         .build()));
@@ -125,6 +126,7 @@ public class AuthenticationService {
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+
 
         var token = generateToken(user);
 
@@ -201,11 +203,11 @@ public class AuthenticationService {
 
         Date expiryTime = (isRefresh)
                 ? new Date(signedJWT
-                .getJWTClaimsSet()
-                .getIssueTime()
-                .toInstant()
-                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
-                .toEpochMilli())
+                        .getJWTClaimsSet()
+                        .getIssueTime()
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                        .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);

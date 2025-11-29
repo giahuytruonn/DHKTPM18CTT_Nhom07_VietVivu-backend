@@ -1,11 +1,16 @@
 package tourbooking.vietvivu.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
@@ -14,9 +19,6 @@ import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.mapper.TourMapper;
 import tourbooking.vietvivu.repository.TourRepository;
 import tourbooking.vietvivu.repository.UserRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,20 +36,19 @@ public class FavoriteTourService {
     @PreAuthorize("isAuthenticated()")
     public void addToFavorites(String tourId) {
         try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            String username =
+                    SecurityContextHolder.getContext().getAuthentication().getName();
             log.info("Adding tour {} to favorites for user {}", tourId, username);
 
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> {
-                        log.error("User not found: {}", username);
-                        return new AppException(ErrorCode.USER_NOT_EXISTED);
-                    });
+            User user = userRepository.findByUsername(username).orElseThrow(() -> {
+                log.error("User not found: {}", username);
+                return new AppException(ErrorCode.USER_NOT_EXISTED);
+            });
 
-            Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> {
-                        log.error("Tour not found: {}", tourId);
-                        return new AppException(ErrorCode.TOUR_NOT_FOUND);
-                    });
+            Tour tour = tourRepository.findById(tourId).orElseThrow(() -> {
+                log.error("Tour not found: {}", tourId);
+                return new AppException(ErrorCode.TOUR_NOT_FOUND);
+            });
 
             if (user.getFavoriteTours().contains(tour)) {
                 log.warn("Tour {} already in favorites for user {}", tourId, username);
@@ -74,20 +75,19 @@ public class FavoriteTourService {
     @PreAuthorize("isAuthenticated()")
     public void removeFromFavorites(String tourId) {
         try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            String username =
+                    SecurityContextHolder.getContext().getAuthentication().getName();
             log.info("Removing tour {} from favorites for user {}", tourId, username);
 
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> {
-                        log.error("User not found: {}", username);
-                        return new AppException(ErrorCode.USER_NOT_EXISTED);
-                    });
+            User user = userRepository.findByUsername(username).orElseThrow(() -> {
+                log.error("User not found: {}", username);
+                return new AppException(ErrorCode.USER_NOT_EXISTED);
+            });
 
-            Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> {
-                        log.error("Tour not found: {}", tourId);
-                        return new AppException(ErrorCode.TOUR_NOT_FOUND);
-                    });
+            Tour tour = tourRepository.findById(tourId).orElseThrow(() -> {
+                log.error("Tour not found: {}", tourId);
+                return new AppException(ErrorCode.TOUR_NOT_FOUND);
+            });
 
             user.getFavoriteTours().remove(tour);
             userRepository.save(user);
@@ -108,14 +108,14 @@ public class FavoriteTourService {
     @PreAuthorize("isAuthenticated()")
     public List<TourResponse> getMyFavoriteTours() {
         try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            String username =
+                    SecurityContextHolder.getContext().getAuthentication().getName();
             log.info("Getting favorite tours for user {}", username);
 
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> {
-                        log.error("User not found: {}", username);
-                        return new AppException(ErrorCode.USER_NOT_EXISTED);
-                    });
+            User user = userRepository.findByUsername(username).orElseThrow(() -> {
+                log.error("User not found: {}", username);
+                return new AppException(ErrorCode.USER_NOT_EXISTED);
+            });
 
             List<TourResponse> favoriteTours = user.getFavoriteTours().stream()
                     .map(tourMapper::toTourResponse)

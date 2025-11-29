@@ -15,12 +15,24 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
-#  rabbitmq:
-#    host: localhost
-#    port: 5672
-#    username: admin
-#    password: admin
-#    virtual-host: /
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          max-completion-tokens: 2048
+          temperature: 1.0
+      embedding:
+        options:
+          model: text-embedding-3-small
+    vectorstore:
+      pgvector:
+        table-name: tour_vectors     # tên bảng chứa vector
+        dimensions: 1536          # số chiều vector (phải đúng với model embedding)
+        distance-type: cosine_distance
+        index-type: none
   main:
     allow-bean-definition-overriding: true
 

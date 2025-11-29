@@ -9,7 +9,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class VietVivuApplication {
 
     public static void main(String[] args) {
-
         SpringApplication.run(VietVivuApplication.class, args);
     }
 }

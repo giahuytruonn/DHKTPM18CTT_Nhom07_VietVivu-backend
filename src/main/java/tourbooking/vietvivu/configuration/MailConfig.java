@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.configuration;
 
-import java.util.Properties; // Giữ lại import này vì nó được sử dụng
+import java.util.Properties;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
