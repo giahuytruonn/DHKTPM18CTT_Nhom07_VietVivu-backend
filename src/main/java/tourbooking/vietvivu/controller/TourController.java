@@ -1,7 +1,6 @@
 package tourbooking.vietvivu.controller;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import jakarta.validation.Valid;
 
@@ -18,10 +17,13 @@ import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
+import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/tours")
@@ -36,12 +38,16 @@ public class TourController {
     // ===== PUBLIC ENDPOINTS =====
 
     @GetMapping
-    public ApiResponse<List<TourResponse>> getAllToursPublic() {
-        log.info("GET /tours - Getting all public tours");
+    public ApiResponse<PaginationResponse<TourResponse>> getAllToursPublic(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /tours - Getting all public tours with pagination: page={}, size={}", page, size);
         try {
-            List<TourResponse> result = tourService.getAllToursForPublic();
-            log.info("Successfully retrieved {} public tours", result.size());
-            return ApiResponse.<List<TourResponse>>builder().result(result).build();
+            PaginationResponse<TourResponse> result = tourService.getAllToursForPublic(page, size);
+            log.info("Successfully retrieved {} public tours on page {}", result.getItems().size(), page);
+            return ApiResponse.<PaginationResponse<TourResponse>>builder()
+                    .result(result)
+                    .build();
         } catch (Exception e) {
             log.error("Error getting public tours", e);
             throw e;
@@ -62,7 +68,7 @@ public class TourController {
     }
 
     @GetMapping("/search")
-    public ApiResponse<List<TourResponse>> searchTours(
+    public ApiResponse<PaginationResponse<TourResponse>> searchTours(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String destination,
             @RequestParam(required = false) Double minPrice,
@@ -70,15 +76,19 @@ public class TourController {
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) Integer durationDays,
             @RequestParam(required = false) Integer minQuantity,
-            @RequestParam(required = false) TourStatus tourStatus) {
+            @RequestParam(required = false) TourStatus tourStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
         log.info(
-                "GET /tours/search - keyword: {}, destination: {}, minPrice: {}, maxPrice: {}, tourStatus: {}",
+                "GET /tours/search - keyword: {}, destination: {}, minPrice: {}, maxPrice: {}, tourStatus: {}, page: {}, size: {}",
                 keyword,
                 destination,
                 minPrice,
                 maxPrice,
-                tourStatus);
+                tourStatus,
+                page,
+                size);
 
         try {
             TourSearchRequest request = TourSearchRequest.builder()
@@ -92,9 +102,11 @@ public class TourController {
                     .tourStatus(tourStatus)
                     .build();
 
-            List<TourResponse> result = tourService.searchTours(request);
-            log.info("Search found {} tours", result.size());
-            return ApiResponse.<List<TourResponse>>builder().result(result).build();
+            PaginationResponse<TourResponse> result = tourService.searchTours(request, page, size);
+            log.info("Search found {} tours on page {}", result.getItems().size(), page);
+            return ApiResponse.<PaginationResponse<TourResponse>>builder()
+                    .result(result)
+                    .build();
         } catch (Exception e) {
             log.error("Error searching tours", e);
             throw e;
@@ -105,18 +117,20 @@ public class TourController {
 
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<TourResponse>> getAllToursAdmin() {
-        log.info("GET /tours/admin/all - Getting all tours for admin");
+    public ApiResponse<PaginationResponse<TourResponse>> getAllToursAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /tours/admin/all - Getting all tours for admin: page={}, size={}", page, size);
         try {
-            List<TourResponse> result = tourService.getAllToursForAdmin();
-            log.info("Successfully retrieved {} tours for admin", result.size());
-            return ApiResponse.<List<TourResponse>>builder()
+            PaginationResponse<TourResponse> result = tourService.getAllToursForAdmin(page, size);
+            log.info("Successfully retrieved {} tours for admin on page {}", result.getItems().size(), page);
+            return ApiResponse.<PaginationResponse<TourResponse>>builder()
                     .result(result)
-                    .message("Retrieved " + result.size() + " tours")
+                    .message("Retrieved " + result.getTotalItems() + " tours")
                     .build();
         } catch (Exception e) {
             log.error("Error getting tours for admin", e);
-            return ApiResponse.<List<TourResponse>>builder()
+            return ApiResponse.<PaginationResponse<TourResponse>>builder()
                     .code(500)
                     .message("Error: " + e.getMessage())
                     .build();
@@ -178,9 +192,6 @@ public class TourController {
         }
     }
 
-    /**
-     * Upload ảnh lên Cloudinary
-     */
     @PostMapping(value = "/upload-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<String>> uploadImages(@RequestParam("files") List<MultipartFile> files) {
@@ -200,9 +211,6 @@ public class TourController {
         }
     }
 
-    /**
-     * Xóa ảnh từ Cloudinary
-     */
     @DeleteMapping("/delete-image")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteImage(@RequestParam String imageUrl) {
