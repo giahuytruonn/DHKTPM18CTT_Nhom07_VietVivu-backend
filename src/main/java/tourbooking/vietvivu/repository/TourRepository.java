@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -75,11 +76,23 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 			AND (:tourStatus IS NULL OR t.tourStatus = :tourStatus)
 			""")
     List<Tour> searchToursAdmin(
-            @org.springframework.data.repository.query.Param("keyword") String keyword,
-            @org.springframework.data.repository.query.Param("destination") String destination,
-            @org.springframework.data.repository.query.Param("minPrice") Double minPrice,
-            @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice,
-            @org.springframework.data.repository.query.Param("startDate") LocalDate startDate,
-            @org.springframework.data.repository.query.Param("minQuantity") Integer minQuantity,
-            @org.springframework.data.repository.query.Param("tourStatus") TourStatus tourStatus);
+            @Param("keyword") String keyword,
+            @Param("destination") String destination,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            @Param("startDate") LocalDate startDate,
+            @Param("minQuantity") Integer minQuantity,
+            @Param("tourStatus") TourStatus tourStatus);
+
+    @Modifying(clearAutomatically = true)
+    @Query(
+            """
+	UPDATE Tour t SET t.tourStatus =
+		CASE
+			WHEN t.endDate < CURRENT_TIMESTAMP THEN 'COMPLETED'
+			WHEN t.startDate <= CURRENT_TIMESTAMP THEN 'IN_PROGRESS'
+			ELSE 'OPEN_BOOKING'
+		END
+	""")
+    void updateAllTourStatuses();
 }

@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -170,44 +171,34 @@ public class TourService {
      * FIX: Đảm bảo update status và không bị lỗi khi map
      */
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional() // vẫn cần transaction để gọi @Modifying
     public List<TourResponse> getAllToursForAdmin() {
         log.info("Getting all tours for admin");
-        try {
-            List<Tour> tours = tourRepository.findAll();
-            log.info("Retrieved {} tours from database", tours.size());
 
-            // Update status for each tour
-            tours.forEach(tour -> {
-                try {
-                    updateTourStatus(tour);
-                } catch (Exception e) {
-                    log.error("Error updating status for tour {}: {}", tour.getTourId(), e.getMessage());
-                }
-            });
+        // Bước 1: Cập nhật trạng thái toàn bộ tour bằng 1 câu SQL duy nhất
+        // → Không load entity, không saveAll → không bị validate @FutureOrPresent
+        tourRepository.updateAllTourStatuses();
 
-            // Save all tours after status update
-            tourRepository.saveAll(tours);
+        // Bước 2: Lấy danh sách tour mới nhất (status đã được update trong DB)
+        List<Tour> tours = tourRepository.findAll();
 
-            // Map to response with error handling
-            List<TourResponse> responses = tours.stream()
-                    .map(tour -> {
-                        try {
-                            return tourMapper.toTourResponse(tour);
-                        } catch (Exception e) {
-                            log.error("Error mapping tour {} to response: {}", tour.getTourId(), e.getMessage());
-                            return null;
-                        }
-                    })
-                    .filter(response -> response != null)
-                    .collect(Collectors.toList());
+        log.info("Retrieved {} tours from database with updated status", tours.size());
 
-            log.info("Successfully mapped {} tours for admin", responses.size());
-            return responses;
+        // Bước 3: Map sang response (không cần save gì nữa)
+        List<TourResponse> responses = tours.stream()
+                .map(tour -> {
+                    try {
+                        return tourMapper.toTourResponse(tour);
+                    } catch (Exception e) {
+                        log.error("Error mapping tour {}: {}", tour.getTourId(), e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
 
-        } catch (Exception e) {
-            log.error("Error in getAllToursForAdmin: ", e);
-            throw new RuntimeException("Failed to get tours for admin", e);
-        }
+        log.info("Successfully returned {} tours for admin", responses.size());
+        return responses;
     }
 
     /**

@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.AccessLevel;
@@ -15,7 +16,12 @@ import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
 import tourbooking.vietvivu.dto.request.UserCreationRequest;
 import tourbooking.vietvivu.dto.request.UserUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
+import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.UserResponse;
+import tourbooking.vietvivu.entity.User;
+import tourbooking.vietvivu.exception.AppException;
+import tourbooking.vietvivu.exception.ErrorCode;
+import tourbooking.vietvivu.repository.UserRepository;
 import tourbooking.vietvivu.service.UserService;
 
 @RestController
@@ -24,6 +30,7 @@ import tourbooking.vietvivu.service.UserService;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class UserController {
+    private final UserRepository userRepository;
     UserService userService;
 
     @PostMapping
@@ -34,11 +41,20 @@ public class UserController {
     }
 
     @GetMapping
-    ApiResponse<List<UserResponse>> getUsers() {
-        return ApiResponse.<List<UserResponse>>builder()
-                .result(userService.getUsers())
+    public ApiResponse<PaginationResponse<UserResponse>> getUsers(
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.<PaginationResponse<UserResponse>>builder()
+                .result(userService.getUsers(page, size))
+                .message("Get users successfully")
                 .build();
     }
+
+    //    @GetMapping
+    //    ApiResponse<List<UserResponse>> getUsers() {
+    //        return ApiResponse.<List<UserResponse>>builder()
+    //                .result(userService.getUsers())
+    //                .build();
+    //    }
 
     @GetMapping("/my-info")
     ApiResponse<UserResponse> getMyInfo() {
@@ -88,6 +104,19 @@ public class UserController {
         userService.updateStatusUser(userId, isActive);
         return ApiResponse.<Void>builder()
                 .message("User status has been updated")
+                .build();
+    }
+
+    @PutMapping("/my-info")
+    ApiResponse<UserResponse> updateMyInfo(@RequestBody @Valid UserUpdateRequest request) {
+        var context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
+
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUser(user.getId(), request))
                 .build();
     }
 }
