@@ -10,9 +10,6 @@ import jakarta.validation.constraints.*;
 
 import org.hibernate.annotations.Formula;
 
-
-import jakarta.persistence.*;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.enumm.TourStatus;

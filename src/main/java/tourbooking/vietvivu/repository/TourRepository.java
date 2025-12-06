@@ -13,7 +13,6 @@ import feign.Param;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.enumm.TourStatus;
 
-
 @Repository
 public interface TourRepository extends JpaRepository<Tour, String> {
 
@@ -86,13 +85,14 @@ public interface TourRepository extends JpaRepository<Tour, String> {
             @Param("tourStatus") TourStatus tourStatus);
 
     @Modifying(clearAutomatically = true)
-    @Query("""
-    UPDATE Tour t SET t.tourStatus =
-        CASE
-            WHEN t.endDate < CURRENT_TIMESTAMP THEN 'COMPLETED'
-            WHEN t.startDate <= CURRENT_TIMESTAMP THEN 'IN_PROGRESS'
-            ELSE 'OPEN_BOOKING'
-        END
-    """)
+    @Query(
+            """
+	UPDATE Tour t SET t.tourStatus =
+		CASE
+			WHEN t.endDate < CURRENT_TIMESTAMP THEN 'COMPLETED'
+			WHEN t.startDate <= CURRENT_TIMESTAMP THEN 'IN_PROGRESS'
+			ELSE 'OPEN_BOOKING'
+		END
+	""")
     void updateAllTourStatuses();
 }

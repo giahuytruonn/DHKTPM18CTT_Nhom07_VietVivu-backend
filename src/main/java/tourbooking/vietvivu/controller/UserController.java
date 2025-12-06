@@ -42,22 +42,19 @@ public class UserController {
 
     @GetMapping
     public ApiResponse<PaginationResponse<UserResponse>> getUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         return ApiResponse.<PaginationResponse<UserResponse>>builder()
                 .result(userService.getUsers(page, size))
                 .message("Get users successfully")
                 .build();
     }
 
-
-//    @GetMapping
-//    ApiResponse<List<UserResponse>> getUsers() {
-//        return ApiResponse.<List<UserResponse>>builder()
-//                .result(userService.getUsers())
-//                .build();
-//    }
+    //    @GetMapping
+    //    ApiResponse<List<UserResponse>> getUsers() {
+    //        return ApiResponse.<List<UserResponse>>builder()
+    //                .result(userService.getUsers())
+    //                .build();
+    //    }
 
     @GetMapping("/my-info")
     ApiResponse<UserResponse> getMyInfo() {
@@ -115,8 +112,8 @@ public class UserController {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(user.getId(), request))
