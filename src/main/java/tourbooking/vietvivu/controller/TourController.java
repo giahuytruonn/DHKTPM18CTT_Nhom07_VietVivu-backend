@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.validation.Valid;
 
@@ -23,8 +24,6 @@ import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/tours")
 @RequiredArgsConstructor
@@ -39,12 +38,14 @@ public class TourController {
 
     @GetMapping
     public ApiResponse<PaginationResponse<TourResponse>> getAllToursPublic(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         log.info("GET /tours - Getting all public tours with pagination: page={}, size={}", page, size);
         try {
             PaginationResponse<TourResponse> result = tourService.getAllToursForPublic(page, size);
-            log.info("Successfully retrieved {} public tours on page {}", result.getItems().size(), page);
+            log.info(
+                    "Successfully retrieved {} public tours on page {}",
+                    result.getItems().size(),
+                    page);
             return ApiResponse.<PaginationResponse<TourResponse>>builder()
                     .result(result)
                     .build();
@@ -118,12 +119,14 @@ public class TourController {
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<PaginationResponse<TourResponse>> getAllToursAdmin(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         log.info("GET /tours/admin/all - Getting all tours for admin: page={}, size={}", page, size);
         try {
             PaginationResponse<TourResponse> result = tourService.getAllToursForAdmin(page, size);
-            log.info("Successfully retrieved {} tours for admin on page {}", result.getItems().size(), page);
+            log.info(
+                    "Successfully retrieved {} tours for admin on page {}",
+                    result.getItems().size(),
+                    page);
             return ApiResponse.<PaginationResponse<TourResponse>>builder()
                     .result(result)
                     .message("Retrieved " + result.getTotalItems() + " tours")
