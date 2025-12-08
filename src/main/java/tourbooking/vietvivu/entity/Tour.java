@@ -77,6 +77,10 @@ public class Tour {
     @Enumerated(EnumType.STRING)
     TourStatus tourStatus;
 
+    @Builder.Default
+    @Column(name = "manual_status_override", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean manualStatusOverride = false;
+
     @NotEmpty
     @Size(min = 1, max = 20)
     @ElementCollection

@@ -30,7 +30,6 @@ import tourbooking.vietvivu.service.UserService;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class UserController {
-    private final UserRepository userRepository;
     UserService userService;
 
     @PostMapping
@@ -115,8 +114,9 @@ public class UserController {
         User user =
                 userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+
         return ApiResponse.<UserResponse>builder()
-                .result(userService.updateUser(user.getId(), request))
+                .result(userService.updateMyInfo(request))
                 .build();
     }
 }

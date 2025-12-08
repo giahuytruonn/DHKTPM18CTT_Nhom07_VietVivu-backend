@@ -33,7 +33,7 @@ public class ExploreVideoService {
         video.setTitle(req.getTitle());
         video.setDescription(req.getDescription());
         video.setVideoUrl(req.getVideoUrl());
-        video.setUploader(uploader);
+//        video.setUploader(uploader);
         video.setUploadedAt(LocalDateTime.now());
         video.setApproved(false); // chờ duyệt
 
