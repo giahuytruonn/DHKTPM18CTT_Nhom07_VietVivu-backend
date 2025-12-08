@@ -40,24 +40,20 @@ public class ReviewService {
     public ReviewResponse createReview(ReviewRequest request) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Booking booking = bookingRepository
-                .findById(request.getBookingId())
+        Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
 
-        // Kiểm tra user có thuộc booking này không
         if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.USER_NOT_BELONG_BOOKING);
         }
 
-        // Kiểm tra booking đã hoàn thành chưa
         if (booking.getBookingStatus() != BookingStatus.COMPLETED) {
             throw new AppException(ErrorCode.BOOKING_NOT_COMPLETED);
         }
 
-        // Kiểm tra đã có review cho booking này chưa
         if (booking.getReview() != null) {
             throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
         }
@@ -84,37 +80,41 @@ public class ReviewService {
     }
 
     public ReviewResponse getReview(String reviewId) {
-        Review review =
-                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
         return mapToReviewResponse(review);
     }
 
     public List<ReviewResponse> getReviewsByTour(String tourId) {
-        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        return tour.getReviews().stream().map(this::mapToReviewResponse).collect(Collectors.toList());
+        return tour.getReviews().stream()
+                .map(this::mapToReviewResponse)
+                .collect(Collectors.toList());
     }
 
     public List<ReviewResponse> getMyReviews() {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return user.getReviews().stream().map(this::mapToReviewResponse).collect(Collectors.toList());
+        return user.getReviews().stream()
+                .map(this::mapToReviewResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public ReviewResponse updateReview(String reviewId, ReviewRequest request) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Review review =
-                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // Kiểm tra user có quyền sửa review này không
         if (!review.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
@@ -130,18 +130,16 @@ public class ReviewService {
     public void deleteReview(String reviewId) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Review review =
-                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // Kiểm tra user có quyền xóa review này không
         if (!review.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Xóa liên kết với booking
         if (review.getBooking() != null) {
             review.getBooking().setReview(null);
             bookingRepository.save(review.getBooking());
@@ -150,14 +148,35 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    // --- HÀM MAP DỮ LIỆU ĐÃ ĐƯỢC CẬP NHẬT ---
     private ReviewResponse mapToReviewResponse(Review review) {
+        String userNameToDisplay = "Khách hàng";
+        String userAvatarUrl = null;
+
+        if (review.getUser() != null) {
+            // Logic: Ưu tiên Name, nếu null hoặc rỗng thì dùng Username
+            if (review.getUser().getName() != null && !review.getUser().getName().isEmpty()) {
+                userNameToDisplay = review.getUser().getName();
+            } else {
+                userNameToDisplay = review.getUser().getUsername();
+            }
+
+            // Nếu Entity User của bạn đã có trường avatar thì uncomment dòng dưới:
+            // userAvatarUrl = review.getUser().getAvatar();
+        }
+
         return ReviewResponse.builder()
                 .reviewId(review.getReviewId())
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .timestamp(review.getTimestamp())
                 .userId(review.getUser() != null ? review.getUser().getId() : null)
-                .userName(review.getUser() != null ? review.getUser().getName() : null)
+
+                // Trả về Tên thay vì ID
+                .userName(userNameToDisplay)
+                // Trả về Avatar
+                .userAvatar(userAvatarUrl)
+
                 .tourId(review.getTour() != null ? review.getTour().getTourId() : null)
                 .tourTitle(review.getTour() != null ? review.getTour().getTitle() : null)
                 .bookingId(review.getBooking() != null ? review.getBooking().getBookingId() : null)

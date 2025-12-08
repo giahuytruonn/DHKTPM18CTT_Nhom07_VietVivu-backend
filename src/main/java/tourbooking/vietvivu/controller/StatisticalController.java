@@ -49,9 +49,10 @@ public class StatisticalController {
             status = BookingStatus.valueOf(bs.toUpperCase());
         } catch (IllegalArgumentException e) {
             log.warn("Invalid bookingStatus provided to /top-booked-tours: {}", bookingStatus);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "BookingStatus không hợp lệ: " + bookingStatus +
-                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "BookingStatus không hợp lệ: " + bookingStatus
+                            + ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
         }
 
         return ApiResponse.<Map<String, Integer>>builder()
@@ -82,9 +83,10 @@ public class StatisticalController {
             status = BookingStatus.valueOf(bs.toUpperCase());
         } catch (IllegalArgumentException e) {
             log.warn("Invalid bookingStatus provided to /top-users: {}", bookingStatus);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "BookingStatus không hợp lệ: " + bookingStatus +
-                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "BookingStatus không hợp lệ: " + bookingStatus
+                            + ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
         }
 
         return ApiResponse.<Map<String, Integer>>builder()
@@ -100,7 +102,7 @@ public class StatisticalController {
                 .build();
     }
 
-    //Thống kê tổng doanh thu
+    // Thống kê tổng doanh thu
     @GetMapping("/total-revenue")
     ApiResponse<Double> getTotalRevenue() {
         return ApiResponse.<Double>builder()

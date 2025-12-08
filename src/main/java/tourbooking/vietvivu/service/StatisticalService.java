@@ -107,7 +107,6 @@ public class StatisticalService {
         return result;
     }
 
-
     /** Tổng doanh thu từ invoices */
     public double getTotalRevenue() {
         Double totalRevenue = invoiceRepository.getTotalRevenue();

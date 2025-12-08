@@ -12,8 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import tourbooking.vietvivu.dto.response.TourSelectionResponse;
 import tourbooking.vietvivu.entity.Tour;
-import tourbooking.vietvivu.enumm.BookingStatus;
 import tourbooking.vietvivu.enumm.TourStatus;
 
 @Repository
@@ -102,5 +102,6 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 		""")
     void updateAllTourStatuses();
 
-
+    @Query("SELECT new tourbooking.vietvivu.dto.response.TourSelectionResponse(t.id, t.title) FROM Tour t")
+    List<TourSelectionResponse> findAllTourNames();
 }

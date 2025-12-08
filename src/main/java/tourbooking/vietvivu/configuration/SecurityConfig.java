@@ -33,11 +33,14 @@ public class SecurityConfig {
         "/tours",
         "/tours/**",
         "/tours/search",
-        "/ai/**"
+        "/ai/**",
+            "/reviews/tour/**"
     };
 
     // ===== ADMIN ENDPOINTS =====
-    private final String[] ADMIN_ENDPOINTS = {"/tours", "/tours/**", "/tours/admin/**", "/reviews/**"};
+    private final String[] ADMIN_ENDPOINTS = {
+        "/tours", "/tours/**", "/tours/admin/**", "/api/explore/admin/**"
+    };
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
     private final String[] USER_ENDPOINTS = {
@@ -47,7 +50,9 @@ public class SecurityConfig {
         "/users/create-password",
         "/bookings/**",
         "/bookings-request/**",
-        "/change-tour/**"
+        "/change-tour/**",
+            "/reviews/my-reviews",
+            "/reviews"
     };
 
     @Autowired

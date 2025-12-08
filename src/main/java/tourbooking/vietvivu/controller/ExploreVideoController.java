@@ -5,8 +5,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -21,33 +19,19 @@ public class ExploreVideoController {
 
     private final ExploreVideoService exploreVideoService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<ExploreVideoResponse> uploadVideo(
-            @Valid @RequestBody ExploreVideoRequest videoRequest, @AuthenticationPrincipal Jwt principal) {
-        System.out.println("Claims trong token: " + principal.getClaims());
-        String username = principal.getClaimAsString("user_name");
-        System.out.println("Username lấy từ token: " + username);
+    @PostMapping("/admin/upload")
+    public ResponseEntity<ExploreVideoResponse> uploadVideo(@Valid @RequestBody ExploreVideoRequest videoRequest) {
+        return ResponseEntity.ok(exploreVideoService.uploadVideo(videoRequest));
+    }
 
-        ExploreVideoResponse response = exploreVideoService.uploadVideo(username, videoRequest);
-        return ResponseEntity.ok(response);
+    @PostMapping("/like/{videoId}")
+    public ResponseEntity<ExploreVideoResponse> toggleLike(@PathVariable String videoId, @RequestParam boolean isLike) {
+        return ResponseEntity.ok(exploreVideoService.toggleLike(videoId, isLike));
     }
 
     @GetMapping("/videos")
-    public ResponseEntity<List<ExploreVideoResponse>> getApprovedVideos() {
-        List<ExploreVideoResponse> videos = exploreVideoService.getApprovedVideos();
-        return ResponseEntity.ok(videos);
-    }
-
-    @GetMapping("/admin/pending")
-    public ResponseEntity<List<ExploreVideoResponse>> getPendingVideos() {
-        List<ExploreVideoResponse> pending = exploreVideoService.getPendingVideos();
-        return ResponseEntity.ok(pending);
-    }
-
-    @PostMapping("/admin/approve/{videoId}")
-    public ResponseEntity<ExploreVideoResponse> approveVideo(@PathVariable String videoId) {
-        ExploreVideoResponse approvedVideo = exploreVideoService.approveVideo(videoId);
-        return ResponseEntity.ok(approvedVideo);
+    public ResponseEntity<List<ExploreVideoResponse>> getAllVideos() {
+        return ResponseEntity.ok(exploreVideoService.getAllVideos());
     }
 
     @DeleteMapping("/admin/delete/{videoId}")
@@ -59,7 +43,6 @@ public class ExploreVideoController {
     @PutMapping("/admin/update/{videoId}")
     public ResponseEntity<ExploreVideoResponse> updateVideo(
             @PathVariable String videoId, @Valid @RequestBody ExploreVideoRequest videoRequest) {
-        ExploreVideoResponse updatedVideo = exploreVideoService.updateVideo(videoId, videoRequest);
-        return ResponseEntity.ok(updatedVideo);
+        return ResponseEntity.ok(exploreVideoService.updateVideo(videoId, videoRequest));
     }
 }

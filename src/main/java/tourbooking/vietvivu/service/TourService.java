@@ -27,6 +27,7 @@ import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
+import tourbooking.vietvivu.dto.response.TourSelectionResponse;
 import tourbooking.vietvivu.entity.Image;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
@@ -372,5 +373,9 @@ public class TourService {
             log.error("Error checking admin role", e);
             return false;
         }
+    }
+
+    public List<TourSelectionResponse> getAllTourNames() {
+        return tourRepository.findAllTourNames();
     }
 }

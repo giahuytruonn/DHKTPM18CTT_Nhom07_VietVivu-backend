@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +21,7 @@ import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
+import tourbooking.vietvivu.dto.response.TourSelectionResponse;
 import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
@@ -230,5 +232,11 @@ public class TourController {
                     .message("Delete failed: " + e.getMessage())
                     .build();
         }
+    }
+
+    @GetMapping("/all-names")
+    public ResponseEntity<List<TourSelectionResponse>> getAllTourNames() {
+        // Giả sử bạn đã có tourService. Nếu chưa có hàm này trong Service, hãy xem bước tiếp theo
+        return ResponseEntity.ok(tourService.getAllTourNames());
     }
 }

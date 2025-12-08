@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.dto.request.ExploreVideoRequest;
 import tourbooking.vietvivu.dto.response.ExploreVideoResponse;
 import tourbooking.vietvivu.entity.ExploreVideo;
-import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.repository.ExploreVideoRepository;
-import tourbooking.vietvivu.repository.TourRepository;
-import tourbooking.vietvivu.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -22,42 +19,41 @@ import tourbooking.vietvivu.repository.UserRepository;
 public class ExploreVideoService {
 
     private final ExploreVideoRepository exploreVideoRepository;
-    private final UserRepository userRepository;
-    private final TourRepository tourRepository;
 
-    public ExploreVideoResponse uploadVideo(String username, ExploreVideoRequest req) {
-        User uploader =
-                userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User không tồn tại"));
-
+    public ExploreVideoResponse uploadVideo(ExploreVideoRequest req) {
         ExploreVideo video = new ExploreVideo();
         video.setTitle(req.getTitle());
         video.setDescription(req.getDescription());
         video.setVideoUrl(req.getVideoUrl());
-        video.setUploader(uploader);
+        video.setTourId(req.getTourId());
+        video.setLikeCount(0);
         video.setUploadedAt(LocalDateTime.now());
-        video.setApproved(false); // chờ duyệt
+
+        // Không set approved nữa vì mặc định hiển thị
 
         ExploreVideo saved = exploreVideoRepository.save(video);
         return toResponse(saved);
     }
 
-    public List<ExploreVideoResponse> getApprovedVideos() {
-        return exploreVideoRepository.findByApprovedTrueOrderByUploadedAtDesc().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
-
-    public List<ExploreVideoResponse> getPendingVideos() {
-        return exploreVideoRepository.findByApprovedFalseOrderByUploadedAtDesc().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
-
-    public ExploreVideoResponse approveVideo(String videoId) {
+    public ExploreVideoResponse toggleLike(String videoId, boolean isLike) {
         ExploreVideo video =
                 exploreVideoRepository.findById(videoId).orElseThrow(() -> new RuntimeException("Video không tồn tại"));
-        video.setApproved(true);
+
+        int currentLikes = video.getLikeCount() == null ? 0 : video.getLikeCount();
+        if (isLike) {
+            video.setLikeCount(currentLikes + 1);
+        } else {
+            video.setLikeCount(Math.max(0, currentLikes - 1));
+        }
+
         return toResponse(exploreVideoRepository.save(video));
+    }
+
+    public List<ExploreVideoResponse> getAllVideos() {
+        return exploreVideoRepository.findAll().stream()
+                .sorted((v1, v2) -> v2.getUploadedAt().compareTo(v1.getUploadedAt()))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public void deleteVideo(String videoId) {
@@ -71,6 +67,7 @@ public class ExploreVideoService {
         video.setTitle(req.getTitle());
         video.setDescription(req.getDescription());
         video.setVideoUrl(req.getVideoUrl());
+        video.setTourId(req.getTourId());
 
         return toResponse(exploreVideoRepository.save(video));
     }
@@ -81,8 +78,9 @@ public class ExploreVideoService {
                 video.getTitle(),
                 video.getDescription(),
                 video.getVideoUrl(),
-                video.getUploader().getUsername(),
-                video.getApproved(),
-                video.getUploadedAt());
+                "Admin",
+                video.getUploadedAt(),
+                video.getLikeCount(),
+                video.getTourId());
     }
 }

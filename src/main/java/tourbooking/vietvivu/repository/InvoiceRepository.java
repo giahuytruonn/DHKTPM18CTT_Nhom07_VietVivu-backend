@@ -10,5 +10,4 @@ import tourbooking.vietvivu.entity.Invoice;
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
     @Query("SELECT SUM(i.amount) FROM Invoice i")
     Double getTotalRevenue();
-
 }
