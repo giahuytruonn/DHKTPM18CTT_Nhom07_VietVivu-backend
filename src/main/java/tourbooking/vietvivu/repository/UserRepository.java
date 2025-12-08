@@ -16,7 +16,10 @@ import tourbooking.vietvivu.enumm.BookingStatus;
 public interface UserRepository extends JpaRepository<User, String> {
     boolean existsByUsername(String username);
 
+    boolean existsByEmail(String email);
+
     Optional<User> findByUsername(String username);
+
 
     List<User> findByUsernameContainingIgnoreCaseOrPhoneNumberContaining(String username, String phoneNumber);
 
@@ -50,4 +53,6 @@ public interface UserRepository extends JpaRepository<User, String> {
 
 
 
+
+    User findUserByEmail(String email);
 }

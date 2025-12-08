@@ -9,11 +9,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import tourbooking.vietvivu.entity.Booking;
+import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.enumm.BookingStatus;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, String> {
     List<Booking> findByUser_Id(String userId);
+
+    List<Booking> findByUser(User user);
 
     Integer countByTourTourIdAndBookingStatus(String tourId, BookingStatus bookingStatus);
 

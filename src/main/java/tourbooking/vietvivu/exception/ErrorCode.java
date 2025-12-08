@@ -39,7 +39,16 @@ public enum ErrorCode {
     TOUR_NOT_IN_FAVORITES(1029, "Tour is not in favorites", HttpStatus.BAD_REQUEST),
     REVIEW_NOT_FOUND(1030, "Review not found", HttpStatus.NOT_FOUND),
     CANNOT_CHANGE_TO_SAME_TOUR(1031, "Cannot change to the same tour", HttpStatus.BAD_REQUEST),
-    USER_INACTIVE(1032, "User not available", HttpStatus.BAD_REQUEST);
+    USER_INACTIVE(1032, "User not available", HttpStatus.BAD_REQUEST),
+    OTP_INVALID(1033, "OTP is invalid", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1034, "OTP is expired", HttpStatus.BAD_REQUEST),
+    TOKEN_RESET_INVALID(1035, "Reset token is invalid", HttpStatus.BAD_REQUEST),
+    TOKEN_RESET_EXPIRED(1036, "Reset token is expired", HttpStatus.BAD_REQUEST),
+    EMAIL_EXISTED(1037, "Email already existed", HttpStatus.BAD_REQUEST),
+    PASSWORD_INCORRECT(1038, "Old password is incorrect", HttpStatus.BAD_REQUEST);
+
+    //code 200 - OK
+
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

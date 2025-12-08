@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.configuration;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
@@ -24,16 +26,19 @@ public class SecurityConfig {
 
     // ===== PUBLIC ENDPOINTS =====
     private final String[] PUBLIC_ENDPOINTS = {
-        "/users",
-        "/auth/token",
-        "/auth/introspect",
-        "/auth/logout",
-        "/auth/refresh",
-        "/auth/outbound/authentication",
-        "/tours",
-        "/tours/**",
-        "/tours/search",
-        "/ai/**"
+            "/users",
+            "/users/forgot-password",
+            "/users/verify-otp",
+            "/users/reset-password",
+            "/auth/token",
+            "/auth/introspect",
+            "/auth/logout",
+            "/auth/refresh",
+            "/auth/outbound/authentication",
+            "/tours",
+            "/tours/**",
+            "/tours/search",
+            "/ai/**"
     };
 
     // ===== ADMIN ENDPOINTS =====
@@ -41,13 +46,13 @@ public class SecurityConfig {
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
     private final String[] USER_ENDPOINTS = {
-        "/users/favorite-tours",
-        "/users/favorite-tours/**",
-        "/users/my-info",
-        "/users/create-password",
-        "/bookings/**",
-        "/bookings-request/**",
-        "/change-tour/**"
+            "/users/favorite-tours",
+            "/users/favorite-tours/**",
+            "/users/my-info",
+            "/users/create-password",
+            "/bookings/**",
+            "/bookings-request/**",
+            "/change-tour/**"
     };
 
     @Autowired
