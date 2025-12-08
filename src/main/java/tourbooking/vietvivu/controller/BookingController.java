@@ -40,4 +40,11 @@ public class BookingController {
         log.info("Booking successful: {}", response);
         return ApiResponse.<BookingResponse>builder().result(response).build();
     }
+
+    @GetMapping("/{bookingId}")
+    public ApiResponse<BookingResponse> getBookingDetails(@PathVariable String bookingId) {
+        return ApiResponse.<BookingResponse>builder()
+                .result(bookingService.getBookingById(bookingId))
+                .build();
+    }
 }

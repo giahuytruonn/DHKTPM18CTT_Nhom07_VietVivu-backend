@@ -108,6 +108,7 @@ public class AuthenticationService {
                         .username(userInfo.getEmail())
                         .email(userInfo.getEmail())
                         .name(userInfo.getFamilyName())
+                        .isActive(true)
                         .roles(roles)
                         .build()));
 
