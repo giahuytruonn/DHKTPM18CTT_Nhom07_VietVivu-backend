@@ -32,7 +32,6 @@ public interface TourMapper {
     @Mapping(target = "totalBookings", source = "totalBookings")
     @Mapping(target = "favoriteCount", source = "favoriteCount")
     @Mapping(target = "isFavorited", expression = "java(isFavoritedByCurrentUser(tour))")
-    @Mapping(target = "manualStatusOverride", source = "manualStatusOverride")
     TourResponse toTourResponse(Tour tour);
 
     List<TourResponse> toTourResponseList(List<Tour> tours);

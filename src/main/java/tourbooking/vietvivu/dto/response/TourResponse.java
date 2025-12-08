@@ -34,5 +34,4 @@ public class TourResponse {
     Double averageRating;
     Integer reviewCount;
     Boolean isFavorite;
-    Boolean manualStatusOverride;
 }

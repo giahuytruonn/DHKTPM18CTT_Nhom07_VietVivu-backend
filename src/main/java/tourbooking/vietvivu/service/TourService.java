@@ -239,24 +239,21 @@ public class TourService {
         log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        // ===== 1. TÍNH TOÁN CÁC ĐIỀU KIỆN =====
         LocalDate now = LocalDate.now();
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : tour.getStartDate();
-        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : tour.getEndDate();
 
         if (startDate == null) {
             throw new IllegalArgumentException("Start date cannot be null");
         }
 
         LocalDate lockDate = startDate.minusDays(1);
+        boolean isBeforeLockDate = now.isBefore(lockDate.plusDays(1)); // now < startDate
 
-        boolean isBeforeLockDate = !now.isAfter(lockDate);
-        boolean isAfterEndDate = endDate != null && now.isAfter(endDate);
-
-        // ===== 2. XỬ LÝ HÌNH ẢNH =====
+        // ===== XỬ LÝ HÌNH ẢNH =====
         if (request.getImageUrls() != null) {
-            List<String> oldImageUrls =
-                    tour.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList());
+            List<String> oldImageUrls = tour.getImages() != null ?
+                    tour.getImages().stream().map(Image::getImageUrl).toList() : List.of();
+
 
             cloudinaryService.deleteMultipleImages(oldImageUrls);
             tour.getImages().clear();
@@ -268,73 +265,37 @@ public class TourService {
                             .tour(tour)
                             .build())
                     .collect(Collectors.toSet());
-
             tour.getImages().addAll(newImages);
         }
 
-        // ===== 3. XỬ LÝ TRẠNG THÁI TRƯỚC KHI MAPPER =====
-        TourStatus finalStatus = tour.getTourStatus(); // Giữ nguyên trạng thái cũ mặc định
-        Boolean finalOverride = tour.getManualStatusOverride();
+        // ===== CHO PHÉP ADMIN CHỈ ĐƯỢC ĐẶT TRẠNG THÁI TRƯỚC lockDate =====
+        if (request.getTourStatus() != null && isBeforeLockDate) {
+            if (request.getTourStatus() == TourStatus.OPEN_BOOKING ||
+                    request.getTourStatus() == TourStatus.IN_PROGRESS) {
+                tour.setTourStatus(request.getTourStatus());
+                log.info("Admin manually set status to {} (allowed before lock date: {})",
+                        request.getTourStatus(), lockDate);
+            } else {
+                log.warn("Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
+                        request.getTourStatus());
 
-        if (request.getTourStatus() != null) {
-            log.info(
-                    "Received tourStatus: {}, manualOverride: {}",
-                    request.getTourStatus(),
-                    request.getManualStatusOverride());
-
-            // SAU endDate → COMPLETED, không cho sửa
-            if (isAfterEndDate) {
-                log.warn("Cannot update status after endDate. Auto-set to COMPLETED");
-                finalStatus = TourStatus.COMPLETED;
-                finalOverride = false;
             }
-            // Từ lockDate trở đi → IN_PROGRESS, không cho sửa
-            else if (!isBeforeLockDate) {
-                log.warn("Cannot update status from {} onwards. Auto-set to IN_PROGRESS", lockDate);
-                finalStatus = TourStatus.IN_PROGRESS;
-                finalOverride = false;
-            }
-            // TRƯỚC lockDate → Cho phép sửa OPEN_BOOKING hoặc IN_PROGRESS
-            else {
-                TourStatus requestedStatus = request.getTourStatus();
-
-                if (requestedStatus == TourStatus.OPEN_BOOKING || requestedStatus == TourStatus.IN_PROGRESS) {
-                    finalStatus = requestedStatus;
-                    finalOverride = Boolean.TRUE.equals(request.getManualStatusOverride());
-                    log.info("Admin set status to: {}, override: {}", finalStatus, finalOverride);
-                } else {
-                    log.warn("Invalid status {} before lockDate. Keeping current status", requestedStatus);
-                }
-            }
+        } else if (request.getTourStatus() != null) {
+            log.warn("Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
+                    lockDate, now);
         }
 
-        // Xử lý checkbox "Tắt override"
-        if (Boolean.FALSE.equals(request.getManualStatusOverride()) && isBeforeLockDate) {
-            finalOverride = false;
-            log.info("Admin disabled manual override");
-        }
-
-        // ===== 4. GÁN TRẠNG THÁI VÀO ENTITY =====
-        tour.setTourStatus(finalStatus);
-        tour.setManualStatusOverride(finalOverride);
-
-        // ===== 5. MAPPER CÁC FIELD KHÁC =====
+        // ===== CẬP NHẬT CÁC FIELD KHÁC =====
         tourMapper.updateTour(tour, request);
 
-        // ===== 6. TỰ ĐỘNG CẬP NHẬT NẾU KHÔNG CÓ OVERRIDE =====
-        if (!Boolean.TRUE.equals(tour.getManualStatusOverride())) {
-            updateTourStatus(tour);
-            log.info("Auto-updated status to: {}", tour.getTourStatus());
-        }
+        // ===== TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI (LUÔN CHẠY, KHÔNG CẦN OVERRIDE) =====
+        updateTourStatus(tour);
 
         tourRepository.save(tour);
 
-        log.info(
-                "✅ Tour {} updated - Status: {}, Override: {}, LockDate: {}",
-                tourId,
-                tour.getTourStatus(),
-                tour.getManualStatusOverride(),
-                lockDate);
+        log.info("Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
+                tourId, tour.getTourStatus(), lockDate, now);
+
 
         return tourMapper.toTourResponse(tour);
     }
@@ -377,54 +338,37 @@ public class TourService {
 
         LocalDate lockDate = startDate.minusDays(1);
 
-        // ✅ TỰ ĐỘNG TÍNH endDate nếu chưa có
+        // Tự động tính endDate nếu chưa có
         if (endDate == null && tour.getDuration() != null) {
-            int durationDays = extractDaysFromDuration(tour.getDuration());
-            if (durationDays > 0) {
-                endDate = startDate.plusDays(durationDays - 1);
+            int days = extractDaysFromDuration(tour.getDuration());
+            if (days > 0) {
+                endDate = startDate.plusDays(days - 1);
                 tour.setEndDate(endDate);
-            } else {
-                tour.setTourStatus(TourStatus.COMPLETED);
-                return;
             }
         }
 
-        if (endDate == null) {
+        // Ưu tiên cao nhất: Sau endDate → COMPLETED
+        if (endDate != null && now.isAfter(endDate)) {
             tour.setTourStatus(TourStatus.COMPLETED);
+            log.info("Tour {} → COMPLETED (past endDate: {})", tour.getTourId(), endDate);
             return;
         }
 
-        // ✅ ƯU TIÊN 1: Check sau endDate → BẮT BUỘC COMPLETED
-        if (now.isAfter(endDate)) {
-            tour.setTourStatus(TourStatus.COMPLETED);
-            tour.setManualStatusOverride(false);
-            log.info("Tour {} completed (after endDate)", tour.getTourId());
-            return;
-        }
-
-        // ✅ ƯU TIÊN 2: Check sau lockDate → BẮT BUỘC IN_PROGRESS
-        if (now.isAfter(lockDate)) {
+        // Từ ngày lockDate (tức startDate - 1) trở đi → IN_PROGRESS
+        if (!now.isBefore(lockDate.plusDays(1))) { // now >= startDate - 1
             tour.setTourStatus(TourStatus.IN_PROGRESS);
-            tour.setManualStatusOverride(false);
-            log.info("Tour {} in progress (after lockDate {})", tour.getTourId(), lockDate);
+            log.info("Tour {} → IN_PROGRESS (on/after lockDate: {})", tour.getTourId(), lockDate);
+
             return;
         }
 
-        // ✅ ƯU TIÊN 3: Trước hoặc bằng lockDate
-        // Nếu có manual override → giữ nguyên status hiện tại
-        if (Boolean.TRUE.equals(tour.getManualStatusOverride())) {
-            log.info(
-                    "Tour {} has manual override before lockDate, keeping status: {}",
-                    tour.getTourId(),
-                    tour.getTourStatus());
-            return;
-        }
-
-        // ✅ Không có override → set mặc định
-        if (tour.getTourStatus() == null) {
+        // Trước lockDate → giữ trạng thái admin đã set, hoặc mặc định
+        if (tour.getTourStatus() == null || tour.getTourStatus() == TourStatus.COMPLETED) {
             tour.setTourStatus(tour.getAvailability() ? TourStatus.OPEN_BOOKING : TourStatus.IN_PROGRESS);
         }
-        log.info("Tour {} before lockDate, status: {}", tour.getTourId(), tour.getTourStatus());
+
+        log.info("Tour {} remains {} (still before lockDate: {})",
+                tour.getTourId(), tour.getTourStatus(), lockDate);
     }
 
     private int extractDaysFromDuration(String duration) {

@@ -307,6 +307,7 @@ public class BookingService {
 
         List<Booking> bookings = bookingRepository.findByUser(user);
 
+
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
     }
 }
