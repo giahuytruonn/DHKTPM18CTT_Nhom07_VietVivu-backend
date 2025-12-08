@@ -118,6 +118,7 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateMyInfo(request))
                 .build();
+
     }
 
     @PostMapping("/forgot-password")
