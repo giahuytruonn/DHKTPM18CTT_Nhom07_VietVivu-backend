@@ -31,6 +31,7 @@ public class BookingService {
     private final ContactRepository contactRepository;
     private final HistoryRepository historyRepository;
 
+    // GET
     public List<BookingResponse> getBookingByUserId(String userId) {
         List<Booking> bookings = bookingRepository.findByUser_Id(userId);
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
@@ -41,8 +42,8 @@ public class BookingService {
         String username = context.getAuthentication().getName();
         User user =
                 userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        System.out.println(user.getUsername());
-        System.out.println(user.getId());
+        //        System.out.println(user.getUsername());
+        //        System.out.println(user.getId());
         List<Booking> bookings = bookingRepository.findByUser_Id(user.getId());
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
     }

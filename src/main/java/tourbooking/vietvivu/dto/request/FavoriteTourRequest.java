@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FavoriteTourRequest {
+
     @NotBlank(message = "Tour ID is required")
     @JsonProperty("tourId")
     String tourId;
