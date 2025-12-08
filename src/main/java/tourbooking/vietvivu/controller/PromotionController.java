@@ -1,17 +1,18 @@
 package tourbooking.vietvivu.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.entity.Promotion;
 import tourbooking.vietvivu.repository.PromotionRepository;
 import tourbooking.vietvivu.service.PromotionService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/promotions")
@@ -117,13 +118,12 @@ public class PromotionController {
 
     @PutMapping("/{promotionId}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Promotion> updatePromotionStatus(@PathVariable String promotionId,
-                                                        @RequestParam boolean status) {
+    public ApiResponse<Promotion> updatePromotionStatus(
+            @PathVariable String promotionId, @RequestParam boolean status) {
         try {
             promotionService.updatePromotionStatus(promotionId, status);
             return ApiResponse.<Promotion>builder()
-                    .result(promotionService.getAllPromotions()
-                            .stream()
+                    .result(promotionService.getAllPromotions().stream()
                             .filter(p -> p.getPromotionId().equals(promotionId))
                             .findFirst()
                             .orElse(null))
@@ -137,6 +137,4 @@ public class PromotionController {
                     .build();
         }
     }
-
-
 }

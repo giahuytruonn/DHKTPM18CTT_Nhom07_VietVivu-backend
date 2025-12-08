@@ -40,7 +40,6 @@ import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.mapper.TourMapper;
 import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.TourRepository;
-import tourbooking.vietvivu.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -271,8 +270,9 @@ public class TourService {
 
         // ===== XỬ LÝ HÌNH ẢNH =====
         if (request.getImageUrls() != null) {
-            List<String> oldImageUrls = tour.getImages() != null ?
-                    tour.getImages().stream().map(Image::getImageUrl).toList() : List.of();
+            List<String> oldImageUrls = tour.getImages() != null
+                    ? tour.getImages().stream().map(Image::getImageUrl).toList()
+                    : List.of();
 
             cloudinaryService.deleteMultipleImages(oldImageUrls);
             tour.getImages().clear();
@@ -289,18 +289,23 @@ public class TourService {
 
         // ===== CHO PHÉP ADMIN CHỈ ĐƯỢC ĐẶT TRẠNG THÁI TRƯỚC lockDate =====
         if (request.getTourStatus() != null && isBeforeLockDate) {
-            if (request.getTourStatus() == TourStatus.OPEN_BOOKING ||
-                    request.getTourStatus() == TourStatus.IN_PROGRESS) {
+            if (request.getTourStatus() == TourStatus.OPEN_BOOKING
+                    || request.getTourStatus() == TourStatus.IN_PROGRESS) {
                 tour.setTourStatus(request.getTourStatus());
-                log.info("Admin manually set status to {} (allowed before lock date: {})",
-                        request.getTourStatus(), lockDate);
+                log.info(
+                        "Admin manually set status to {} (allowed before lock date: {})",
+                        request.getTourStatus(),
+                        lockDate);
             } else {
-                log.warn("Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
+                log.warn(
+                        "Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
                         request.getTourStatus());
             }
         } else if (request.getTourStatus() != null) {
-            log.warn("Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
-                    lockDate, now);
+            log.warn(
+                    "Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
+                    lockDate,
+                    now);
         }
 
         // ===== CẬP NHẬT CÁC FIELD KHÁC =====
@@ -311,8 +316,12 @@ public class TourService {
 
         tourRepository.save(tour);
 
-        log.info("Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
-                tourId, tour.getTourStatus(), lockDate, now);
+        log.info(
+                "Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
+                tourId,
+                tour.getTourStatus(),
+                lockDate,
+                now);
 
         // ===== GỬI EMAIL THÔNG BÁO NẾU THAY ĐỔI NGÀY =====
         if (datesChanged) {
@@ -390,8 +399,7 @@ public class TourService {
             tour.setTourStatus(tour.getAvailability() ? TourStatus.OPEN_BOOKING : TourStatus.IN_PROGRESS);
         }
 
-        log.info("Tour {} remains {} (still before lockDate: {})",
-                tour.getTourId(), tour.getTourStatus(), lockDate);
+        log.info("Tour {} remains {} (still before lockDate: {})", tour.getTourId(), tour.getTourStatus(), lockDate);
     }
 
     private int extractDaysFromDuration(String duration) {
@@ -440,8 +448,10 @@ public class TourService {
         try {
             // LẤY TẤT CẢ BOOKING CÓ STATUS PENDING HOẶC CONFIRMED
             List<Booking> bookings = new ArrayList<>();
-            bookings.addAll(bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.PENDING));
-            bookings.addAll(bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.CONFIRMED));
+            bookings.addAll(
+                    bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.PENDING));
+            bookings.addAll(
+                    bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.CONFIRMED));
 
             log.info("Found {} bookings to notify for tour {}", bookings.size(), tour.getTourId());
 
@@ -477,21 +487,26 @@ public class TourService {
 
                     // GỬI EMAIL
                     emailService.sendTourScheduleChangeEmail(notification);
-                    log.info("Schedule change notification sent to {} for booking {}",
-                            customerEmail, booking.getBookingId());
+                    log.info(
+                            "Schedule change notification sent to {} for booking {}",
+                            customerEmail,
+                            booking.getBookingId());
 
                 } catch (Exception e) {
-                    log.error("Failed to send notification for booking {}: {}",
-                            booking.getBookingId(), e.getMessage());
+                    log.error("Failed to send notification for booking {}: {}", booking.getBookingId(), e.getMessage());
                 }
             }
 
-            log.info("Completed sending {} schedule change notifications for tour {}",
-                    bookings.size(), tour.getTourId());
+            log.info(
+                    "Completed sending {} schedule change notifications for tour {}",
+                    bookings.size(),
+                    tour.getTourId());
 
         } catch (Exception e) {
-            log.error("Error while sending schedule change notifications for tour {}: {}",
-                    tour.getTourId(), e.getMessage());
+            log.error(
+                    "Error while sending schedule change notifications for tour {}: {}",
+                    tour.getTourId(),
+                    e.getMessage());
         }
     }
 }

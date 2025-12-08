@@ -48,7 +48,6 @@ public class UserService {
     OtpVerificationRepository otpVerificationRepository;
     EmailService emailService;
 
-
     // CREATE
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
