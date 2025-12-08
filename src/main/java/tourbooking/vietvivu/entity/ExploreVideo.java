@@ -30,7 +30,7 @@ public class ExploreVideo {
     String videoUrl;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     User uploader;
 
     @Column(name = "uploaded_at")

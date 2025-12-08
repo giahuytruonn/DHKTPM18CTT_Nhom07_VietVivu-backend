@@ -1,10 +1,12 @@
 package tourbooking.vietvivu.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import tourbooking.vietvivu.entity.User;
@@ -25,11 +27,12 @@ public interface UserRepository extends JpaRepository<User, String> {
 	SELECT u.name, COUNT(b)
 	FROM Booking b
 	JOIN b.user u
+	WHERE b.bookingDate BETWEEN :startTime AND :endTime
 	GROUP BY u.name
 	ORDER BY COUNT(b) DESC
-	LIMIT :topN
-	""")
-    List<Object[]> findTopNUsersAll(int topN);
+""")
+    List<Object[]> findTopNUsersAllTime(
+            @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     @Query(
             """
@@ -37,11 +40,14 @@ public interface UserRepository extends JpaRepository<User, String> {
 	FROM Booking b
 	JOIN b.user u
 	WHERE b.bookingStatus = :status
+	AND b.bookingDate BETWEEN :startTime AND :endTime
 	GROUP BY u.name
 	ORDER BY COUNT(b) DESC
-	LIMIT :topN
-	""")
-    List<Object[]> findTopNUsersByStatus(BookingStatus status, int topN);
+""")
+    List<Object[]> findTopNUsersByStatusAndTime(
+            @Param("status") BookingStatus status,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 
     User findUserByEmail(String email);
 }
