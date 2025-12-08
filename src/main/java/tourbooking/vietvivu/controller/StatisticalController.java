@@ -2,10 +2,12 @@ package tourbooking.vietvivu.controller;
 
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,42 +25,86 @@ import tourbooking.vietvivu.service.StatisticalService;
 public class StatisticalController {
     StatisticalService statisticalService;
 
-    // Thống kê top N tour được đặt nhiều nhất(booking_status: CONFIRMED/ CANCELLED) Map<Tên tour, Số lần đặt>
+    /**
+     * Thống kê top N tour được đặt nhiều nhất
+     * @param bookingStatus optional: ALL | PENDING | CONFIRMED | COMPLETED | CANCELLED
+     * @param topN optional, default 5
+     */
     @GetMapping("/top-booked-tours")
-    ApiResponse<Map<String, Integer>> getTopNTourBookedByStatus(@RequestParam String bookingStatus) {
-        BookingStatus status;
-        try {
-            status = BookingStatus.valueOf(bookingStatus.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("BookingStatus không hợp lệ");
+    ApiResponse<Map<String, Integer>> getTopNTourBookedByStatus(
+            @RequestParam(required = false, defaultValue = "ALL") String bookingStatus,
+            @RequestParam(required = false, defaultValue = "5") int topN) {
+
+        // defensive: trim + upper
+        String bs = bookingStatus == null ? "ALL" : bookingStatus.trim();
+
+        if (bs.isBlank() || bs.equalsIgnoreCase("ALL")) {
+            return ApiResponse.<Map<String, Integer>>builder()
+                    .result(statisticalService.getTopNTourBookedAllStatus(topN))
+                    .build();
         }
 
-        int topN = 5;
+        BookingStatus status;
+        try {
+            status = BookingStatus.valueOf(bs.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid bookingStatus provided to /top-booked-tours: {}", bookingStatus);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "BookingStatus không hợp lệ: " + bookingStatus +
+                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
+        }
+
         return ApiResponse.<Map<String, Integer>>builder()
                 .result(statisticalService.getTopNTourBookedByStatus(topN, status))
                 .build();
     }
 
+    /**
+     * Thống kê top N users theo trạng thái booking
+     * @param bookingStatus optional: ALL | PENDING | CONFIRMED | COMPLETED | CANCELLED
+     * @param topN optional, default 5
+     */
     @GetMapping("/top-users")
-    ApiResponse<Map<String, Integer>> getTopNCustomersByBookingStatus(@RequestParam String bookingStatus) {
-        BookingStatus status;
-        try {
-            status = BookingStatus.valueOf(bookingStatus.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("BookingStatus không hợp lệ");
+    ApiResponse<Map<String, Integer>> getTopNCustomersByBookingStatus(
+            @RequestParam(required = false, defaultValue = "ALL") String bookingStatus,
+            @RequestParam(required = false, defaultValue = "5") int topN) {
+
+        String bs = bookingStatus == null ? "ALL" : bookingStatus.trim();
+
+        if (bs.isBlank() || bs.equalsIgnoreCase("ALL")) {
+            return ApiResponse.<Map<String, Integer>>builder()
+                    .result(statisticalService.getTopNCustomersAllStatus(topN))
+                    .build();
         }
 
-        int topN = 5;
+        BookingStatus status;
+        try {
+            status = BookingStatus.valueOf(bs.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid bookingStatus provided to /top-users: {}", bookingStatus);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "BookingStatus không hợp lệ: " + bookingStatus +
+                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
+        }
+
         return ApiResponse.<Map<String, Integer>>builder()
                 .result(statisticalService.getTopNCustomersByBookingStatus(topN, status))
                 .build();
     }
 
-    // Thống kê tổng số đơn đặt theo trạng thái(booking_status: CONFIRMED/ CANCELLED/ PENDING) Map<Trang Thai, Số lần>
+    // Thống kê tổng số đơn đặt theo trạng thái
     @GetMapping("/total-bookings-by-status")
     ApiResponse<Map<String, Integer>> getTotalBookingsByStatus() {
         return ApiResponse.<Map<String, Integer>>builder()
                 .result(statisticalService.getBookingCountByStatus())
+                .build();
+    }
+
+    //Thống kê tổng doanh thu
+    @GetMapping("/total-revenue")
+    ApiResponse<Double> getTotalRevenue() {
+        return ApiResponse.<Double>builder()
+                .result(statisticalService.getTotalRevenue())
                 .build();
     }
 }

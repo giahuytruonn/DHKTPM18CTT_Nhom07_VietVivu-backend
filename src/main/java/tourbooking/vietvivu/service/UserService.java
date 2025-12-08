@@ -17,7 +17,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
 import tourbooking.vietvivu.constant.PredefinedRole;
 import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
 import tourbooking.vietvivu.dto.request.UserCreationRequest;
@@ -85,8 +84,7 @@ public class UserService {
     // UPDATE
     @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         userMapper.updateUser(user, request);
 
@@ -120,11 +118,11 @@ public class UserService {
     }
 
     // READ
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public List<UserResponse> getUsers() {
-//        log.info("In method get Users");
-//        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
-//    }
+    //    @PreAuthorize("hasRole('ADMIN')")
+    //    public List<UserResponse> getUsers() {
+    //        log.info("In method get Users");
+    //        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
+    //    }
 
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUser(String id) {
@@ -133,17 +131,15 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public PaginationResponse <UserResponse> getUsers(int page, int size){
+    public PaginationResponse<UserResponse> getUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<User> users = userRepository.findAll(pageable);
 
-        List<UserResponse> res = users.getContent()
-                .stream()
-                .map(userMapper::toUserResponse)
-                .toList();
+        List<UserResponse> res =
+                users.getContent().stream().map(userMapper::toUserResponse).toList();
 
-        return PaginationResponse.<UserResponse> builder()
+        return PaginationResponse.<UserResponse>builder()
                 .items(res)
                 .currentPage(users.getNumber())
                 .pageSizes(users.getSize())
@@ -163,4 +159,5 @@ public class UserService {
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
+
 }

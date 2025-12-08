@@ -1,13 +1,13 @@
 package tourbooking.vietvivu.dto.response;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @Builder
-public class PaginationResponse<T>{
+public class PaginationResponse<T> {
     private List<T> items;
     private int currentPage;
     private int pageSizes;
