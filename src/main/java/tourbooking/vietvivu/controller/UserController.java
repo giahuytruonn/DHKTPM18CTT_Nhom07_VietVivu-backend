@@ -12,12 +12,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import tourbooking.vietvivu.dto.request.PasswordCreationRequest;
-import tourbooking.vietvivu.dto.request.UserCreationRequest;
-import tourbooking.vietvivu.dto.request.UserUpdateRequest;
+import tourbooking.vietvivu.dto.request.*;
 import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.UserResponse;
+import tourbooking.vietvivu.dto.response.VerifyOtpResponse;
 import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.exception.AppException;
 import tourbooking.vietvivu.exception.ErrorCode;
@@ -119,4 +118,38 @@ public class UserController {
                 .result(userService.updateMyInfo(request))
                 .build();
     }
+
+    @PostMapping("/forgot-password")
+    ApiResponse<Void> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        userService.forgotPassword(request);
+        return ApiResponse.<Void>builder()
+                .message("If the email is registered, a OTP has been sent.")
+                .build();
+    }
+
+    @PostMapping("/verify-otp")
+    ApiResponse<VerifyOtpResponse> verifyOTP(@RequestBody OtpRequest request) {
+        return ApiResponse.<VerifyOtpResponse>builder()
+                .result(userService.verifyOtp(request))
+                .message("OTP is valid.")
+                .build();
+    }
+
+    @PostMapping("/reset-password")
+    ApiResponse<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        userService.resetPassword(request);
+        return ApiResponse.<Void>builder()
+                .message("Password has been reset successfully.")
+                .build();
+    }
+
+    @PostMapping("/change-password")
+    ApiResponse<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ApiResponse.<Void>builder()
+                .message("Password has been changed successfully.")
+                .build();
+    }
+
+
 }

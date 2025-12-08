@@ -51,4 +51,11 @@ public class BookingController {
     }
 
 
+
+    @GetMapping("/{bookingId}")
+    public ApiResponse<BookingResponse> getBookingDetails(@PathVariable String bookingId) {
+        return ApiResponse.<BookingResponse>builder()
+                .result(bookingService.getBookingById(bookingId))
+                .build();
+    }
 }
