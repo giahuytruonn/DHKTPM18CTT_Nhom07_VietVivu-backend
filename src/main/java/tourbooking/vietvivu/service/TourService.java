@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,8 @@ import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
-import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.dto.response.TourSelectionResponse;
+import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.Image;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
@@ -324,13 +325,19 @@ public class TourService {
                 lockDate,
                 now);
 
-        // ===== GỬI EMAIL THÔNG BÁO NẾU THAY ĐỔI NGÀY =====
+        // ===== GỬI EMAIL BẤT ĐỒNG BỘ NẾU THAY ĐỔI NGÀY =====
         if (datesChanged) {
-            log.info("Tour dates changed, sending notifications to customers...");
-            sendScheduleChangeNotifications(tour, oldStartDate, oldEndDate);
+            log.info("Tour dates changed, sending notifications asynchronously to customers...");
+            sendScheduleChangeNotificationsAsync(tour, oldStartDate, oldEndDate);
         }
 
         return tourMapper.toTourResponse(tour);
+    }
+
+    // Thêm method mới với @Async
+    @Async
+    private void sendScheduleChangeNotificationsAsync(Tour tour, LocalDate oldStartDate, LocalDate oldEndDate) {
+        sendScheduleChangeNotifications(tour, oldStartDate, oldEndDate);
     }
 
     @Transactional
@@ -380,6 +387,30 @@ public class TourService {
             }
         }
 
+        // **THÊM LOGIC NÀY: Kiểm tra quantity = 0**
+        if (tour.getQuantity() != null && tour.getQuantity() == 0) {
+            tour.setAvailability(false);
+
+            // Nếu sau endDate -> COMPLETED
+            if (endDate != null && now.isAfter(endDate)) {
+                tour.setTourStatus(TourStatus.COMPLETED);
+                log.info("Tour {} → COMPLETED (quantity=0, past endDate: {})", tour.getTourId(), endDate);
+                return;
+            }
+
+            // Nếu từ lockDate (startDate - 1) trở đi -> IN_PROGRESS
+            if (!now.isBefore(lockDate.plusDays(1))) {
+                tour.setTourStatus(TourStatus.IN_PROGRESS);
+                log.info("Tour {} → IN_PROGRESS (quantity=0, on/after lockDate: {})", tour.getTourId(), lockDate);
+                return;
+            }
+
+            // Nếu trước lockDate và quantity = 0 -> vẫn IN_PROGRESS
+            tour.setTourStatus(TourStatus.IN_PROGRESS);
+            log.info("Tour {} → IN_PROGRESS (quantity=0, before lockDate: {})", tour.getTourId(), lockDate);
+            return;
+        }
+
         // Ưu tiên cao nhất: Sau endDate → COMPLETED
         if (endDate != null && now.isAfter(endDate)) {
             tour.setTourStatus(TourStatus.COMPLETED);
@@ -388,10 +419,9 @@ public class TourService {
         }
 
         // Từ ngày lockDate (tức startDate - 1) trở đi → IN_PROGRESS
-        if (!now.isBefore(lockDate.plusDays(1))) { // now >= startDate - 1
+        if (!now.isBefore(lockDate.plusDays(1))) {
             tour.setTourStatus(TourStatus.IN_PROGRESS);
             log.info("Tour {} → IN_PROGRESS (on/after lockDate: {})", tour.getTourId(), lockDate);
-
             return;
         }
 
@@ -510,6 +540,7 @@ public class TourService {
                     e.getMessage());
         }
     }
+
     public List<TourSelectionResponse> getAllTourNames() {
         return tourRepository.findAllTourNames();
     }
