@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.controller;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -23,88 +24,155 @@ import tourbooking.vietvivu.service.StatisticalService;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class StatisticalController {
+
     StatisticalService statisticalService;
 
-    /**
-     * Thống kê top N tour được đặt nhiều nhất
-     * @param bookingStatus optional: ALL | PENDING | CONFIRMED | COMPLETED | CANCELLED
-     * @param topN optional, default 5
-     */
+
+    /* ============================================================
+        1. TOP TOUR ĐƯỢC ĐẶT NHIỀU NHẤT
+       ============================================================ */
     @GetMapping("/top-booked-tours")
     ApiResponse<Map<String, Integer>> getTopNTourBookedByStatus(
-            @RequestParam(required = false, defaultValue = "ALL") String bookingStatus,
-            @RequestParam(required = false, defaultValue = "5") int topN) {
+            @RequestParam(defaultValue = "ALL") String bookingStatus,
+            @RequestParam(defaultValue = "5") int topN,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime
+    ) {
 
-        // defensive: trim + upper
-        String bs = bookingStatus == null ? "ALL" : bookingStatus.trim();
+        LocalDateTime start = parseToDate(startTime, true);
+        LocalDateTime end = parseToDate(endTime, false);
 
-        if (bs.isBlank() || bs.equalsIgnoreCase("ALL")) {
+        String bs = bookingStatus.trim();
+
+        if (bs.equalsIgnoreCase("ALL")) {
             return ApiResponse.<Map<String, Integer>>builder()
-                    .result(statisticalService.getTopNTourBookedAllStatus(topN))
+                    .result(statisticalService.getTopNTourBookedAllStatus(topN, start, end))
                     .build();
         }
 
-        BookingStatus status;
-        try {
-            status = BookingStatus.valueOf(bs.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid bookingStatus provided to /top-booked-tours: {}", bookingStatus);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "BookingStatus không hợp lệ: " + bookingStatus +
-                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
-        }
+        BookingStatus status = parseStatus(bs);
 
         return ApiResponse.<Map<String, Integer>>builder()
-                .result(statisticalService.getTopNTourBookedByStatus(topN, status))
+                .result(statisticalService.getTopNTourBookedByStatus(topN, status, start, end))
                 .build();
     }
 
-    /**
-     * Thống kê top N users theo trạng thái booking
-     * @param bookingStatus optional: ALL | PENDING | CONFIRMED | COMPLETED | CANCELLED
-     * @param topN optional, default 5
-     */
+
+    /* ============================================================
+        2. TOP USERS THEO TRẠNG THÁI
+       ============================================================ */
     @GetMapping("/top-users")
     ApiResponse<Map<String, Integer>> getTopNCustomersByBookingStatus(
-            @RequestParam(required = false, defaultValue = "ALL") String bookingStatus,
-            @RequestParam(required = false, defaultValue = "5") int topN) {
+            @RequestParam(defaultValue = "ALL") String bookingStatus,
+            @RequestParam(defaultValue = "5") int topN,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime
+    ) {
 
-        String bs = bookingStatus == null ? "ALL" : bookingStatus.trim();
+        LocalDateTime start = parseToDate(startTime, true);
+        LocalDateTime end = parseToDate(endTime, false);
 
-        if (bs.isBlank() || bs.equalsIgnoreCase("ALL")) {
+        String bs = bookingStatus.trim();
+
+        if (bs.equalsIgnoreCase("ALL")) {
             return ApiResponse.<Map<String, Integer>>builder()
-                    .result(statisticalService.getTopNCustomersAllStatus(topN))
+                    .result(statisticalService.getTopNCustomersAllStatus(topN, start, end))
                     .build();
         }
 
-        BookingStatus status;
-        try {
-            status = BookingStatus.valueOf(bs.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid bookingStatus provided to /top-users: {}", bookingStatus);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "BookingStatus không hợp lệ: " + bookingStatus +
-                            ". Giá trị hợp lệ: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED");
+        BookingStatus status = parseStatus(bs);
+
+        return ApiResponse.<Map<String, Integer>>builder()
+                .result(statisticalService.getTopNCustomersByBookingStatus(topN, status, start, end))
+                .build();
+    }
+
+
+    /* ============================================================
+        3. ĐẾM BOOKINGS THEO TRẠNG THÁI
+       ============================================================ */
+    @GetMapping("/total-bookings-by-status")
+    ApiResponse<Map<String, Integer>> getTotalBookingsByStatus(
+            @RequestParam(defaultValue = "ALL") String bookingStatus,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime
+    ) {
+
+        LocalDateTime start = parseToDate(startTime, true);
+        LocalDateTime end = parseToDate(endTime, false);
+
+        if (bookingStatus.equalsIgnoreCase("ALL")) {
+            return ApiResponse.<Map<String, Integer>>builder()
+                    .result(statisticalService.getBookingCountAllStatus(start, end))
+                    .build();
         }
 
+        BookingStatus status = parseStatus(bookingStatus);
+
         return ApiResponse.<Map<String, Integer>>builder()
-                .result(statisticalService.getTopNCustomersByBookingStatus(topN, status))
+                .result(statisticalService.getBookingCountByStatus(status, start, end))
                 .build();
     }
 
-    // Thống kê tổng số đơn đặt theo trạng thái
-    @GetMapping("/total-bookings-by-status")
-    ApiResponse<Map<String, Integer>> getTotalBookingsByStatus() {
-        return ApiResponse.<Map<String, Integer>>builder()
-                .result(statisticalService.getBookingCountByStatus())
-                .build();
-    }
 
-    //Thống kê tổng doanh thu
+
+    /* ============================================================
+        4. TỔNG DOANH THU
+       ============================================================ */
     @GetMapping("/total-revenue")
     ApiResponse<Double> getTotalRevenue() {
         return ApiResponse.<Double>builder()
                 .result(statisticalService.getTotalRevenue())
                 .build();
     }
+
+
+    /* ============================================================
+        5. DOANH THU THEO THÁNG
+       ============================================================ */
+    @GetMapping("/revenue-by-month")
+    ApiResponse<Map<String, Double>> getMonthlyRevenue(@RequestParam int year) {
+        return ApiResponse.<Map<String, Double>>builder()
+                .result(statisticalService.getMonthlyRevenue(year))
+                .build();
+    }
+
+    //Thống kê theo phương thức thanh toán
+    @GetMapping("/revenue-by-payment-method")
+    ApiResponse<Map<String, Long>> getRevenueByPaymentMethod() {
+        return ApiResponse.<Map<String, Long>>builder()
+                .result(statisticalService.getRevenueByPaymentMethod())
+                .build();
+    }
+
+
+    /* ============================================================
+        6. HÀM HỖ TRỢ
+       ============================================================ */
+
+    private BookingStatus parseStatus(String raw) {
+        try {
+            return BookingStatus.valueOf(raw.toUpperCase());
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "BookingStatus không hợp lệ: " + raw
+            );
+        }
+    }
+
+    private LocalDateTime parseToDate(String date, boolean isStart) {
+        if (date == null || date.isBlank()) {
+            return isStart
+                    ? LocalDateTime.of(1, 1, 1, 0, 0, 0)
+                    : LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+        }
+
+        return isStart
+                ? LocalDateTime.parse(date + "T00:00:00")
+                : LocalDateTime.parse(date + "T23:59:59");
+    }
+
+
+
 }
