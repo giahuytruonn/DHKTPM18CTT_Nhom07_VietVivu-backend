@@ -27,5 +27,4 @@ public class TourUpdateRequest {
     List<String> imageUrls;
 
     TourStatus tourStatus;
-    Boolean manualStatusOverride;
 }
