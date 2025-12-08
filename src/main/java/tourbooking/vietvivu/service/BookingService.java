@@ -1,8 +1,10 @@
 package tourbooking.vietvivu.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,11 @@ import tourbooking.vietvivu.repository.*;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
+    private static final Set<BookingStatus> COMPLETABLE_STATUSES = Set.of(
+            BookingStatus.CONFIRMED,
+            BookingStatus.CONFIRMED_CHANGE,
+            BookingStatus.DENIED_CANCELLATION,
+            BookingStatus.DENIED_CHANGE);
     private final TourRepository tourRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
@@ -48,7 +55,9 @@ public class BookingService {
     }
 
     private BookingResponse mapToBookingResponse(Booking booking) {
+        applyCompletionIfNecessary(booking);
         Tour tour = booking.getTour();
+        applyCancellationIfOverdue(booking);
         Promotion promotion = booking.getPromotion();
 
         BookingResponse response = BookingResponse.builder()
@@ -309,5 +318,28 @@ public class BookingService {
         List<Booking> bookings = bookingRepository.findByUser(user);
 
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
+    }
+
+    private void applyCancellationIfOverdue(Booking booking) {
+        LocalDateTime paymentTerm = booking.getPaymentTerm();
+        if (paymentTerm != null
+                && booking.getBookingStatus() == BookingStatus.PENDING
+                && LocalDateTime.now().isAfter(paymentTerm)) {
+            booking.setBookingStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+        }
+    }
+
+    private void applyCompletionIfNecessary(Booking booking) {
+        Tour tour = booking.getTour();
+        if (tour == null || tour.getEndDate() == null) {
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+        if (today.isAfter(tour.getEndDate()) && COMPLETABLE_STATUSES.contains(booking.getBookingStatus())) {
+            booking.setBookingStatus(BookingStatus.COMPLETED);
+            bookingRepository.save(booking);
+        }
     }
 }

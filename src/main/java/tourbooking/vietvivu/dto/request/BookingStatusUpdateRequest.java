@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 public class BookingStatusUpdateRequest {
 
     String newTourId;
+    String promotionId;
 
     @NotNull
     String reason;

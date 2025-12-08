@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -94,4 +95,15 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 	LIMIT :topN
 	""")
     List<Object[]> findTopNToursByStatus(BookingStatus status, int topN);
+
+    @Query(
+            """
+			SELECT b FROM Booking b
+			JOIN b.tour t
+			WHERE b.bookingStatus IN :statuses
+			AND t.endDate IS NOT NULL
+			AND t.endDate < :currentDate
+			""")
+    List<Booking> findBookingsToComplete(
+            @Param("statuses") List<BookingStatus> statuses, @Param("currentDate") LocalDate currentDate);
 }

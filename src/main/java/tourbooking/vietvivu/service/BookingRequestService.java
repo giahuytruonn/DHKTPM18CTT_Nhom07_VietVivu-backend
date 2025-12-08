@@ -31,6 +31,7 @@ public class BookingRequestService {
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
     private final TourRepository tourRepository;
+    private final PromotionRepository promotionRepository;
     private final EmailService emailService;
 
     public List<BookingRequestResponse> getPendingRequests() {
@@ -72,6 +73,10 @@ public class BookingRequestService {
                         bookingRequest.getUser() != null
                                 ? bookingRequest.getUser().getId()
                                 : null)
+                .promotionId(
+                        bookingRequest.getPromotion() != null
+                                ? bookingRequest.getPromotion().getPromotionId()
+                                : null)
                 .build();
     }
 
@@ -108,6 +113,7 @@ public class BookingRequestService {
 
             Booking booking = bookingRequest.getBooking();
             booking.setBookingStatus(BookingStatus.CONFIRMED_CANCELLATION);
+            restoreTourCapacity(booking);
             bookingRepository.save(booking);
 
             setHistoryRepository(bookingRequest, ActionType.CANCEL);
@@ -122,8 +128,13 @@ public class BookingRequestService {
             }
 
             Booking booking = bookingRequest.getBooking();
+            Tour tourToRestore = bookingRequest.getOldTour() != null ? bookingRequest.getOldTour() : booking.getTour();
+            restoreTourCapacity(tourToRestore, booking.getNumAdults(), booking.getNumChildren());
             booking.setBookingStatus(BookingStatus.CONFIRMED_CHANGE);
             booking.setTour(bookingRequest.getNewTour());
+            if (bookingRequest.getPromotion() != null) {
+                booking.setPromotion(bookingRequest.getPromotion());
+            }
             bookingRepository.save(booking);
 
             setHistoryRepository(bookingRequest, ActionType.CHANGE);
@@ -206,6 +217,7 @@ public class BookingRequestService {
 
         BookingRequest bookingRequest;
         String newTourId = request.getNewTourId();
+        Promotion promotion = null;
 
         if (newTourId != null && !newTourId.trim().isEmpty()) {
             Tour newTour = tourRepository
@@ -216,6 +228,8 @@ public class BookingRequestService {
             if (newTour.getTourId().equals(booking.getTour().getTourId())) {
                 throw new AppException(ErrorCode.CANNOT_CHANGE_TO_SAME_TOUR);
             }
+
+            promotion = consumePromotionIfPresent(request.getPromotionId());
 
             bookingRequest = BookingRequest.builder()
                     .createdAt(LocalDateTime.now())
@@ -228,6 +242,7 @@ public class BookingRequestService {
                     .newTour(newTour)
                     .admin(null)
                     .reviewedAt(null)
+                    .promotion(promotion)
                     .build();
 
             bookingRequestRepository.save(bookingRequest);
@@ -248,6 +263,7 @@ public class BookingRequestService {
                     .newTour(null)
                     .admin(null)
                     .reviewedAt(null)
+                    .promotion(null)
                     .build();
 
             bookingRequestRepository.save(bookingRequest);
@@ -355,5 +371,58 @@ public class BookingRequestService {
     private double calculateRefundAmount(Booking booking, double penaltyRate) {
         double total = booking.getTotalPrice() != null ? booking.getTotalPrice() : 0d;
         return Math.max(total - (total * penaltyRate), 0d);
+    }
+
+    private Promotion consumePromotionIfPresent(String promotionId) {
+        if (promotionId == null || promotionId.trim().isEmpty()) {
+            return null;
+        }
+
+        Promotion promotion = promotionRepository
+                .findById(promotionId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        LocalDate today = LocalDate.now();
+        if (promotion.getEndDate() != null && promotion.getEndDate().isBefore(today)) {
+            throw new AppException(ErrorCode.PROMOTION_EXPIRED);
+        }
+        if (!Boolean.TRUE.equals(promotion.getStatus())) {
+            throw new AppException(ErrorCode.PROMOTION_NOT_AVAILABLE);
+        }
+        if (promotion.getQuantity() == null || promotion.getQuantity() <= 0) {
+            throw new AppException(ErrorCode.PROMOTION_NOT_AVAILABLE);
+        }
+
+        promotion.setQuantity(promotion.getQuantity() - 1);
+        if (promotion.getQuantity() != null && promotion.getQuantity() <= 0) {
+            promotion.setStatus(false);
+        }
+        promotionRepository.save(promotion);
+        return promotion;
+    }
+
+    private void restoreTourCapacity(Booking booking) {
+        restoreTourCapacity(booking.getTour(), booking.getNumAdults(), booking.getNumChildren());
+    }
+
+    private void restoreTourCapacity(Tour tour, Integer adults, Integer children) {
+        if (tour == null) {
+            log.warn("Cannot restore capacity because tour is null");
+            return;
+        }
+        int total = (adults != null ? adults : 0) + (children != null ? children : 0);
+        if (total <= 0) {
+            return;
+        }
+        Integer initialQuantity = tour.getInitialQuantity();
+        int updatedQuantity = tour.getQuantity() + total;
+        if (initialQuantity != null) {
+            updatedQuantity = Math.min(updatedQuantity, initialQuantity);
+        }
+        tour.setQuantity(updatedQuantity);
+        if (updatedQuantity > 0) {
+            tour.setAvailability(true);
+        }
+        tourRepository.save(tour);
     }
 }
