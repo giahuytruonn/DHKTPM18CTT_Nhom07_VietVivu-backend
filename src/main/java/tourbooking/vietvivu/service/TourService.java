@@ -2,10 +2,7 @@ package tourbooking.vietvivu.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +10,10 @@ import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
+import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
 import tourbooking.vietvivu.entity.Image;
 import tourbooking.vietvivu.entity.Tour;
@@ -32,7 +34,6 @@ import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.exception.AppException;
 import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.mapper.TourMapper;
-import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.repository.TourRepository;
 import tourbooking.vietvivu.repository.UserRepository;
 
@@ -43,199 +44,113 @@ import tourbooking.vietvivu.repository.UserRepository;
 public class TourService {
 
     TourRepository tourRepository;
-    ImageRepository imageRepository;
     TourMapper tourMapper;
     CloudinaryService cloudinaryService;
-    private final UserRepository userRepository;
+    UserRepository userRepository;
 
-    public List<Tour> findAllTours() {
-        return tourRepository.findAll();
-    }
+    /**
+     * Get all tours for PUBLIC (User & Guest) with pagination
+     */
+    @PreAuthorize("permitAll()")
+    public PaginationResponse<TourResponse> getAllToursForPublic(int page, int size) {
+        log.info("Getting all tours for public with pagination: page={}, size={}", page, size);
 
-    public Tour findTourById(String tourId) {
-        return tourRepository.findByTourId(tourId);
-    }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").descending());
+        Page<Tour> tourPage = tourRepository.findAllPublicTours(pageable);
 
-    public Map<String, Object> findTourSummaryById(String tourId) {
-        return tourRepository.findTourSummaryById(tourId);
-    }
+        tourPage.getContent().forEach(this::updateTourStatus);
 
-    public List<TourResponse> getAllTours() {
-        List<Tour> tours = tourRepository.findAll();
-        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
-    }
+        List<TourResponse> responses =
+                tourPage.getContent().stream().map(tourMapper::toTourResponse).toList();
 
-    public List<TourResponse> getAvailableTours() {
-        List<Tour> tours = tourRepository.findAll().stream()
-                .filter(tour -> tour.getAvailability() != null && tour.getAvailability())
-                .collect(Collectors.toList());
-        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
-    }
+        log.info(
+                "Found {} OPEN_BOOKING tours on page {} out of {} total pages",
+                responses.size(),
+                page,
+                tourPage.getTotalPages());
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public TourResponse getTourById(String tourId) {
-        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
-        return mapToTourResponse(tour);
-    }
-
-    public List<TourResponse> searchTours(String keyword) {
-        List<Tour> tours = tourRepository.findByTitleContainingIgnoreCase(keyword);
-        if (tours.isEmpty()) {
-            tours = tourRepository.findByDestinationContainingIgnoreCase(keyword);
-        }
-        return tours.stream().map(this::mapToTourResponse).collect(Collectors.toList());
-    }
-
-    private TourResponse mapToTourResponse(Tour tour) {
-        // Calculate average rating
-        Double averageRating = null;
-        Integer reviewCount = 0;
-        if (tour.getReviews() != null && !tour.getReviews().isEmpty()) {
-            reviewCount = tour.getReviews().size();
-            averageRating = tour.getReviews().stream()
-                    .filter(review -> review.getRating() != null)
-                    .mapToInt(review -> review.getRating())
-                    .average()
-                    .orElse(0.0);
-        }
-
-        // Get image URLs
-        List<String> imageUrls = new ArrayList<>();
-        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            imageUrls = tour.getImages().stream()
-                    .map(image -> image.getImageUrl())
-                    .filter(url -> url != null)
-                    .collect(Collectors.toList());
-        }
-
-        // Check if tour is favorite for current user
-        Boolean isFavorite = false;
-        try {
-            var context = SecurityContextHolder.getContext();
-            if (context.getAuthentication() != null
-                    && context.getAuthentication().isAuthenticated()) {
-                String username = context.getAuthentication().getName();
-                User user = userRepository.findByUsername(username).orElse(null);
-                if (user != null && user.getFavouriteTours() != null) {
-                    isFavorite = user.getFavouriteTours().contains(tour.getTourId());
-                }
-            }
-        } catch (Exception e) {
-            // User not authenticated, isFavorite remains false
-            log.debug("User not authenticated, setting isFavorite to false");
-        }
-
-        return TourResponse.builder()
-                .tourId(tour.getTourId())
-                .title(tour.getTitle())
-                .description(tour.getDescription())
-                .quantity(tour.getQuantity())
-                .priceAdult(tour.getPriceAdult())
-                .priceChild(tour.getPriceChild())
-                .duration(tour.getDuration())
-                .destination(tour.getDestination())
-                .availability(tour.getAvailability())
-                .startDate(tour.getStartDate())
-                .itinerary(tour.getItinerary())
-                .imageUrls(imageUrls)
-                .averageRating(averageRating)
-                .reviewCount(reviewCount)
-                .isFavorite(isFavorite)
+        return PaginationResponse.<TourResponse>builder()
+                .items(responses)
+                .currentPage(tourPage.getNumber())
+                .pageSizes(tourPage.getSize())
+                .totalItems((int) tourPage.getTotalElements())
+                .totalPages(tourPage.getTotalPages())
                 .build();
     }
 
     /**
-     * Get all tours for PUBLIC (User & Guest)
-     * Chỉ trả về tours có availability = true và tourStatus = OPEN_BOOKING
-     */
-    @PreAuthorize("permitAll()")
-    public List<TourResponse> getAllToursForPublic() {
-        log.info("Getting all tours for public");
-        List<Tour> tours = tourRepository.findAll();
-
-        // Update status for all tours
-        tours.forEach(this::updateTourStatus);
-
-        // Filter OPEN_BOOKING tours
-        List<Tour> openTours = tours.stream()
-                .filter(tour -> tour.getAvailability() && tour.getTourStatus() == TourStatus.OPEN_BOOKING)
-                .collect(Collectors.toList());
-
-        log.info("Found {} OPEN_BOOKING tours out of {} total tours", openTours.size(), tours.size());
-        return tourMapper.toTourResponseList(openTours);
-    }
-
-    /**
-     * Get ALL tours for ADMIN
-     * Trả về tất cả tours bất kể trạng thái
-     * FIX: Đảm bảo update status và không bị lỗi khi map
+     * Get ALL tours for ADMIN with pagination
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @Transactional() // vẫn cần transaction để gọi @Modifying
-    public List<TourResponse> getAllToursForAdmin() {
-        log.info("Getting all tours for admin");
+    @Transactional()
+    public PaginationResponse<TourResponse> getAllToursForAdmin(int page, int size) {
+        log.info("Getting all tours for admin with pagination: page={}, size={}", page, size);
 
-        // Bước 1: Cập nhật trạng thái toàn bộ tour bằng 1 câu SQL duy nhất
-        // → Không load entity, không saveAll → không bị validate @FutureOrPresent
-        tourRepository.updateAllTourStatuses();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").descending());
+        Page<Tour> tourPage = tourRepository.findAll(pageable);
 
-        // Bước 2: Lấy danh sách tour mới nhất (status đã được update trong DB)
-        List<Tour> tours = tourRepository.findAll();
+        tourPage.getContent().forEach(this::updateTourStatus);
 
-        log.info("Retrieved {} tours from database with updated status", tours.size());
+        log.info(
+                "Retrieved {} tours from database on page {}",
+                tourPage.getContent().size(),
+                page);
 
-        // Bước 3: Map sang response (không cần save gì nữa)
-        List<TourResponse> responses = tours.stream()
-                .map(tour -> {
-                    try {
-                        return tourMapper.toTourResponse(tour);
-                    } catch (Exception e) {
-                        log.error("Error mapping tour {}: {}", tour.getTourId(), e.getMessage());
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        List<TourResponse> responses =
+                tourPage.getContent().stream().map(tourMapper::toTourResponse).toList();
 
-        log.info("Successfully returned {} tours for admin", responses.size());
-        return responses;
+        log.info("Successfully returned {} tours for admin on page {}", responses.size(), page);
+
+        return PaginationResponse.<TourResponse>builder()
+                .items(responses)
+                .currentPage(tourPage.getNumber())
+                .pageSizes(tourPage.getSize())
+                .totalItems((int) tourPage.getTotalElements())
+                .totalPages(tourPage.getTotalPages())
+                .build();
     }
 
     /**
-     * Search tours with filters
+     * Search tours with filters and pagination
      */
     @PreAuthorize("permitAll()")
-    public List<TourResponse> searchTours(TourSearchRequest request) {
+    public PaginationResponse<TourResponse> searchTours(TourSearchRequest request, int page, int size) {
         boolean isAdmin = isAdmin();
-        log.info("Searching tours - isAdmin: {}, request: {}", isAdmin, request);
+        log.info("Searching tours - isAdmin: {}, request: {}, page: {}, size: {}", isAdmin, request, page, size);
 
-        List<Tour> tours;
+        Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").descending());
+        Page<Tour> tourPage;
+
         if (isAdmin) {
-            tours = tourRepository.searchToursAdmin(
+            tourPage = tourRepository.searchToursAdmin(
                     request.getKeyword(),
                     request.getDestination(),
                     request.getMinPrice(),
                     request.getMaxPrice(),
                     request.getStartDate(),
                     request.getMinQuantity(),
-                    request.getTourStatus());
+                    request.getTourStatus(),
+                    pageable);
         } else {
-            tours = tourRepository.searchToursPublic(
+            tourPage = tourRepository.searchToursPublic(
                     request.getKeyword(),
                     request.getDestination(),
                     request.getMinPrice(),
                     request.getMaxPrice(),
                     request.getStartDate(),
-                    request.getMinQuantity());
+                    request.getMinQuantity(),
+                    pageable);
         }
 
-        log.info("Found {} tours matching search criteria", tours.size());
+        log.info(
+                "Found {} tours matching search criteria on page {}",
+                tourPage.getContent().size(),
+                page);
 
-        // Update tour status
+        // Update tour status and filter by durationDays if specified
+        List<Tour> tours = tourPage.getContent();
         tours.forEach(this::updateTourStatus);
 
-        // Filter by durationDays if specified
-        // Giữ lại logic filter của nhánh Chuc
         if (request.getDurationDays() != null) {
             tours = tours.stream()
                     .filter(tour -> {
@@ -243,15 +158,21 @@ public class TourService {
                             return false;
                         }
                         long days = ChronoUnit.DAYS.between(tour.getStartDate(), tour.getEndDate());
-                        // Sửa logic: "3 ngày 2 đêm" (duration 3) = 2 ngày chênh lệch.
-                        // Nếu durationDays = 3, thì (days + 1) == 3
                         return (days + 1) == request.getDurationDays();
                     })
                     .collect(Collectors.toList());
         }
 
-        // Xóa code cũ của nhánh 'main' (public List<TourResponse> searchTours(String...))
-        return tourMapper.toTourResponseList(tours);
+        List<TourResponse> responses =
+                tours.stream().map(tourMapper::toTourResponse).toList();
+
+        return PaginationResponse.<TourResponse>builder()
+                .items(responses)
+                .currentPage(tourPage.getNumber())
+                .pageSizes(tourPage.getSize())
+                .totalItems((int) tourPage.getTotalElements())
+                .totalPages(tourPage.getTotalPages())
+                .build();
     }
 
     /**
@@ -260,18 +181,17 @@ public class TourService {
     @PreAuthorize("permitAll()")
     public TourResponse getTour(String tourId) {
         log.info("Getting tour by id: {}", tourId);
+
         Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         updateTourStatus(tour);
         tourRepository.save(tour);
+
         return tourMapper.toTourResponse(tour);
     }
 
     // ===== ADMIN OPERATIONS =====
 
-    /**
-     * Create new tour - ADMIN only
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse createTour(TourCreateRequest request) {
@@ -313,16 +233,27 @@ public class TourService {
         return tourMapper.toTourResponse(tour);
     }
 
-    /**
-     * Update tour - ADMIN only
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
-        // Giữ lại logging của nhánh Chuc
         log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
+        // ===== 1. TÍNH TOÁN CÁC ĐIỀU KIỆN =====
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : tour.getStartDate();
+        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : tour.getEndDate();
+
+        if (startDate == null) {
+            throw new IllegalArgumentException("Start date cannot be null");
+        }
+
+        LocalDate lockDate = startDate.minusDays(1);
+
+        boolean isBeforeLockDate = !now.isAfter(lockDate);
+        boolean isAfterEndDate = endDate != null && now.isAfter(endDate);
+
+        // ===== 2. XỬ LÝ HÌNH ẢNH =====
         if (request.getImageUrls() != null) {
             List<String> oldImageUrls =
                     tour.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList());
@@ -341,16 +272,73 @@ public class TourService {
             tour.getImages().addAll(newImages);
         }
 
+        // ===== 3. XỬ LÝ TRẠNG THÁI TRƯỚC KHI MAPPER =====
+        TourStatus finalStatus = tour.getTourStatus(); // Giữ nguyên trạng thái cũ mặc định
+        Boolean finalOverride = tour.getManualStatusOverride();
+
+        if (request.getTourStatus() != null) {
+            log.info(
+                    "Received tourStatus: {}, manualOverride: {}",
+                    request.getTourStatus(),
+                    request.getManualStatusOverride());
+
+            // SAU endDate → COMPLETED, không cho sửa
+            if (isAfterEndDate) {
+                log.warn("Cannot update status after endDate. Auto-set to COMPLETED");
+                finalStatus = TourStatus.COMPLETED;
+                finalOverride = false;
+            }
+            // Từ lockDate trở đi → IN_PROGRESS, không cho sửa
+            else if (!isBeforeLockDate) {
+                log.warn("Cannot update status from {} onwards. Auto-set to IN_PROGRESS", lockDate);
+                finalStatus = TourStatus.IN_PROGRESS;
+                finalOverride = false;
+            }
+            // TRƯỚC lockDate → Cho phép sửa OPEN_BOOKING hoặc IN_PROGRESS
+            else {
+                TourStatus requestedStatus = request.getTourStatus();
+
+                if (requestedStatus == TourStatus.OPEN_BOOKING || requestedStatus == TourStatus.IN_PROGRESS) {
+                    finalStatus = requestedStatus;
+                    finalOverride = Boolean.TRUE.equals(request.getManualStatusOverride());
+                    log.info("Admin set status to: {}, override: {}", finalStatus, finalOverride);
+                } else {
+                    log.warn("Invalid status {} before lockDate. Keeping current status", requestedStatus);
+                }
+            }
+        }
+
+        // Xử lý checkbox "Tắt override"
+        if (Boolean.FALSE.equals(request.getManualStatusOverride()) && isBeforeLockDate) {
+            finalOverride = false;
+            log.info("Admin disabled manual override");
+        }
+
+        // ===== 4. GÁN TRẠNG THÁI VÀO ENTITY =====
+        tour.setTourStatus(finalStatus);
+        tour.setManualStatusOverride(finalOverride);
+
+        // ===== 5. MAPPER CÁC FIELD KHÁC =====
         tourMapper.updateTour(tour, request);
-        updateTourStatus(tour);
+
+        // ===== 6. TỰ ĐỘNG CẬP NHẬT NẾU KHÔNG CÓ OVERRIDE =====
+        if (!Boolean.TRUE.equals(tour.getManualStatusOverride())) {
+            updateTourStatus(tour);
+            log.info("Auto-updated status to: {}", tour.getTourStatus());
+        }
+
         tourRepository.save(tour);
+
+        log.info(
+                "✅ Tour {} updated - Status: {}, Override: {}, LockDate: {}",
+                tourId,
+                tour.getTourStatus(),
+                tour.getManualStatusOverride(),
+                lockDate);
 
         return tourMapper.toTourResponse(tour);
     }
 
-    /**
-     * Delete tour - ADMIN only
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteTour(String tourId) {
@@ -376,7 +364,6 @@ public class TourService {
     }
 
     // ===== PRIVATE HELPER METHODS =====
-    // Xóa method getTour bị lặp lại từ nhánh main
 
     private void updateTourStatus(Tour tour) {
         LocalDate now = LocalDate.now();
@@ -384,40 +371,60 @@ public class TourService {
         LocalDate endDate = tour.getEndDate();
 
         if (startDate == null) {
-            log.warn("Tour {} has null startDate, setting status to COMPLETED", tour.getTourId());
             tour.setTourStatus(TourStatus.COMPLETED);
             return;
         }
 
+        LocalDate lockDate = startDate.minusDays(1);
+
+        // ✅ TỰ ĐỘNG TÍNH endDate nếu chưa có
         if (endDate == null && tour.getDuration() != null) {
             int durationDays = extractDaysFromDuration(tour.getDuration());
             if (durationDays > 0) {
                 endDate = startDate.plusDays(durationDays - 1);
                 tour.setEndDate(endDate);
             } else {
-                log.warn("Tour {} has invalid duration format: {}", tour.getTourId(), tour.getDuration());
                 tour.setTourStatus(TourStatus.COMPLETED);
                 return;
             }
         }
 
         if (endDate == null) {
-            log.warn("Tour {} has null endDate after calculation", tour.getTourId());
             tour.setTourStatus(TourStatus.COMPLETED);
             return;
         }
 
-        if (now.isBefore(startDate)) {
-            if (!tour.getAvailability()) {
-                tour.setTourStatus(TourStatus.IN_PROGRESS);
-            } else {
-                tour.setTourStatus(TourStatus.OPEN_BOOKING);
-            }
-        } else if (!now.isAfter(endDate)) {
-            tour.setTourStatus(TourStatus.IN_PROGRESS);
-        } else {
+        // ✅ ƯU TIÊN 1: Check sau endDate → BẮT BUỘC COMPLETED
+        if (now.isAfter(endDate)) {
             tour.setTourStatus(TourStatus.COMPLETED);
+            tour.setManualStatusOverride(false);
+            log.info("Tour {} completed (after endDate)", tour.getTourId());
+            return;
         }
+
+        // ✅ ƯU TIÊN 2: Check sau lockDate → BẮT BUỘC IN_PROGRESS
+        if (now.isAfter(lockDate)) {
+            tour.setTourStatus(TourStatus.IN_PROGRESS);
+            tour.setManualStatusOverride(false);
+            log.info("Tour {} in progress (after lockDate {})", tour.getTourId(), lockDate);
+            return;
+        }
+
+        // ✅ ƯU TIÊN 3: Trước hoặc bằng lockDate
+        // Nếu có manual override → giữ nguyên status hiện tại
+        if (Boolean.TRUE.equals(tour.getManualStatusOverride())) {
+            log.info(
+                    "Tour {} has manual override before lockDate, keeping status: {}",
+                    tour.getTourId(),
+                    tour.getTourStatus());
+            return;
+        }
+
+        // ✅ Không có override → set mặc định
+        if (tour.getTourStatus() == null) {
+            tour.setTourStatus(tour.getAvailability() ? TourStatus.OPEN_BOOKING : TourStatus.IN_PROGRESS);
+        }
+        log.info("Tour {} before lockDate, status: {}", tour.getTourId(), tour.getTourStatus());
     }
 
     private int extractDaysFromDuration(String duration) {
@@ -461,6 +468,4 @@ public class TourService {
             return false;
         }
     }
-    // Check if tour is favorite for current user
-    Boolean isFavorite = false;
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import tourbooking.vietvivu.enumm.TourStatus;
 
 @Data
 @NoArgsConstructor
@@ -24,4 +25,7 @@ public class TourUpdateRequest {
     LocalDate endDate;
     List<String> itinerary;
     List<String> imageUrls;
+
+    TourStatus tourStatus;
+    Boolean manualStatusOverride;
 }

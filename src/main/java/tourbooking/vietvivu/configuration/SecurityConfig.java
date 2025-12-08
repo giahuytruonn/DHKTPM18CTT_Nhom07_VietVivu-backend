@@ -25,6 +25,9 @@ public class SecurityConfig {
     // ===== PUBLIC ENDPOINTS =====
     private final String[] PUBLIC_ENDPOINTS = {
         "/users",
+        "/users/forgot-password",
+        "/users/verify-otp",
+        "/users/reset-password",
         "/auth/token",
         "/auth/introspect",
         "/auth/logout",

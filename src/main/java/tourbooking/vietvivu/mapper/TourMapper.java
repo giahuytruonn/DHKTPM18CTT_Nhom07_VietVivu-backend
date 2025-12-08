@@ -23,19 +23,21 @@ public interface TourMapper {
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "bookings", ignore = true)
-    @Mapping(target = "tourStatus", ignore = true)
+    @Mapping(target = "usersFavorited", ignore = true)
+    @Mapping(target = "totalBookings", ignore = true)
+    @Mapping(target = "favoriteCount", ignore = true)
     void updateTour(@MappingTarget Tour tour, TourUpdateRequest request);
 
     @Mapping(target = "imageUrls", expression = "java(mapImageUrls(tour))")
     @Mapping(target = "totalBookings", source = "totalBookings")
     @Mapping(target = "favoriteCount", source = "favoriteCount")
     @Mapping(target = "isFavorited", expression = "java(isFavoritedByCurrentUser(tour))")
+    @Mapping(target = "manualStatusOverride", source = "manualStatusOverride")
     TourResponse toTourResponse(Tour tour);
 
     List<TourResponse> toTourResponseList(List<Tour> tours);
 
     default List<String> mapImageUrls(Tour tour) {
-        // Giữ lại phiên bản an toàn hơn của nhánh 'Chuc'
         try {
             if (tour.getImages() == null || tour.getImages().isEmpty()) return List.of();
             return tour.getImages().stream().map(image -> image.getImageUrl()).toList();
