@@ -282,8 +282,8 @@ public class BookingService {
         response.setPromotionCode(promotion != null ? promotion.getPromotionId() : null);
         response.setDiscountAmount(promotion != null ? promotion.getDiscount() : 0.0);
 
-        // remaining = totalPrice - discount (nếu không có discount thì = totalPrice)
-        response.setRemainingAmount(promotion != null ? totalPrice - promotion.getDiscount() : totalPrice);
+        // totalPrice đã bao gồm discount nếu có → remaining bằng totalPrice
+        response.setRemainingAmount(totalPrice);
 
         response.setBookingStatus(booking.getBookingStatus());
         response.setPaymentTerm(booking.getPaymentTerm());

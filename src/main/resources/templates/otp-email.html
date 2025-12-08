@@ -3,95 +3,118 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>OTP Verification</title>
+    <title>Xác thực OTP</title>
     <style>
+        :root {
+            --brand: #4f46e5;
+            --brand-soft: rgba(79, 70, 229, 0.08);
+            --text: #0f172a;
+            --muted: #6b7280;
+            --bg: #f5f7fb;
+            --card: #ffffff;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: #f4f6f8;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: var(--bg);
             margin: 0;
-            padding: 0;
+            padding: 36px 16px;
+            color: var(--text);
         }
-        .container {
-            max-width: 520px;
+        .shell {
+            max-width: 500px;
             margin: auto;
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 30px 35px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: var(--card);
+            border-radius: 28px;
+            box-shadow: 0 25px 80px rgba(15,23,42,0.18);
+            overflow: hidden;
         }
-        h2 {
+        .top {
+            padding: 32px 28px 16px;
             text-align: center;
-            color: #2c3e50;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #fff;
+        }
+        .top img {
+            width: 74px;
+            margin-bottom: 12px;
+        }
+        .top h1 {
+            margin: 8px 0 4px;
+            font-size: 26px;
+        }
+        .body {
+            padding: 30px;
+        }
+        .body p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0 0 18px;
+            font-size: 15px;
         }
         .otp-box {
-            background: #f1f5ff;
-            padding: 20px;
-            border-radius: 8px;
+            margin: 24px 0;
+            padding: 26px;
+            border-radius: 20px;
+            background: var(--brand-soft);
             text-align: center;
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: 6px;
-            color: #2962ff;
-            border: 1px dashed #2962ff;
-            margin-top: 20px;
+            letter-spacing: 14px;
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--brand);
+            border: 1px dashed rgba(79, 70, 229, 0.35);
         }
-        p {
-            font-size: 15px;
-            color: #555;
-            line-height: 1.7;
-        }
-        .footer {
+        .cta {
             text-align: center;
-            font-size: 13px;
-            color: #888;
-            margin-top: 30px;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
+            margin-top: 12px;
         }
         .btn {
-            display: inline-block;
-            background: #2962ff;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 8px;
-            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 32px;
+            border-radius: 999px;
+            background: var(--brand);
+            color: #fff;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 600;
+            box-shadow: 0 12px 25px rgba(79, 70, 229, 0.35);
+        }
+        .footer {
+            padding: 22px 18px 28px;
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+            background: #f8fafc;
+        }
+        @media (max-width: 520px) {
+            .otp-box { font-size: 28px; letter-spacing: 10px; }
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="logo">
-        <!-- Logo optional -->
-        <img src="https://cdn-icons-png.flaticon.com/512/545/545680.png"
-             width="70" alt="Logo" />
+<div class="shell">
+    <div class="top">
+        <img src="https://cdn-icons-png.flaticon.com/512/545/545680.png" alt="VietVivu"/>
+        <h1>Xác thực mã OTP</h1>
+        <p>Bảo vệ tài khoản của bạn trong giây lát</p>
     </div>
+    <div class="body">
+        <p>VietVivu vừa nhận được yêu cầu xác thực từ email của bạn.
+            Hãy nhập mã OTP bên dưới để hoàn tất quá trình:</p>
 
-    <h2>Xác thực mã OTP</h2>
+        <div class="otp-box">
+            [[${otp}]]
+        </div>
 
-    <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu từ email của bạn.</p>
-
-    <p>Vui lòng sử dụng mã OTP bên dưới để xác minh danh tính:</p>
-
-    <div class="otp-box">
-        [[${otp}]]
+        <p>Mã OTP có hiệu lực trong <strong>5 phút</strong>. Không chia sẻ mã với bất kỳ ai để đảm bảo an toàn.</p>
+        <div class="cta">
+            <a class="btn">Xác nhận ngay</a>
+        </div>
     </div>
-
-    <p>Mã OTP có hiệu lực trong vòng <strong>5 phút</strong>.
-        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</p>
-
-    <p style="text-align:center;">
-        <a class="btn">Xác nhận ngay</a>
-    </p>
-
     <div class="footer">
-        © [[${year}]] Your Company. All rights reserved.
+        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.<br/>
+        © [[${year}]] VietVivu. All rights reserved.
     </div>
 </div>
-
 </body>
 </html>

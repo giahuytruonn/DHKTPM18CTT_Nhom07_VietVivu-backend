@@ -135,6 +135,12 @@ public class BookingRequestService {
             if (bookingRequest.getPromotion() != null) {
                 booking.setPromotion(bookingRequest.getPromotion());
             }
+            // Recalculate total price based on new tour and applied promotion (if any)
+            Double recalculatedTotal =
+                    calculateTotalPrice(bookingRequest.getNewTour(), booking, bookingRequest.getPromotion());
+            if (recalculatedTotal != null) {
+                booking.setTotalPrice(recalculatedTotal);
+            }
             bookingRepository.save(booking);
 
             setHistoryRepository(bookingRequest, ActionType.CHANGE);
@@ -186,6 +192,21 @@ public class BookingRequestService {
                 .build();
 
         return response;
+    }
+
+    private Double calculateTotalPrice(Tour tour, Booking booking, Promotion promotion) {
+        if (tour == null || booking == null) {
+            return null;
+        }
+        double adults = booking.getNumAdults() != null ? booking.getNumAdults() : 0;
+        double children = booking.getNumChildren() != null ? booking.getNumChildren() : 0;
+        double base = adults * (tour.getPriceAdult() != null ? tour.getPriceAdult() : 0)
+                + children * (tour.getPriceChild() != null ? tour.getPriceChild() : 0);
+        double discount = 0;
+        if (promotion != null && promotion.getDiscount() != null) {
+            discount = promotion.getDiscount();
+        }
+        return Math.max(base - discount, 0);
     }
 
     @Transactional(rollbackFor = Exception.class)

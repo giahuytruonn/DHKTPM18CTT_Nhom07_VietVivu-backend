@@ -1,53 +1,252 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hóa đơn VietVivu</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 12px; overflow: hidden; }
-        .header { background: linear-gradient(90deg,#1e90ff,#00bcd4); color: #fff; text-align: center; padding: 20px; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .content { padding: 20px; color: #333; }
-        .details { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-        .details td { padding: 8px; border-bottom: 1px solid #eee; }
-        .highlight { font-weight: bold; color: #1e90ff; }
-        .footer { background: #f0f8ff; text-align: center; padding: 15px; font-size: 14px; color: #777; }
-        @media (max-width: 600px) { .container { margin: 10px; } .header h1 { font-size: 20px; } }
+      :root {
+        color-scheme: light;
+        --brand: #16a085;
+        --brand-dark: #12856b;
+        --bg: #f7f8fb;
+        --card: #ffffff;
+        --text: #1b1d1f;
+        --muted: #6c7784;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        padding: 32px 12px;
+      }
+      .wrapper {
+        max-width: 640px;
+        margin: auto;
+        background: var(--card);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 25px 70px rgba(15, 23, 42, 0.15);
+      }
+      .hero {
+        padding: 36px 32px 48px;
+        background: radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.35),
+            transparent 55%
+          ),
+          linear-gradient(120deg, #0f9b8e, #1abc9c 55%, #20e3b2);
+        color: #fff;
+        text-align: center;
+        position: relative;
+      }
+      .hero h1 {
+        margin: 12px 0 4px;
+        font-size: 28px;
+        letter-spacing: 0.5px;
+      }
+      .hero p {
+        margin: 0;
+        opacity: 0.9;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+        font-size: 13px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .section {
+        padding: 32px;
+        border-bottom: 1px solid #eef1f7;
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+      .section h2 {
+        margin: 0 0 18px;
+        font-size: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+      .card {
+        border: 1px solid #edf1f6;
+        border-radius: 18px;
+        padding: 18px;
+        background: #fbfcfe;
+      }
+      .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 1.5px;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .value {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      table tr td {
+        padding: 10px 0;
+        border-bottom: 1px solid #eef1f7;
+      }
+      table tr:last-child td {
+        border-bottom: none;
+      }
+      .totals {
+        border-radius: 20px;
+        padding: 20px;
+        background: linear-gradient(
+          135deg,
+          rgba(22, 160, 133, 0.08),
+          rgba(32, 227, 178, 0.12)
+        );
+        margin-top: 20px;
+      }
+      .totals .amount {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--brand);
+      }
+      .note-box {
+        padding: 16px;
+        border-radius: 16px;
+        background: #fff7e6;
+        border: 1px dashed #ffc46d;
+        font-size: 14px;
+        color: #b57400;
+      }
+      .footer {
+        padding: 28px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+        background: #f6fafc;
+      }
+      @media (max-width: 600px) {
+        .hero {
+          padding: 28px 24px 40px;
+        }
+        .wrapper {
+          border-radius: 20px;
+        }
+        .section {
+          padding: 28px 22px;
+        }
+      }
     </style>
-</head>
-<body>
-<div class="container">
-    <div class="header">
-        <img src="https://vietvivu.com/logo.png" alt="VietVivu" width="150" style="margin-bottom:10px;">
-        <h1>Xác nhận đặt tour thành công 🌴</h1>
-    </div>
-    <div class="content">
+  </head>
+  <body>
+    <main class="wrapper">
+      <header class="hero">
+        <img src="https://vietvivu.com/logo.png" alt="VietVivu" width="140" />
+        <div class="chip">Travel invoice</div>
+        <h1>Xác nhận đặt tour thành công</h1>
+        <p>Cảm ơn bạn đã đồng hành cùng VietVivu</p>
+      </header>
+
+      <section class="section">
         <h2>Thông tin đặt tour</h2>
-        <table class="details">
-            <tr><td><b>Mã đặt tour:</b></td><td th:text="${bookingId}"></td></tr>
-            <tr><td><b>Ngày đặt:</b></td><td th:text="${bookingDate}"></td></tr>
-            <tr><td><b>Tên tour:</b></td><td th:text="${tourTitle}"></td></tr>
-            <tr><td><b>Điểm đến:</b></td><td th:text="${tourDestination}"></td></tr>
-            <tr><td><b>Thời lượng:</b></td><td th:text="${tourDuration}"></td></tr>
-            <tr><td><b>Người lớn:</b></td><td th:text="${numAdults} + ' x ' + ${priceAdult} + '₫'"></td></tr>
-            <tr><td><b>Trẻ em:</b></td><td th:text="${numChildren} + ' x ' + ${priceChild} + '₫'"></td></tr>
-            <tr><td><b>Tổng cộng:</b></td><td th:text="${totalPrice} + '₫'"></td></tr>
-            <tr><td><b>Giảm giá:</b></td><td th:text="${discountAmount} + '₫'"></td></tr>
-            <tr><td class="highlight">Số tiền thanh toán:</td><td class="highlight" th:text="${finalAmount} + '₫'"></td></tr>
-            <tr><td><b>Phương thức thanh toán:</b></td><td th:text="${paymentMethod}"></td></tr>
-            <tr><td><b>Trạng thái:</b></td><td th:text="${paymentStatus}"></td></tr>
-            <tr><td><b>Mã giao dịch:</b></td><td th:text="${transactionId}"></td></tr>
-            <tr><td><b>Mã hóa đơn:</b></td><td th:text="${invoiceId}"></td></tr>
-            <tr><td><b>Ngày hóa đơn:</b></td><td th:text="${invoiceDate}"></td></tr>
+        <div class="grid">
+          <div class="card">
+            <span class="label">Mã đặt tour</span>
+            <span class="value" th:text="${bookingId}"></span>
+          </div>
+          <div class="card">
+            <span class="label">Ngày đặt</span>
+            <span class="value" th:text="${bookingDate}"></span>
+          </div>
+          <div class="card">
+            <span class="label">Mã hóa đơn</span>
+            <span class="value" th:text="${invoiceId}"></span>
+          </div>
+          <div class="card">
+            <span class="label">Ngày hóa đơn</span>
+            <span class="value" th:text="${invoiceDate}"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Chi tiết tour</h2>
+        <table>
+          <tr>
+            <td><strong>Tên tour</strong></td>
+            <td th:text="${tourTitle}"></td>
+          </tr>
+          <tr>
+            <td><strong>Điểm đến</strong></td>
+            <td th:text="${tourDestination}"></td>
+          </tr>
+          <tr>
+            <td><strong>Thời lượng</strong></td>
+            <td th:text="${tourDuration}"></td>
+          </tr>
+          <tr>
+            <td><strong>Người lớn</strong></td>
+            <td th:text="${numAdults} + ' x ' + ${priceAdult} + '₫'"></td>
+          </tr>
+          <tr>
+            <td><strong>Trẻ em</strong></td>
+            <td th:text="${numChildren} + ' x ' + ${priceChild} + '₫'"></td>
+          </tr>
         </table>
-        <p><b>Ghi chú:</b> <span th:text="${note != null ? note : 'Không có'}"></span></p>
-        <p>Cảm ơn bạn đã tin tưởng VietVivu. Chúc bạn có chuyến đi tuyệt vời! ❤️</p>
-    </div>
-    <div class="footer">
-        © [[${year}]] VietVivu Travel. Hotline: 1900 8888 68
-    </div>
-</div>
-</body>
+      </section>
+
+      <section class="section">
+        <h2>Thanh toán</h2>
+        <table>
+          <tr>
+            <td>Tổng cộng</td>
+            <td th:text="${totalPrice} + '₫'"></td>
+          </tr>
+          <tr>
+            <td>Giảm giá</td>
+            <td th:text="${discountAmount} + '₫'"></td>
+          </tr>
+        </table>
+        <div class="totals">
+          <div class="label" style="color: #4b5a5f">Số tiền thanh toán</div>
+          <div class="amount" th:text="${finalAmount} + '₫'"></div>
+          <div style="margin-top: 10px; font-size: 14px; color: #4b5a5f">
+            Phương thức:
+            <strong th:text="${paymentMethod}"></strong> &nbsp;•&nbsp; Trạng
+            thái: <strong th:text="${paymentStatus}"></strong>
+          </div>
+          <div style="font-size: 13px; color: #6f7d83; margin-top: 4px">
+            Mã giao dịch: <span th:text="${transactionId}"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Ghi chú</h2>
+        <div class="note-box">
+          <span th:text="${note != null ? note : 'Không có ghi chú'}"></span>
+        </div>
+      </section>
+
+      <footer class="footer">
+        © [[${year}]] VietVivu Travel • Hotline: 1900 88 88 68 •
+        www.vietvivu.com
+      </footer>
+    </main>
+  </body>
 </html>
