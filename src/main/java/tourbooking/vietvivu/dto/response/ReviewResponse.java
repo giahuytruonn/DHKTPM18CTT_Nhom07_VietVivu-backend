@@ -17,6 +17,7 @@ public class ReviewResponse {
     LocalDate timestamp;
     String userId;
     String userName;
+    String userAvatar;
     String tourId;
     String tourTitle;
     String bookingId;

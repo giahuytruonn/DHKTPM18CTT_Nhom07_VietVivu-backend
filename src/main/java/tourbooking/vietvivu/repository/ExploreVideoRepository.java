@@ -1,13 +1,9 @@
 package tourbooking.vietvivu.repository;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import tourbooking.vietvivu.entity.ExploreVideo;
 
-public interface ExploreVideoRepository extends JpaRepository<ExploreVideo, String> {
-    List<ExploreVideo> findByApprovedTrueOrderByUploadedAtDesc();
-
-    List<ExploreVideo> findByApprovedFalseOrderByUploadedAtDesc();
-}
+@Repository
+public interface ExploreVideoRepository extends JpaRepository<ExploreVideo, String> {}

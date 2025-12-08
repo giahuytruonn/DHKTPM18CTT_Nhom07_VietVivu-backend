@@ -38,7 +38,10 @@ public class SecurityConfig {
         "/tours",
         "/tours/**",
         "/tours/search",
-        "/ai/**"
+        "/ai/**",
+        "/reviews/tour/**",
+        "/contact/send",
+        "/api/explore/**"
     };
 
     // ===== ADMIN ENDPOINTS =====
@@ -51,7 +54,8 @@ public class SecurityConfig {
         "/promotions/**",
         "/users/admin/**",
         "/bookings/admin/**",
-        "/statistical/**"
+        "/statistical/**",
+        "/api/explore/admin/**"
     };
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
@@ -62,7 +66,9 @@ public class SecurityConfig {
         "/users/create-password",
         "/bookings/**",
         "/bookings-request/**",
-        "/change-tour/**"
+        "/change-tour/**",
+        "/reviews/my-reviews",
+        "/reviews"
     };
 
     @Autowired
