@@ -509,6 +509,7 @@ public class TourService {
                     tour.getTourId(),
                     e.getMessage());
         }
+    }
     public List<TourSelectionResponse> getAllTourNames() {
         return tourRepository.findAllTourNames();
     }

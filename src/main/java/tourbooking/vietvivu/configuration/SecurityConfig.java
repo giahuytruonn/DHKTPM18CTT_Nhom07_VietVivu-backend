@@ -41,7 +41,7 @@ public class SecurityConfig {
         "/ai/**",
         "/reviews/tour/**",
         "/contact/send",
-            "/api/explore/**"
+        "/api/explore/**"
     };
 
     // ===== ADMIN ENDPOINTS =====

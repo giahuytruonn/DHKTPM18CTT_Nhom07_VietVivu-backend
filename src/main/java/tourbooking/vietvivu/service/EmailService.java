@@ -561,6 +561,7 @@ public class EmailService {
                         notification.getNewStartDate().format(dateFormatter),
                         notification.getNewEndDate().format(dateFormatter));
     }
+
     @Value("${spring.mail.username}")
     private String fromEmail; // Email hệ thống gửi đi
 
