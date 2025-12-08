@@ -69,4 +69,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 	GROUP BY b.bookingStatus
 """)
     List<Object[]> countByStatus(BookingStatus status, LocalDateTime start, LocalDateTime end);
+
+    List<Booking> findByTourTourIdAndBookingStatus(String tourId, BookingStatus bookingStatus);
 }

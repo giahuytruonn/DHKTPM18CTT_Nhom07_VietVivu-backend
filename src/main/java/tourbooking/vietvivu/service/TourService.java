@@ -2,6 +2,7 @@ package tourbooking.vietvivu.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -23,17 +24,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
+import tourbooking.vietvivu.dto.request.TourScheduleChangeNotification;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.TourResponse;
+import tourbooking.vietvivu.entity.Booking;
 import tourbooking.vietvivu.entity.Image;
 import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
+import tourbooking.vietvivu.enumm.BookingStatus;
 import tourbooking.vietvivu.enumm.TourStatus;
 import tourbooking.vietvivu.exception.AppException;
 import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.mapper.TourMapper;
+import tourbooking.vietvivu.repository.BookingRepository;
 import tourbooking.vietvivu.repository.TourRepository;
 import tourbooking.vietvivu.repository.UserRepository;
 
@@ -46,7 +51,9 @@ public class TourService {
     TourRepository tourRepository;
     TourMapper tourMapper;
     CloudinaryService cloudinaryService;
-    UserRepository userRepository;
+
+    EmailService emailService;
+    BookingRepository bookingRepository;
 
     /**
      * Get all tours for PUBLIC (User & Guest) with pagination
@@ -239,6 +246,19 @@ public class TourService {
         log.info("Updating tour: {}", tourId);
         Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
+        // LƯU THÔNG TIN CŨ TRƯỚC KHI CẬP NHẬT
+        LocalDate oldStartDate = tour.getStartDate();
+        LocalDate oldEndDate = tour.getEndDate();
+
+        // KIỂM TRA XEM CÓ THAY ĐỔI NGÀY KHÔNG
+        boolean datesChanged = false;
+        if (request.getStartDate() != null && !request.getStartDate().equals(oldStartDate)) {
+            datesChanged = true;
+        }
+        if (request.getEndDate() != null && !request.getEndDate().equals(oldEndDate)) {
+            datesChanged = true;
+        }
+
         LocalDate now = LocalDate.now();
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : tour.getStartDate();
 
@@ -247,13 +267,12 @@ public class TourService {
         }
 
         LocalDate lockDate = startDate.minusDays(1);
-        boolean isBeforeLockDate = now.isBefore(lockDate.plusDays(1)); // now < startDate
+        boolean isBeforeLockDate = now.isBefore(lockDate.plusDays(1));
 
         // ===== XỬ LÝ HÌNH ẢNH =====
         if (request.getImageUrls() != null) {
             List<String> oldImageUrls = tour.getImages() != null ?
                     tour.getImages().stream().map(Image::getImageUrl).toList() : List.of();
-
 
             cloudinaryService.deleteMultipleImages(oldImageUrls);
             tour.getImages().clear();
@@ -278,7 +297,6 @@ public class TourService {
             } else {
                 log.warn("Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
                         request.getTourStatus());
-
             }
         } else if (request.getTourStatus() != null) {
             log.warn("Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
@@ -288,7 +306,7 @@ public class TourService {
         // ===== CẬP NHẬT CÁC FIELD KHÁC =====
         tourMapper.updateTour(tour, request);
 
-        // ===== TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI (LUÔN CHẠY, KHÔNG CẦN OVERRIDE) =====
+        // ===== TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI =====
         updateTourStatus(tour);
 
         tourRepository.save(tour);
@@ -296,6 +314,11 @@ public class TourService {
         log.info("Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
                 tourId, tour.getTourStatus(), lockDate, now);
 
+        // ===== GỬI EMAIL THÔNG BÁO NẾU THAY ĐỔI NGÀY =====
+        if (datesChanged) {
+            log.info("Tour dates changed, sending notifications to customers...");
+            sendScheduleChangeNotifications(tour, oldStartDate, oldEndDate);
+        }
 
         return tourMapper.toTourResponse(tour);
     }
@@ -410,6 +433,65 @@ public class TourService {
         } catch (Exception e) {
             log.error("Error checking admin role", e);
             return false;
+        }
+    }
+
+    private void sendScheduleChangeNotifications(Tour tour, LocalDate oldStartDate, LocalDate oldEndDate) {
+        try {
+            // LẤY TẤT CẢ BOOKING CÓ STATUS PENDING HOẶC CONFIRMED
+            List<Booking> bookings = new ArrayList<>();
+            bookings.addAll(bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.PENDING));
+            bookings.addAll(bookingRepository.findByTourTourIdAndBookingStatus(tour.getTourId(), BookingStatus.CONFIRMED));
+
+            log.info("Found {} bookings to notify for tour {}", bookings.size(), tour.getTourId());
+
+            for (Booking booking : bookings) {
+                try {
+                    String customerName;
+                    String customerEmail;
+
+                    // LẤY THÔNG TIN KHÁCH HÀNG TỪ USER HOẶC CONTACT
+                    if (booking.getUser() != null) {
+                        customerName = booking.getUser().getName();
+                        customerEmail = booking.getUser().getEmail();
+                    } else if (booking.getContact() != null) {
+                        customerName = booking.getContact().getName();
+                        customerEmail = booking.getContact().getEmail();
+                    } else {
+                        log.warn("Booking {} has no user or contact, skipping notification", booking.getBookingId());
+                        continue;
+                    }
+
+                    // TẠO NOTIFICATION OBJECT
+                    TourScheduleChangeNotification notification = TourScheduleChangeNotification.builder()
+                            .tourId(tour.getTourId())
+                            .tourTitle(tour.getTitle())
+                            .tourDestination(tour.getDestination())
+                            .oldStartDate(oldStartDate)
+                            .oldEndDate(oldEndDate)
+                            .newStartDate(tour.getStartDate())
+                            .newEndDate(tour.getEndDate())
+                            .customerName(customerName)
+                            .customerEmail(customerEmail)
+                            .build();
+
+                    // GỬI EMAIL
+                    emailService.sendTourScheduleChangeEmail(notification);
+                    log.info("Schedule change notification sent to {} for booking {}",
+                            customerEmail, booking.getBookingId());
+
+                } catch (Exception e) {
+                    log.error("Failed to send notification for booking {}: {}",
+                            booking.getBookingId(), e.getMessage());
+                }
+            }
+
+            log.info("Completed sending {} schedule change notifications for tour {}",
+                    bookings.size(), tour.getTourId());
+
+        } catch (Exception e) {
+            log.error("Error while sending schedule change notifications for tour {}: {}",
+                    tour.getTourId(), e.getMessage());
         }
     }
 }
