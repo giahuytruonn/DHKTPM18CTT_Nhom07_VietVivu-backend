@@ -105,9 +105,10 @@ public class BookingService {
         if (promotion != null) {
             response.setPromotionCode(promotion.getPromotionId());
             response.setDiscountAmount(promotion.getDiscount());
-            if (booking.getTotalPrice() != null && promotion.getDiscount() != null) {
-                response.setRemainingAmount(booking.getTotalPrice() - promotion.getDiscount());
-            }
+        }
+        // remainingAmount luôn là tổng đã trừ khuyến mãi (totalPrice) nếu đã được tính sẵn
+        if (booking.getTotalPrice() != null) {
+            response.setRemainingAmount(booking.getTotalPrice());
         }
 
         // Map booking details
@@ -282,8 +283,8 @@ public class BookingService {
         response.setPromotionCode(promotion != null ? promotion.getPromotionId() : null);
         response.setDiscountAmount(promotion != null ? promotion.getDiscount() : 0.0);
 
-        // totalPrice đã bao gồm discount nếu có → remaining bằng totalPrice
-        response.setRemainingAmount(totalPrice);
+        // remaining = totalPrice - discount (nếu không có discount thì = totalPrice)
+        response.setRemainingAmount(promotion != null ? totalPrice - promotion.getDiscount() : totalPrice);
 
         response.setBookingStatus(booking.getBookingStatus());
         response.setPaymentTerm(booking.getPaymentTerm());
