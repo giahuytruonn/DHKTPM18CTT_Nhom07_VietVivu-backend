@@ -3,6 +3,7 @@ package tourbooking.vietvivu.entity;
 import java.time.LocalDate;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -34,5 +35,6 @@ public class Promotion {
     Integer quantity;
 
     @OneToMany(mappedBy = "promotion")
+    @JsonIgnore
     Set<Booking> bookings;
 }
