@@ -2,8 +2,6 @@ package tourbooking.vietvivu.dto.response;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.enumm.ActionType;
@@ -27,4 +25,5 @@ public class BookingRequestResponse {
     String newTourId;
     String oldTourId;
     String userId;
+    String promotionId;
 }

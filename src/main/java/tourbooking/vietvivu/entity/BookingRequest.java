@@ -59,4 +59,8 @@ public class BookingRequest {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     User user;
+
+    @ManyToOne
+    @JoinColumn(name = "promotion_id")
+    Promotion promotion;
 }

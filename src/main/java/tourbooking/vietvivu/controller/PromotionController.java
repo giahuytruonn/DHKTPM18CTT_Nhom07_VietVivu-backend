@@ -4,12 +4,17 @@ import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.response.ApiResponse;
+import tourbooking.vietvivu.dto.response.PromotionResponse;
 import tourbooking.vietvivu.entity.Promotion;
 import tourbooking.vietvivu.repository.PromotionRepository;
 import tourbooking.vietvivu.service.PromotionService;
@@ -22,6 +27,7 @@ import tourbooking.vietvivu.service.PromotionService;
 public class PromotionController {
 
     PromotionService promotionService;
+
     private final PromotionRepository promotionRepository;
 
     // ===== PUBLIC =====
@@ -136,5 +142,12 @@ public class PromotionController {
                     .message("Error: " + e.getMessage())
                     .build();
         }
+    }
+
+    @GetMapping("/{promotionId}")
+    public ApiResponse<PromotionResponse> getPromotion(@PathVariable String promotionId) {
+        return ApiResponse.<PromotionResponse>builder()
+                .result(promotionService.getActivePromotion(promotionId))
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,6 +16,8 @@ import tourbooking.vietvivu.enumm.BookingStatus;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, String> {
     List<Booking> findByUser_Id(String userId);
+
+    List<Booking> getBookingsByBookingStatus(BookingStatus status);
 
     List<Booking> findByUser(User user);
 
@@ -35,6 +38,17 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 """)
     List<Object[]> findTopNToursAllTime(
             @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+    @Query(
+            """
+	SELECT t.title, COUNT(b)
+	FROM Booking b
+	JOIN b.tour t
+	GROUP BY t.title
+	ORDER BY COUNT(b) DESC
+	LIMIT :topN
+	""")
+    List<Object[]> findTopNToursAll(int topN);
 
     @Query(
             """
@@ -71,4 +85,27 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     List<Object[]> countByStatus(BookingStatus status, LocalDateTime start, LocalDateTime end);
 
     List<Booking> findByTourTourIdAndBookingStatus(String tourId, BookingStatus bookingStatus);
+
+    @Query(
+            """
+	SELECT t.title, COUNT(b)
+	FROM Booking b
+	JOIN b.tour t
+	WHERE b.bookingStatus = :status
+	GROUP BY t.title
+	ORDER BY COUNT(b) DESC
+	LIMIT :topN
+	""")
+    List<Object[]> findTopNToursByStatus(BookingStatus status, int topN);
+
+    @Query(
+            """
+			SELECT b FROM Booking b
+			JOIN b.tour t
+			WHERE b.bookingStatus IN :statuses
+			AND t.endDate IS NOT NULL
+			AND t.endDate < :currentDate
+			""")
+    List<Booking> findBookingsToComplete(
+            @Param("statuses") List<BookingStatus> statuses, @Param("currentDate") LocalDate currentDate);
 }

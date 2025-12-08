@@ -66,7 +66,6 @@ public class Tour {
     Boolean availability;
 
     @NotNull
-    @FutureOrPresent
     @Column(name = "start_date")
     LocalDate startDate;
 
