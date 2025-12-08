@@ -29,6 +29,10 @@ public class ExploreVideo {
     @Column(name = "video_url")
     String videoUrl;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    User uploader;
+
     @Column(name = "uploaded_at")
     LocalDateTime uploadedAt;
 

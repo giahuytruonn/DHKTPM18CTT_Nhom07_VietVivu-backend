@@ -279,4 +279,13 @@ public class BookingService {
         response.setTotalPriceChildren(booking.getNumChildren() * tour.getPriceChild());
         return response;
     }
+
+    public List<BookingResponse> getUserBookings(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        List<Booking> bookings = bookingRepository.findByUser(user);
+
+        return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
+    }
 }

@@ -2,6 +2,7 @@ package tourbooking.vietvivu.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,4 +41,14 @@ public class BookingController {
         log.info("Booking successful: {}", response);
         return ApiResponse.<BookingResponse>builder().result(response).build();
     }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<BookingResponse>> getUserBookings(@PathVariable String userId) {
+        return ApiResponse.<List<BookingResponse>>builder()
+                .result(bookingService.getUserBookings(userId))
+                .build();
+    }
+
+
 }
