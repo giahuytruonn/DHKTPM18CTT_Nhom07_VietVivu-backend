@@ -29,6 +29,7 @@ public class ExploreVideoController {
         return ResponseEntity.ok(exploreVideoService.toggleLike(videoId, isLike));
     }
 
+
     @GetMapping("/videos")
     public ResponseEntity<List<ExploreVideoResponse>> getAllVideos() {
         return ResponseEntity.ok(exploreVideoService.getAllVideos());
