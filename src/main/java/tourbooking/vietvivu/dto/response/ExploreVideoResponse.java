@@ -13,6 +13,7 @@ public class ExploreVideoResponse {
     private String description;
     private String videoUrl;
     private String uploaderUsername;
-    private Boolean approved;
     private LocalDateTime uploadedAt;
+    private Integer likeCount;
+    private String tourId;
 }

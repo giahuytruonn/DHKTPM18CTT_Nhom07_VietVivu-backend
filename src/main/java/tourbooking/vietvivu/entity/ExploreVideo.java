@@ -29,12 +29,11 @@ public class ExploreVideo {
     @Column(name = "video_url")
     String videoUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true)
-    User uploader;
-
     @Column(name = "uploaded_at")
     LocalDateTime uploadedAt;
 
-    Boolean approved;
+    private Integer likeCount = 0;
+
+    @Column(name = "tour_id")
+    private String tourId;
 }

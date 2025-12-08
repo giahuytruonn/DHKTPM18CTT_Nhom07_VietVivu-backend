@@ -9,14 +9,18 @@ import java.util.Locale;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tourbooking.vietvivu.dto.request.ContactRequest;
 import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.TourScheduleChangeNotification;
 import tourbooking.vietvivu.entity.Booking;
@@ -556,5 +560,48 @@ public class EmailService {
                         notification.getOldEndDate().format(dateFormatter),
                         notification.getNewStartDate().format(dateFormatter),
                         notification.getNewEndDate().format(dateFormatter));
+    }
+    @Value("${spring.mail.username}")
+    private String fromEmail; // Email hệ thống gửi đi
+
+    @Value("${app.consulting-email}")
+    private String consultingEmail; // Email ban tư vấn nhận
+
+    @Async // Chạy ngầm để không bắt người dùng chờ lâu
+    public void sendContactEmail(ContactRequest request) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+
+            message.setFrom(fromEmail);
+            message.setTo(consultingEmail); // Gửi đến ban tư vấn
+            message.setSubject("[VietVivu] Thắc mắc mới từ khách hàng: " + request.getTopic());
+
+            // Nội dung email gửi cho nhân viên tư vấn
+            String content = String.format(
+                    """
+				Hệ thống nhận được yêu cầu hỗ trợ mới:
+				--------------------------------------
+				- Khách hàng: %s
+				- Email phản hồi: %s
+				- Chủ đề: %s
+
+				- Nội dung câu hỏi:
+				%s
+				--------------------------------------
+				Vui lòng phản hồi khách hàng qua email trên.
+				""",
+                    request.getCustomerName() != null ? request.getCustomerName() : "Ẩn danh",
+                    request.getCustomerEmail(),
+                    request.getTopic(),
+                    request.getMessage());
+
+            message.setText(content);
+            mailSender.send(message);
+            log.info("Đã gửi mail contact thành công tới ban tư vấn");
+
+        } catch (Exception e) {
+            log.error("Lỗi gửi mail contact: ", e);
+            // Có thể throw exception nếu muốn handle kỹ hơn
+        }
     }
 }
