@@ -3,7 +3,6 @@ package tourbooking.vietvivu.service;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,12 +60,14 @@ public class TourService {
 
         tourPage.getContent().forEach(this::updateTourStatus);
 
-        List<TourResponse> responses = tourPage.getContent().stream()
-                .map(tourMapper::toTourResponse)
-                .toList();
+        List<TourResponse> responses =
+                tourPage.getContent().stream().map(tourMapper::toTourResponse).toList();
 
-        log.info("Found {} OPEN_BOOKING tours on page {} out of {} total pages",
-                responses.size(), page, tourPage.getTotalPages());
+        log.info(
+                "Found {} OPEN_BOOKING tours on page {} out of {} total pages",
+                responses.size(),
+                page,
+                tourPage.getTotalPages());
 
         return PaginationResponse.<TourResponse>builder()
                 .items(responses)
@@ -90,11 +91,13 @@ public class TourService {
 
         tourPage.getContent().forEach(this::updateTourStatus);
 
-        log.info("Retrieved {} tours from database on page {}", tourPage.getContent().size(), page);
+        log.info(
+                "Retrieved {} tours from database on page {}",
+                tourPage.getContent().size(),
+                page);
 
-        List<TourResponse> responses = tourPage.getContent().stream()
-                .map(tourMapper::toTourResponse)
-                .toList();
+        List<TourResponse> responses =
+                tourPage.getContent().stream().map(tourMapper::toTourResponse).toList();
 
         log.info("Successfully returned {} tours for admin on page {}", responses.size(), page);
 
@@ -139,7 +142,10 @@ public class TourService {
                     pageable);
         }
 
-        log.info("Found {} tours matching search criteria on page {}", tourPage.getContent().size(), page);
+        log.info(
+                "Found {} tours matching search criteria on page {}",
+                tourPage.getContent().size(),
+                page);
 
         // Update tour status and filter by durationDays if specified
         List<Tour> tours = tourPage.getContent();
@@ -157,9 +163,8 @@ public class TourService {
                     .collect(Collectors.toList());
         }
 
-        List<TourResponse> responses = tours.stream()
-                .map(tourMapper::toTourResponse)
-                .toList();
+        List<TourResponse> responses =
+                tours.stream().map(tourMapper::toTourResponse).toList();
 
         return PaginationResponse.<TourResponse>builder()
                 .items(responses)
@@ -176,8 +181,9 @@ public class TourService {
     @PreAuthorize("permitAll()")
     public TourResponse getTour(String tourId) {
         log.info("Getting tour by id: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+
         updateTourStatus(tour);
         tourRepository.save(tour);
 
@@ -231,8 +237,7 @@ public class TourService {
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
         log.info("Updating tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         LocalDate now = LocalDate.now();
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : tour.getStartDate();
@@ -248,6 +253,7 @@ public class TourService {
         if (request.getImageUrls() != null) {
             List<String> oldImageUrls = tour.getImages() != null ?
                     tour.getImages().stream().map(Image::getImageUrl).toList() : List.of();
+
 
             cloudinaryService.deleteMultipleImages(oldImageUrls);
             tour.getImages().clear();
@@ -272,6 +278,7 @@ public class TourService {
             } else {
                 log.warn("Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
                         request.getTourStatus());
+
             }
         } else if (request.getTourStatus() != null) {
             log.warn("Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
@@ -289,6 +296,7 @@ public class TourService {
         log.info("Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
                 tourId, tour.getTourStatus(), lockDate, now);
 
+
         return tourMapper.toTourResponse(tour);
     }
 
@@ -296,13 +304,11 @@ public class TourService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteTour(String tourId) {
         log.info("Deleting tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            List<String> imageUrls = tour.getImages().stream()
-                    .map(Image::getImageUrl)
-                    .toList();
+            List<String> imageUrls =
+                    tour.getImages().stream().map(Image::getImageUrl).toList();
             cloudinaryService.deleteMultipleImages(imageUrls);
         }
 
@@ -352,6 +358,7 @@ public class TourService {
         if (!now.isBefore(lockDate.plusDays(1))) { // now >= startDate - 1
             tour.setTourStatus(TourStatus.IN_PROGRESS);
             log.info("Tour {} → IN_PROGRESS (on/after lockDate: {})", tour.getTourId(), lockDate);
+
             return;
         }
 

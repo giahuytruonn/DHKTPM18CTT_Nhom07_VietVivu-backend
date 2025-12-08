@@ -108,6 +108,7 @@ public class AuthenticationService {
                         .username(userInfo.getEmail())
                         .email(userInfo.getEmail())
                         .name(userInfo.getFamilyName())
+                        .isActive(true)
                         .roles(roles)
                         .build()));
 
@@ -126,7 +127,6 @@ public class AuthenticationService {
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
-
 
         var token = generateToken(user);
 

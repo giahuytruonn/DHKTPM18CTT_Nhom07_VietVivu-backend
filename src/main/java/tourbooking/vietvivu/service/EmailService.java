@@ -59,4 +59,27 @@ public class EmailService {
             throw new RuntimeException("❌ Error sending email: " + e.getMessage(), e);
         }
     }
+
+    public void sendOTP(String email, String otp) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Your OTP Code");
+
+            // Thymeleaf context
+            Context context = new Context();
+            context.setVariable("otp", otp);
+            context.setVariable("year", Year.now().getValue());
+
+            String html = templateEngine.process("otp-email", context);
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            System.out.println("✅ OTP Email sent to " + email);
+        } catch (MessagingException e) {
+            throw new RuntimeException("❌ Error sending OTP email: " + e.getMessage(), e);
+        }
+    }
 }
