@@ -30,6 +30,7 @@ import tourbooking.vietvivu.service.UserService;
 @Slf4j
 public class UserController {
     UserService userService;
+    UserRepository userRepository;
 
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
