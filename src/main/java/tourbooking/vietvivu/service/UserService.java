@@ -40,7 +40,7 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
+    RoleRepository roleRepository;
 
     // CREATE
     public UserResponse createUser(UserCreationRequest request) {
