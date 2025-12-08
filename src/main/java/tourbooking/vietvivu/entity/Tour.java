@@ -77,8 +77,8 @@ public class Tour {
     @Enumerated(EnumType.STRING)
     TourStatus tourStatus;
 
-    @NotEmpty
-    @Size(min = 1, max = 20)
+    //    @NotEmpty
+    //    @Size(min = 1, max = 20)
     @ElementCollection
     @CollectionTable(name = "tour_itinerary", joinColumns = @JoinColumn(name = "tour_id"))
     @Column(name = "step")

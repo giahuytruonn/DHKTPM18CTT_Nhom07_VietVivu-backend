@@ -15,7 +15,6 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
-
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
@@ -29,8 +28,8 @@ spring:
           model: text-embedding-3-small
     vectorstore:
       pgvector:
-        table-name: tour_vectors     # tên bảng chứa vector
-        dimensions: 1536          # số chiều vector (phải đúng với model embedding)
+        table-name: tour_vectors # tên bảng chứa vector
+        dimensions: 1536 # số chiều vector (phải đúng với model embedding)
         distance-type: cosine_distance
         index-type: none
   main:

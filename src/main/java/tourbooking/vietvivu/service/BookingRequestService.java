@@ -1,6 +1,8 @@
 package tourbooking.vietvivu.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.request.BookingRequestStatusUpdateRequest;
 import tourbooking.vietvivu.dto.request.BookingStatusUpdateRequest;
 import tourbooking.vietvivu.dto.response.BookingRequestResponse;
@@ -19,6 +22,7 @@ import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.repository.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BookingRequestService {
 
@@ -27,6 +31,7 @@ public class BookingRequestService {
     private final BookingRepository bookingRepository;
     private final HistoryRepository historyRepository;
     private final TourRepository tourRepository;
+    private final EmailService emailService;
 
     public List<BookingRequestResponse> getPendingRequests() {
         List<BookingStatus> pendingStatuses =
@@ -146,6 +151,8 @@ public class BookingRequestService {
 
             setHistoryRepository(bookingRequest, ActionType.CHANGE);
         }
+
+        notifyCustomer(bookingRequest, request.getStatus());
 
         BookingRequestResponse response = BookingRequestResponse.builder()
                 .requestId(bookingRequest.getRequestId())
@@ -299,5 +306,54 @@ public class BookingRequestService {
             history.setContact(bookingRequest.getBooking().getContact());
         }
         historyRepository.save(history);
+    }
+
+    private void notifyCustomer(BookingRequest bookingRequest, BookingStatus status) {
+        if (!shouldNotify(status)) {
+            return;
+        }
+
+        try {
+            double penaltyRate = resolvePenaltyRate(bookingRequest);
+            double refundAmount = calculateRefundAmount(bookingRequest.getBooking(), penaltyRate);
+            emailService.sendBookingStatusNotification(
+                    bookingRequest.getBooking(), bookingRequest, status, penaltyRate, refundAmount);
+        } catch (Exception ex) {
+            log.warn(
+                    "Không thể gửi email cập nhật trạng thái booking {}: {}",
+                    bookingRequest.getBooking().getBookingId(),
+                    ex.getMessage());
+        }
+    }
+
+    private boolean shouldNotify(BookingStatus status) {
+        return status == BookingStatus.CONFIRMED_CANCELLATION
+                || status == BookingStatus.CONFIRMED_CHANGE
+                || status == BookingStatus.DENIED_CANCELLATION
+                || status == BookingStatus.DENIED_CHANGE;
+    }
+
+    private double resolvePenaltyRate(BookingRequest bookingRequest) {
+        Tour referenceTour = bookingRequest.getOldTour() != null
+                ? bookingRequest.getOldTour()
+                : bookingRequest.getBooking().getTour();
+        LocalDate startDate = referenceTour != null ? referenceTour.getStartDate() : null;
+        if (startDate == null) {
+            return 0.25d;
+        }
+
+        long days = ChronoUnit.DAYS.between(LocalDate.now(), startDate);
+        if (days > 15) {
+            return 0.25d;
+        }
+        if (days >= 8) {
+            return 0.5d;
+        }
+        return 1d;
+    }
+
+    private double calculateRefundAmount(Booking booking, double penaltyRate) {
+        double total = booking.getTotalPrice() != null ? booking.getTotalPrice() : 0d;
+        return Math.max(total - (total * penaltyRate), 0d);
     }
 }

@@ -36,7 +36,7 @@ public class AiController {
 
     @PostMapping("/reindex")
     public ApiResponse<String> reindexData() {
-        List<Tour> tours = tourService.findAllTours();
+        List<Tour> tours = (List<Tour>) tourService.getAllToursForPublic(0, 10);
         tourRagService.indexTourData(tours);
         return ApiResponse.<String>builder()
                 .result(tourRagService.indexTourData(tours))

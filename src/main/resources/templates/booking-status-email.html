@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>VietVivu Booking Update</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background-color: #f4f6fb;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center">
+          <table
+            width="640"
+            cellpadding="0"
+            cellspacing="0"
+            role="presentation"
+            style="
+              background: #ffffff;
+              border-radius: 28px;
+              overflow: hidden;
+              box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            "
+          >
+            <tr>
+              <td
+                style="
+                  padding: 36px 40px;
+                  background: linear-gradient(
+                    135deg,
+                    #0f172a 0%,
+                    #312e81 45%,
+                    #4338ca 100%
+                  );
+                  color: #ffffff;
+                "
+              >
+                <div
+                  style="
+                    font-size: 12px;
+                    letter-spacing: 6px;
+                    text-transform: uppercase;
+                    color: rgba(255, 255, 255, 0.7);
+                  "
+                  th:text="${brandName}"
+                >
+                  VietVivu
+                </div>
+                <div
+                  style="font-size: 28px; font-weight: 800; margin-top: 12px"
+                  th:text="${statusTitle}"
+                >
+                  Cập nhật trạng thái booking
+                </div>
+                <p
+                  style="
+                    margin: 12px 0 0;
+                    font-size: 15px;
+                    color: rgba(255, 255, 255, 0.85);
+                  "
+                  th:text="${introMessage}"
+                >
+                  Chúng tôi xin gửi đến bạn thông tin mới nhất.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 36px 40px">
+                <p style="margin: 0 0 16px; font-size: 15px; color: #0f172a">
+                  Chào <strong th:text="${greeting}">Quý khách</strong>,
+                </p>
+                <p
+                  style="margin: 0 0 24px; font-size: 15px; color: #0f172a"
+                  th:text="${statusMessage}"
+                >
+                  Đây là thông báo về yêu cầu gần đây của bạn.
+                </p>
+
+                <div
+                  style="
+                    display: flex;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                    margin-bottom: 28px;
+                  "
+                >
+                  <div
+                    style="
+                      flex: 1 1 180px;
+                      padding: 18px;
+                      border-radius: 18px;
+                      background-color: #f8fafc;
+                      border: 1px solid #e2e8f0;
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        color: #94a3b8;
+                      "
+                    >
+                      Mã booking
+                    </p>
+                    <p
+                      style="
+                        margin: 8px 0 0;
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: #0f172a;
+                      "
+                      th:text="${bookingId}"
+                    >
+                      BK-123456
+                    </p>
+                  </div>
+                  <div
+                    style="
+                      flex: 1 1 180px;
+                      padding: 18px;
+                      border-radius: 18px;
+                      background-color: #f8fafc;
+                      border: 1px solid #e2e8f0;
+                    "
+                  >
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        color: #94a3b8;
+                      "
+                    >
+                      Ngày khởi hành dự kiến
+                    </p>
+                    <p
+                      style="
+                        margin: 8px 0 0;
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #0f172a;
+                      "
+                      th:text="${departureDate}"
+                    >
+                      12/12/2024
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    padding: 22px;
+                    border-radius: 22px;
+                    border: 1px solid #e2e8f0;
+                    background-color: #fdf4ff;
+                    margin-bottom: 28px;
+                  "
+                >
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 13px;
+                      text-transform: uppercase;
+                      letter-spacing: 3px;
+                      color: #a855f7;
+                    "
+                  >
+                    Thông tin yêu cầu
+                  </p>
+                  <p
+                    style="
+                      margin: 8px 0 4px;
+                      font-size: 18px;
+                      font-weight: 700;
+                      color: #581c87;
+                    "
+                    th:text="${requestTypeLabel}"
+                  >
+                    Hủy tour
+                  </p>
+                  <p style="margin: 0; font-size: 15px; color: #4c1d95">
+                    Tour: <strong th:text="${tourTitle}">Tên tour</strong>
+                  </p>
+                  <p
+                    style="margin: 4px 0 0; font-size: 15px; color: #4c1d95"
+                    th:if="${hasNewTour}"
+                  >
+                    Tour mới:
+                    <strong th:text="${newTourTitle}">Tour mới</strong>
+                  </p>
+                  <p
+                    style="margin: 12px 0 0; font-size: 14px; color: #5b21b6"
+                    th:if="${reasonAvailable}"
+                  >
+                    Lý do:
+                    <span th:text="${requestReason}">Nội dung lý do</span>
+                  </p>
+                </div>
+
+                <div
+                  style="
+                    padding: 26px;
+                    border-radius: 24px;
+                    margin-bottom: 28px;
+                    border: 1px solid #e2e8f0;
+                    background-color: #eff6ff;
+                  "
+                >
+                  <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    role="presentation"
+                  >
+                    <tr>
+                      <td style="width: 60%; vertical-align: top">
+                        <p
+                          style="
+                            margin: 0;
+                            font-size: 14px;
+                            text-transform: uppercase;
+                            letter-spacing: 3px;
+                            color: #1e3a8a;
+                          "
+                        >
+                          Chính sách hoàn phí
+                        </p>
+                        <p
+                          style="
+                            margin: 6px 0 0;
+                            font-size: 22px;
+                            font-weight: 800;
+                            color: #1e3a8a;
+                          "
+                          th:text="${penaltyLabel}"
+                        >
+                          Phạt 25%
+                        </p>
+                        <p
+                          style="
+                            margin: 8px 0 0;
+                            font-size: 15px;
+                            color: #1e3a8a;
+                          "
+                          th:text="${policySummary}"
+                        >
+                          Áp dụng mức phạt theo quy định.
+                        </p>
+                        <p
+                          style="
+                            margin: 12px 0 0;
+                            font-size: 14px;
+                            color: #1e3a8a;
+                          "
+                        >
+                          Tổng giá tour:
+                          <strong th:text="${totalPrice}">0 ₫</strong>
+                        </p>
+                      </td>
+                      <td style="width: 40%; text-align: right">
+                        <div
+                          th:if="${showRefund}"
+                          th:style="'display:inline-block;padding:16px 22px;border-radius:18px;background-color:' + ${accentColor} + ';color:#ffffff;text-align:left;'"
+                        >
+                          <p
+                            style="
+                              margin: 0;
+                              font-size: 12px;
+                              text-transform: uppercase;
+                              letter-spacing: 3px;
+                              color: rgba(255, 255, 255, 0.8);
+                            "
+                          >
+                            Tiền khách nhận lại
+                          </p>
+                          <p
+                            style="
+                              margin: 6px 0 0;
+                              font-size: 24px;
+                              font-weight: 800;
+                            "
+                            th:text="${refundAmount}"
+                          >
+                            0 ₫
+                          </p>
+                          <p
+                            style="
+                              margin: 4px 0 0;
+                              font-size: 13px;
+                              color: rgba(255, 255, 255, 0.85);
+                            "
+                          >
+                            Đã khấu trừ
+                            <span th:text="${penaltyAmount}">0 ₫</span>
+                          </p>
+                        </div>
+                        <div
+                          th:if="${not showRefund}"
+                          th:style="'display:inline-block;padding:16px 22px;border-radius:18px;border:1px solid ' + ${accentColor} + ';color:' + ${accentColor} + ';text-align:left;'"
+                        >
+                          <p
+                            style="
+                              margin: 0;
+                              font-size: 12px;
+                              text-transform: uppercase;
+                              letter-spacing: 3px;
+                            "
+                          >
+                            Thông tin hỗ trợ
+                          </p>
+                          <p
+                            style="
+                              margin: 6px 0 0;
+                              font-size: 15px;
+                              font-weight: 600;
+                            "
+                            th:text="${supportNote}"
+                          >
+                            Chúng tôi sẽ liên hệ để hỗ trợ thêm.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <div style="margin-bottom: 20px">
+                  <p
+                    style="
+                      margin: 0 0 8px;
+                      font-size: 14px;
+                      font-weight: 700;
+                      color: #0f172a;
+                    "
+                  >
+                    Toàn bộ chính sách hiện hành
+                  </p>
+                  <ul
+                    style="
+                      margin: 0;
+                      padding-left: 18px;
+                      color: #475569;
+                      font-size: 14px;
+                      line-height: 1.6;
+                    "
+                  >
+                    <li>
+                      Hủy ngay sau khi đăng ký: khấu trừ 25% tổng giá tour.
+                    </li>
+                    <li>
+                      Hủy trong khoảng 15 - 8 ngày trước khởi hành: khấu trừ 50%
+                      tổng giá tour.
+                    </li>
+                    <li>
+                      Hủy trong vòng 7 ngày trước khởi hành: khấu trừ 100% tổng
+                      giá tour.
+                    </li>
+                  </ul>
+                </div>
+
+                <div
+                  style="
+                    padding: 18px 22px;
+                    border-radius: 18px;
+                    background-color: #f1f5f9;
+                    color: #0f172a;
+                  "
+                >
+                  <p style="margin: 0 0 6px; font-size: 15px; font-weight: 600">
+                    Hỗ trợ thêm
+                  </p>
+                  <p
+                    style="margin: 0; font-size: 14px; color: #475569"
+                    th:text="${supportNote}"
+                  >
+                    Đội ngũ VietVivu luôn sẵn sàng hỗ trợ bạn bất cứ lúc nào.
+                  </p>
+                  <p style="margin: 8px 0 0; font-size: 14px; color: #1d4ed8">
+                    Email: support@vietvivu.com | Hotline: 1900 9999
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  padding: 24px 40px;
+                  background-color: #0f172a;
+                  color: #94a3b8;
+                  text-align: center;
+                "
+              >
+                <p style="margin: 0; font-size: 13px" th:text="${footerNote}">
+                  Cảm ơn bạn đã đồng hành cùng VietVivu.
+                </p>
+                <p style="margin: 8px 0 0; font-size: 12px">
+                  © <span th:text="${currentYear}">2024</span> VietVivu. All
+                  rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
