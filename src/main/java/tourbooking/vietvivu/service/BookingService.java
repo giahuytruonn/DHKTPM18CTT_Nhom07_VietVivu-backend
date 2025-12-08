@@ -2,7 +2,6 @@ package tourbooking.vietvivu.service;
 
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -139,7 +138,8 @@ public class BookingService {
         Promotion promotion = null;
 
         if (request.getPromotionId() != null && !request.getPromotionId().isBlank()) {
-            promotion = promotionRepository.findById(request.getPromotionId())
+            promotion = promotionRepository
+                    .findById(request.getPromotionId())
                     .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
 
             // Hết hạn?
@@ -210,8 +210,8 @@ public class BookingService {
         booking.setNumAdults(request.getNumOfAdults());
         booking.setNumChildren(request.getNumOfChildren());
 
-        double totalPrice = (request.getNumOfAdults() * tour.getPriceAdult())
-                + (request.getNumOfChildren() * tour.getPriceChild());
+        double totalPrice =
+                (request.getNumOfAdults() * tour.getPriceAdult()) + (request.getNumOfChildren() * tour.getPriceChild());
 
         booking.setTotalPrice(totalPrice);
         booking.setNote(request.getNote());
@@ -273,11 +273,7 @@ public class BookingService {
         response.setDiscountAmount(promotion != null ? promotion.getDiscount() : 0.0);
 
         // remaining = totalPrice - discount (nếu không có discount thì = totalPrice)
-        response.setRemainingAmount(
-                promotion != null
-                        ? totalPrice - promotion.getDiscount()
-                        : totalPrice
-        );
+        response.setRemainingAmount(promotion != null ? totalPrice - promotion.getDiscount() : totalPrice);
 
         response.setBookingStatus(booking.getBookingStatus());
         response.setPaymentTerm(booking.getPaymentTerm());
@@ -287,11 +283,7 @@ public class BookingService {
         response.setTourDestination(tour.getDestination());
 
         response.setImageUrl(
-                tour.getImages().stream()
-                        .findFirst()
-                        .map(Image::getImageUrl)
-                        .orElse(null)
-        );
+                tour.getImages().stream().findFirst().map(Image::getImageUrl).orElse(null));
 
         response.setNumOfAdults(booking.getNumAdults());
         response.setPriceAdult(tour.getPriceAdult());
@@ -305,17 +297,16 @@ public class BookingService {
     }
 
     public BookingResponse getBookingById(String bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+        Booking booking =
+                bookingRepository.findById(bookingId).orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
         return mapToBookingResponse(booking);
     }
 
-
     public List<BookingResponse> getUserBookings(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         List<Booking> bookings = bookingRepository.findByUser(user);
+
 
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
     }

@@ -14,5 +14,6 @@ public class ResetPasswordRequest {
 
     @PasswordConstraint
     String newPassword;
+
     String resetToken;
 }

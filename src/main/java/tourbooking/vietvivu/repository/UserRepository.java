@@ -20,39 +20,34 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByUsername(String username);
 
-
     List<User> findByUsernameContainingIgnoreCaseOrPhoneNumberContaining(String username, String phoneNumber);
 
-    @Query("""
-    SELECT u.name, COUNT(b)
-    FROM Booking b
-    JOIN b.user u
-    WHERE b.bookingDate BETWEEN :startTime AND :endTime
-    GROUP BY u.name
-    ORDER BY COUNT(b) DESC
+    @Query(
+            """
+	SELECT u.name, COUNT(b)
+	FROM Booking b
+	JOIN b.user u
+	WHERE b.bookingDate BETWEEN :startTime AND :endTime
+	GROUP BY u.name
+	ORDER BY COUNT(b) DESC
 """)
     List<Object[]> findTopNUsersAllTime(
-            @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
+            @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
-    @Query("""
-    SELECT u.name, COUNT(b)
-    FROM Booking b
-    JOIN b.user u
-    WHERE b.bookingStatus = :status
-      AND b.bookingDate BETWEEN :startTime AND :endTime
-    GROUP BY u.name
-    ORDER BY COUNT(b) DESC
+    @Query(
+            """
+	SELECT u.name, COUNT(b)
+	FROM Booking b
+	JOIN b.user u
+	WHERE b.bookingStatus = :status
+	AND b.bookingDate BETWEEN :startTime AND :endTime
+	GROUP BY u.name
+	ORDER BY COUNT(b) DESC
 """)
     List<Object[]> findTopNUsersByStatusAndTime(
             @Param("status") BookingStatus status,
             @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
-
-
-
+            @Param("endTime") LocalDateTime endTime);
 
     User findUserByEmail(String email);
 }

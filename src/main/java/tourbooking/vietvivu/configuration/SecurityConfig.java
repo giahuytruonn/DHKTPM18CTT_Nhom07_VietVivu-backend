@@ -50,13 +50,13 @@ public class SecurityConfig {
 
     // ===== USER AUTHENTICATED ENDPOINTS =====
     private final String[] USER_ENDPOINTS = {
-            "/users/favorite-tours",
-            "/users/favorite-tours/**",
-            "/users/my-info",
-            "/users/create-password",
-            "/bookings/**",
-            "/bookings-request/**",
-            "/change-tour/**"
+        "/users/favorite-tours",
+        "/users/favorite-tours/**",
+        "/users/my-info",
+        "/users/create-password",
+        "/bookings/**",
+        "/bookings-request/**",
+        "/change-tour/**"
     };
 
     @Autowired

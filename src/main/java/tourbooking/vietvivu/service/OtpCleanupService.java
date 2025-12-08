@@ -1,12 +1,13 @@
 package tourbooking.vietvivu.service;
 
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tourbooking.vietvivu.repository.OtpVerificationRepository;
 
-import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
+import tourbooking.vietvivu.repository.OtpVerificationRepository;
 
 @Service
 @RequiredArgsConstructor

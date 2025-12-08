@@ -1,7 +1,6 @@
 package tourbooking.vietvivu.repository;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -13,7 +12,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import tourbooking.vietvivu.entity.Tour;
-import tourbooking.vietvivu.enumm.BookingStatus;
 import tourbooking.vietvivu.enumm.TourStatus;
 
 @Repository
@@ -101,6 +99,4 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 			END
 		""")
     void updateAllTourStatuses();
-
-
 }

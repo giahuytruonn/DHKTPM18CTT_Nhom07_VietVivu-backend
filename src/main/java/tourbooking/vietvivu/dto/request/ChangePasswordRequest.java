@@ -1,7 +1,5 @@
 package tourbooking.vietvivu.dto.request;
 
-import jakarta.persistence.Access;
-import jakarta.validation.Valid;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.validator.PasswordConstraint;

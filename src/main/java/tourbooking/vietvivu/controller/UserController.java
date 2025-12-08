@@ -5,7 +5,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.AccessLevel;
@@ -17,9 +16,6 @@ import tourbooking.vietvivu.dto.response.ApiResponse;
 import tourbooking.vietvivu.dto.response.PaginationResponse;
 import tourbooking.vietvivu.dto.response.UserResponse;
 import tourbooking.vietvivu.dto.response.VerifyOtpResponse;
-import tourbooking.vietvivu.entity.User;
-import tourbooking.vietvivu.exception.AppException;
-import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.repository.UserRepository;
 import tourbooking.vietvivu.service.UserService;
 
@@ -111,7 +107,6 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateMyInfo(request))
                 .build();
-
     }
 
     @PostMapping("/forgot-password")
@@ -145,6 +140,4 @@ public class UserController {
                 .message("Password has been changed successfully.")
                 .build();
     }
-
-
 }

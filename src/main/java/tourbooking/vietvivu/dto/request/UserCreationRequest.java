@@ -1,6 +1,7 @@
 package tourbooking.vietvivu.dto.request;
 
 import jakarta.validation.constraints.Email;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.validator.PasswordConstraint;
@@ -18,6 +19,7 @@ public class UserCreationRequest {
 
     @Email
     String email;
+
     String name;
     String address;
     String phoneNumber;

@@ -27,17 +27,15 @@ public class StatisticalController {
 
     StatisticalService statisticalService;
 
-
     /* ============================================================
-        1. TOP TOUR ĐƯỢC ĐẶT NHIỀU NHẤT
-       ============================================================ */
+    	1. TOP TOUR ĐƯỢC ĐẶT NHIỀU NHẤT
+    ============================================================ */
     @GetMapping("/top-booked-tours")
     ApiResponse<Map<String, Integer>> getTopNTourBookedByStatus(
             @RequestParam(defaultValue = "ALL") String bookingStatus,
             @RequestParam(defaultValue = "5") int topN,
             @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime
-    ) {
+            @RequestParam(required = false) String endTime) {
 
         LocalDateTime start = parseToDate(startTime, true);
         LocalDateTime end = parseToDate(endTime, false);
@@ -57,17 +55,15 @@ public class StatisticalController {
                 .build();
     }
 
-
     /* ============================================================
-        2. TOP USERS THEO TRẠNG THÁI
-       ============================================================ */
+    	2. TOP USERS THEO TRẠNG THÁI
+    ============================================================ */
     @GetMapping("/top-users")
     ApiResponse<Map<String, Integer>> getTopNCustomersByBookingStatus(
             @RequestParam(defaultValue = "ALL") String bookingStatus,
             @RequestParam(defaultValue = "5") int topN,
             @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime
-    ) {
+            @RequestParam(required = false) String endTime) {
 
         LocalDateTime start = parseToDate(startTime, true);
         LocalDateTime end = parseToDate(endTime, false);
@@ -87,16 +83,14 @@ public class StatisticalController {
                 .build();
     }
 
-
     /* ============================================================
-        3. ĐẾM BOOKINGS THEO TRẠNG THÁI
-       ============================================================ */
+    	3. ĐẾM BOOKINGS THEO TRẠNG THÁI
+    ============================================================ */
     @GetMapping("/total-bookings-by-status")
     ApiResponse<Map<String, Integer>> getTotalBookingsByStatus(
             @RequestParam(defaultValue = "ALL") String bookingStatus,
             @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime
-    ) {
+            @RequestParam(required = false) String endTime) {
 
         LocalDateTime start = parseToDate(startTime, true);
         LocalDateTime end = parseToDate(endTime, false);
@@ -114,11 +108,9 @@ public class StatisticalController {
                 .build();
     }
 
-
-
     /* ============================================================
-        4. TỔNG DOANH THU
-       ============================================================ */
+    	4. TỔNG DOANH THU
+    ============================================================ */
     @GetMapping("/total-revenue")
     ApiResponse<Double> getTotalRevenue() {
         return ApiResponse.<Double>builder()
@@ -126,10 +118,9 @@ public class StatisticalController {
                 .build();
     }
 
-
     /* ============================================================
-        5. DOANH THU THEO THÁNG
-       ============================================================ */
+    	5. DOANH THU THEO THÁNG
+    ============================================================ */
     @GetMapping("/revenue-by-month")
     ApiResponse<Map<String, Double>> getMonthlyRevenue(@RequestParam int year) {
         return ApiResponse.<Map<String, Double>>builder()
@@ -137,7 +128,7 @@ public class StatisticalController {
                 .build();
     }
 
-    //Thống kê theo phương thức thanh toán
+    // Thống kê theo phương thức thanh toán
     @GetMapping("/revenue-by-payment-method")
     ApiResponse<Map<String, Long>> getRevenueByPaymentMethod() {
         return ApiResponse.<Map<String, Long>>builder()
@@ -145,34 +136,23 @@ public class StatisticalController {
                 .build();
     }
 
-
     /* ============================================================
-        6. HÀM HỖ TRỢ
-       ============================================================ */
+    	6. HÀM HỖ TRỢ
+    ============================================================ */
 
     private BookingStatus parseStatus(String raw) {
         try {
             return BookingStatus.valueOf(raw.toUpperCase());
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "BookingStatus không hợp lệ: " + raw
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "BookingStatus không hợp lệ: " + raw);
         }
     }
 
     private LocalDateTime parseToDate(String date, boolean isStart) {
         if (date == null || date.isBlank()) {
-            return isStart
-                    ? LocalDateTime.of(1, 1, 1, 0, 0, 0)
-                    : LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+            return isStart ? LocalDateTime.of(1, 1, 1, 0, 0, 0) : LocalDateTime.of(9999, 12, 31, 23, 59, 59);
         }
 
-        return isStart
-                ? LocalDateTime.parse(date + "T00:00:00")
-                : LocalDateTime.parse(date + "T23:59:59");
+        return isStart ? LocalDateTime.parse(date + "T00:00:00") : LocalDateTime.parse(date + "T23:59:59");
     }
-
-
-
 }

@@ -11,8 +11,7 @@ public class PasswordValidator implements ConstraintValidator<PasswordConstraint
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
 
-        if (password == null || password.trim().isEmpty())
-            return false;
+        if (password == null || password.trim().isEmpty()) return false;
 
         return password.matches(PASSWORD_REGEX);
     }

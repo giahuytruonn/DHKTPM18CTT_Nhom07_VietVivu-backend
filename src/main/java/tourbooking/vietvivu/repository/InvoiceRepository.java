@@ -1,13 +1,13 @@
 package tourbooking.vietvivu.repository;
 
-import feign.Param;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import feign.Param;
 import tourbooking.vietvivu.entity.Invoice;
-
-import java.util.List;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
@@ -20,6 +20,4 @@ public interface InvoiceRepository extends JpaRepository<Invoice, String> {
             + "GROUP BY MONTH(i.dateIssued) "
             + "ORDER BY MONTH(i.dateIssued)")
     List<Object[]> getAmountGroupedByMonth(@Param("year") int year);
-
-
 }

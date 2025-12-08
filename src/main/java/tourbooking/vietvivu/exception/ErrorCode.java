@@ -47,8 +47,7 @@ public enum ErrorCode {
     EMAIL_EXISTED(1037, "Email already existed", HttpStatus.BAD_REQUEST),
     PASSWORD_INCORRECT(1038, "Old password is incorrect", HttpStatus.BAD_REQUEST);
 
-    //code 200 - OK
-
+    // code 200 - OK
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

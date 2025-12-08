@@ -31,20 +31,13 @@ public class StatisticalService {
     }
 
     /* ============================================================
-        ⬇️ 1. TOP TOUR THEO TRẠNG THÁI + TIME
-       ============================================================ */
+    	⬇️ 1. TOP TOUR THEO TRẠNG THÁI + TIME
+    ============================================================ */
     public Map<String, Integer> getTopNTourBookedByStatus(
-            int topN,
-            BookingStatus status,
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    ) {
-        List<Object[]> rows = bookingRepository
-                .findTopNToursByStatusAndTime(status, startTime, endTime)
-                .stream()
+            int topN, BookingStatus status, LocalDateTime startTime, LocalDateTime endTime) {
+        List<Object[]> rows = bookingRepository.findTopNToursByStatusAndTime(status, startTime, endTime).stream()
                 .limit(topN)
                 .toList();
-
 
         Map<String, Integer> result = new LinkedHashMap<>();
         for (Object[] row : rows) {
@@ -56,16 +49,10 @@ public class StatisticalService {
     }
 
     /* ============================================================
-        ⬇️ 2. TOP TOUR TẤT CẢ TRẠNG THÁI + TIME
-       ============================================================ */
-    public Map<String, Integer> getTopNTourBookedAllStatus(
-            int topN,
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    ) {
-        List<Object[]> rows = bookingRepository
-                .findTopNToursAllTime(startTime, endTime)
-                .stream()
+    	⬇️ 2. TOP TOUR TẤT CẢ TRẠNG THÁI + TIME
+    ============================================================ */
+    public Map<String, Integer> getTopNTourBookedAllStatus(int topN, LocalDateTime startTime, LocalDateTime endTime) {
+        List<Object[]> rows = bookingRepository.findTopNToursAllTime(startTime, endTime).stream()
                 .limit(topN)
                 .toList();
 
@@ -79,19 +66,12 @@ public class StatisticalService {
         return result;
     }
 
-
     /* ============================================================
-        ⬇️ 3. TOP USER THEO TRẠNG THÁI + TIME
-       ============================================================ */
+    	⬇️ 3. TOP USER THEO TRẠNG THÁI + TIME
+    ============================================================ */
     public Map<String, Integer> getTopNCustomersByBookingStatus(
-            int topN,
-            BookingStatus status,
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    ) {
-        List<Object[]> rows = userRepository
-                .findTopNUsersByStatusAndTime(status, startTime, endTime)
-                .stream()
+            int topN, BookingStatus status, LocalDateTime startTime, LocalDateTime endTime) {
+        List<Object[]> rows = userRepository.findTopNUsersByStatusAndTime(status, startTime, endTime).stream()
                 .limit(topN)
                 .toList();
 
@@ -105,19 +85,13 @@ public class StatisticalService {
     }
 
     /* ============================================================
-        ⬇️ 4. TOP USER – TẤT CẢ TRẠNG THÁI + TIME
-       ============================================================ */
-    public Map<String, Integer> getTopNCustomersAllStatus(
-            int topN,
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    ) {
+    	⬇️ 4. TOP USER – TẤT CẢ TRẠNG THÁI + TIME
+    ============================================================ */
+    public Map<String, Integer> getTopNCustomersAllStatus(int topN, LocalDateTime startTime, LocalDateTime endTime) {
         Map<String, Integer> result = new LinkedHashMap<>();
 
         for (BookingStatus status : BookingStatus.values()) {
-            List<Object[]> rows = userRepository
-                    .findTopNUsersAllTime(startTime, endTime)
-                    .stream()
+            List<Object[]> rows = userRepository.findTopNUsersAllTime(startTime, endTime).stream()
                     .limit(topN)
                     .toList();
 
@@ -132,9 +106,9 @@ public class StatisticalService {
     }
 
     /* ============================================================
-        ⬇️ 5. ĐẾM BOOKING THEO TRẠNG THÁI + TIME
-       ============================================================ */
-    public Map<String, Integer> getBookingCountAllStatus(LocalDateTime start, LocalDateTime end){
+    	⬇️ 5. ĐẾM BOOKING THEO TRẠNG THÁI + TIME
+    ============================================================ */
+    public Map<String, Integer> getBookingCountAllStatus(LocalDateTime start, LocalDateTime end) {
         List<Object[]> rows = bookingRepository.countAllStatus(start, end);
         Map<String, Integer> result = new LinkedHashMap<>();
 
@@ -147,7 +121,7 @@ public class StatisticalService {
         return result;
     }
 
-    public Map<String, Integer> getBookingCountByStatus(BookingStatus status, LocalDateTime start, LocalDateTime end){
+    public Map<String, Integer> getBookingCountByStatus(BookingStatus status, LocalDateTime start, LocalDateTime end) {
         List<Object[]> rows = bookingRepository.countByStatus(status, start, end);
         Map<String, Integer> result = new LinkedHashMap<>();
 
@@ -160,10 +134,9 @@ public class StatisticalService {
         return result;
     }
 
-
     /* ============================================================
-        ⬇️ 6. DOANH THU - bạn yêu cầu không đổi
-       ============================================================ */
+    	⬇️ 6. DOANH THU - bạn yêu cầu không đổi
+    ============================================================ */
 
     public double getTotalRevenue() {
         Double totalRevenue = invoiceRepository.getTotalRevenue();
@@ -187,7 +160,7 @@ public class StatisticalService {
         return result;
     }
 
-    //Thống kê theo phương thưc thanh toán
+    // Thống kê theo phương thưc thanh toán
     public Map<String, Long> getRevenueByPaymentMethod() {
         List<Object[]> rows = checkoutRepository.countByPaymentMethod();
         Map<String, Long> result = new LinkedHashMap<>();
@@ -200,5 +173,4 @@ public class StatisticalService {
 
         return result;
     }
-
 }

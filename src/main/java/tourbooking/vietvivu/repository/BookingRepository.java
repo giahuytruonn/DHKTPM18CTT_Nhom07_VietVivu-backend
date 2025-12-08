@@ -24,59 +24,51 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     Integer countByBookingStatus(BookingStatus bookingStatus);
 
-    @Query("""
-    SELECT t.title, COUNT(DISTINCT b.bookingId)
-    FROM Booking b
-    JOIN b.tour t
-    WHERE b.bookingDate BETWEEN :startTime AND :endTime
-    GROUP BY t.tourId, t.title
-    ORDER BY COUNT(DISTINCT b.bookingId) DESC
+    @Query(
+            """
+	SELECT t.title, COUNT(DISTINCT b.bookingId)
+	FROM Booking b
+	JOIN b.tour t
+	WHERE b.bookingDate BETWEEN :startTime AND :endTime
+	GROUP BY t.tourId, t.title
+	ORDER BY COUNT(DISTINCT b.bookingId) DESC
 """)
     List<Object[]> findTopNToursAllTime(
-            @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
+            @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
-    @Query("""
-    SELECT t.title, COUNT(DISTINCT b.bookingId)
-    FROM Booking b
-    JOIN b.tour t
-    WHERE b.bookingStatus = :status
-      AND b.bookingDate BETWEEN :startTime AND :endTime
-    GROUP BY t.tourId, t.title
-    ORDER BY COUNT(DISTINCT b.bookingId) DESC
+    @Query(
+            """
+	SELECT t.title, COUNT(DISTINCT b.bookingId)
+	FROM Booking b
+	JOIN b.tour t
+	WHERE b.bookingStatus = :status
+	AND b.bookingDate BETWEEN :startTime AND :endTime
+	GROUP BY t.tourId, t.title
+	ORDER BY COUNT(DISTINCT b.bookingId) DESC
 """)
-
     List<Object[]> findTopNToursByStatusAndTime(
             @Param("status") BookingStatus status,
             @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
+            @Param("endTime") LocalDateTime endTime);
 
-    @Query("""
-    SELECT b.bookingStatus, COUNT(b)
-    FROM Booking b
-    WHERE b.bookingDate BETWEEN :start AND :end
-    GROUP BY b.bookingStatus
+    @Query(
+            """
+	SELECT b.bookingStatus, COUNT(b)
+	FROM Booking b
+	WHERE b.bookingDate BETWEEN :start AND :end
+	GROUP BY b.bookingStatus
 """)
     List<Object[]> countAllStatus(LocalDateTime start, LocalDateTime end);
 
-
-    @Query("""
-    SELECT b.bookingStatus, COUNT(b)
-    FROM Booking b
-    WHERE b.bookingStatus = :status
-    AND b.bookingDate BETWEEN :start AND :end
-    GROUP BY b.bookingStatus
+    @Query(
+            """
+	SELECT b.bookingStatus, COUNT(b)
+	FROM Booking b
+	WHERE b.bookingStatus = :status
+	AND b.bookingDate BETWEEN :start AND :end
+	GROUP BY b.bookingStatus
 """)
-    List<Object[]> countByStatus(
-            BookingStatus status,
-            LocalDateTime start,
-            LocalDateTime end
-    );
+    List<Object[]> countByStatus(BookingStatus status, LocalDateTime start, LocalDateTime end);
 
-
-
-
-
+    List<Booking> findByTourTourIdAndBookingStatus(String tourId, BookingStatus bookingStatus);
 }

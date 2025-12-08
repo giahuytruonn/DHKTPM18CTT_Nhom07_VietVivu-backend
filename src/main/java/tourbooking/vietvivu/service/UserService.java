@@ -48,10 +48,11 @@ public class UserService {
     OtpVerificationRepository otpVerificationRepository;
     EmailService emailService;
 
+
     // CREATE
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
-        if(userRepository.existsByEmail(request.getEmail())) throw new AppException(ErrorCode.EMAIL_EXISTED);
+        if (userRepository.existsByEmail(request.getEmail())) throw new AppException(ErrorCode.EMAIL_EXISTED);
 
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -167,7 +168,8 @@ public class UserService {
 
         String otp = otpService.generateOTP();
 
-        String existingOtp = otpVerificationRepository.findOtpVerificationByOtp(otp) != null ? otpService.generateOTP() : otp;
+        String existingOtp =
+                otpVerificationRepository.findOtpVerificationByOtp(otp) != null ? otpService.generateOTP() : otp;
 
         emailService.sendOTP(request.getEmail(), existingOtp);
 
@@ -179,11 +181,12 @@ public class UserService {
         otpVerificationRepository.save(otpVerification);
     }
 
-    //Verify OTP
+    // Verify OTP
     @Transactional
     public VerifyOtpResponse verifyOtp(OtpRequest request) {
 
-        OtpVerification otpVerification = otpVerificationRepository.findById(request.getEmail())
+        OtpVerification otpVerification = otpVerificationRepository
+                .findById(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.OTP_INVALID));
 
         if (!otpVerification.getOtp().equals(request.getOtp())) {
@@ -200,16 +203,14 @@ public class UserService {
 
         otpVerificationRepository.save(otpVerification);
 
-        return VerifyOtpResponse.builder()
-                .resetToken(resetToken)
-                .build();
+        return VerifyOtpResponse.builder().resetToken(resetToken).build();
     }
-
 
     // Reset Password
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        OtpVerification otp = otpVerificationRepository.findById(request.getEmail())
+        OtpVerification otp = otpVerificationRepository
+                .findById(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.OTP_INVALID));
 
         if (!otp.getResetToken().equals(request.getResetToken())) {
@@ -231,7 +232,7 @@ public class UserService {
         otpVerificationRepository.delete(otp);
     }
 
-    //Change pássword
+    // Change pássword
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
         var context = SecurityContextHolder.getContext();
@@ -247,19 +248,15 @@ public class UserService {
         userRepository.save(user);
     }
 
-
-
-
     public UserResponse updateMyInfo(UserUpdateRequest request) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         userMapper.updateUser(user, request);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
-
 }

@@ -50,8 +50,6 @@ public class BookingController {
                 .build();
     }
 
-
-
     @GetMapping("/{bookingId}")
     public ApiResponse<BookingResponse> getBookingDetails(@PathVariable String bookingId) {
         return ApiResponse.<BookingResponse>builder()
