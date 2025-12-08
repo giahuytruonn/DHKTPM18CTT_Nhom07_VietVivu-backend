@@ -108,13 +108,6 @@ public class UserController {
 
     @PutMapping("/my-info")
     ApiResponse<UserResponse> updateMyInfo(@RequestBody @Valid UserUpdateRequest request) {
-        var context = SecurityContextHolder.getContext();
-        String username = context.getAuthentication().getName();
-
-        User user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateMyInfo(request))
                 .build();
