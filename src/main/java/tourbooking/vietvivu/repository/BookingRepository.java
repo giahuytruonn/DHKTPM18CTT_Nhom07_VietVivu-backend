@@ -13,6 +13,8 @@ import tourbooking.vietvivu.enumm.BookingStatus;
 public interface BookingRepository extends JpaRepository<Booking, String> {
     List<Booking> findByUser_Id(String userId);
 
+    List<Booking> getBookingsByBookingStatus(BookingStatus status);
+
     Integer countByTourTourIdAndBookingStatus(String tourId, BookingStatus bookingStatus);
 
     Integer countByUserIdAndBookingStatus(String userId, BookingStatus bookingStatus);
