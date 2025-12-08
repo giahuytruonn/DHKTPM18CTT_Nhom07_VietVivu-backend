@@ -1,7 +1,5 @@
 package tourbooking.vietvivu.dto.request;
 
-import jakarta.validation.constraints.Email;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tourbooking.vietvivu.validator.PasswordConstraint;
@@ -11,16 +9,11 @@ import tourbooking.vietvivu.validator.PasswordConstraint;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserCreationRequest {
-    String username;
-
-    @PasswordConstraint
-    String password;
-
-    @Email
+public class ResetPasswordRequest {
     String email;
 
-    String name;
-    String address;
-    String phoneNumber;
+    @PasswordConstraint
+    String newPassword;
+
+    String resetToken;
 }
