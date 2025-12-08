@@ -40,10 +40,11 @@ public class ReviewService {
     public ReviewResponse createReview(ReviewRequest request) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Booking booking = bookingRepository.findById(request.getBookingId())
+        Booking booking = bookingRepository
+                .findById(request.getBookingId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
 
         if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
@@ -80,40 +81,35 @@ public class ReviewService {
     }
 
     public ReviewResponse getReview(String reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review =
+                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
         return mapToReviewResponse(review);
     }
 
     public List<ReviewResponse> getReviewsByTour(String tourId) {
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        return tour.getReviews().stream()
-                .map(this::mapToReviewResponse)
-                .collect(Collectors.toList());
+        return tour.getReviews().stream().map(this::mapToReviewResponse).collect(Collectors.toList());
     }
 
     public List<ReviewResponse> getMyReviews() {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return user.getReviews().stream()
-                .map(this::mapToReviewResponse)
-                .collect(Collectors.toList());
+        return user.getReviews().stream().map(this::mapToReviewResponse).collect(Collectors.toList());
     }
 
     @Transactional
     public ReviewResponse updateReview(String reviewId, ReviewRequest request) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review =
+                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!review.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -130,11 +126,11 @@ public class ReviewService {
     public void deleteReview(String reviewId) {
         var context = SecurityContextHolder.getContext();
         String username = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user =
+                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+        Review review =
+                reviewRepository.findById(reviewId).orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!review.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -155,7 +151,8 @@ public class ReviewService {
 
         if (review.getUser() != null) {
             // Logic: Ưu tiên Name, nếu null hoặc rỗng thì dùng Username
-            if (review.getUser().getName() != null && !review.getUser().getName().isEmpty()) {
+            if (review.getUser().getName() != null
+                    && !review.getUser().getName().isEmpty()) {
                 userNameToDisplay = review.getUser().getName();
             } else {
                 userNameToDisplay = review.getUser().getUsername();
@@ -176,7 +173,6 @@ public class ReviewService {
                 .userName(userNameToDisplay)
                 // Trả về Avatar
                 .userAvatar(userAvatarUrl)
-
                 .tourId(review.getTour() != null ? review.getTour().getTourId() : null)
                 .tourTitle(review.getTour() != null ? review.getTour().getTitle() : null)
                 .bookingId(review.getBooking() != null ? review.getBooking().getBookingId() : null)

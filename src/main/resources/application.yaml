@@ -15,6 +15,20 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
 
+  # --- CẤU HÌNH MAIL (MỚI THÊM) ---
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  # --------------------------------
+
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
@@ -28,8 +42,8 @@ spring:
           model: text-embedding-3-small
     vectorstore:
       pgvector:
-        table-name: tour_vectors # tên bảng chứa vector
-        dimensions: 1536 # số chiều vector (phải đúng với model embedding)
+        table-name: tour_vectors
+        dimensions: 1536
         distance-type: cosine_distance
         index-type: none
   main:
@@ -43,8 +57,8 @@ outbound:
 
 jwt:
   signerKey: ${SIGNER_KEY}
-  valid-duration: 3600 # in second
-  refreshable-duration: 36000 # in seconds
+  valid-duration: 3600
+  refreshable-duration: 36000
 
 payos:
   client-id: ${CLIENT_ID_PAYOS}
@@ -55,3 +69,8 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+# --- EMAIL BAN TƯ VẤN (MỚI THÊM) ---
+app:
+  consulting-email: ${CONSULTING_EMAIL}
+# -----------------------------------
