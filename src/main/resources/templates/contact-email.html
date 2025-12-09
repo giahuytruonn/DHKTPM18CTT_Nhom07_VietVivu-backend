@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông báo liên hệ mới</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --brand: #2563EB; /* Đổi sang màu xanh dương cho hợp context support */
+            --bg: #f7f8fb;
+            --card: #ffffff;
+            --text: #1b1d1f;
+            --muted: #6c7784;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding: 32px 12px;
+        }
+        .wrapper {
+            max-width: 640px;
+            margin: auto;
+            background: var(--card);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.15);
+        }
+        .hero {
+            padding: 36px 32px 48px;
+            /* Gradient xanh dương */
+            background: radial-gradient(circle at top, rgba(255, 255, 255, 0.35), transparent 55%),
+            linear-gradient(120deg, #2563EB, #3B82F6 55%, #60A5FA);
+            color: #fff;
+            text-align: center;
+        }
+        .hero h1 { margin: 12px 0 4px; font-size: 26px; letter-spacing: 0.5px; }
+        .hero p { margin: 0; opacity: 0.9; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 999px; background: rgba(255, 255, 255, 0.2);
+            font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; font-weight: 600;
+        }
+        .section { padding: 32px; border-bottom: 1px solid #eef1f7; }
+        .section h2 { margin: 0 0 18px; font-size: 18px; color: var(--text); }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+        .card {
+            border: 1px solid #edf1f6; border-radius: 18px; padding: 18px; background: #fbfcfe;
+        }
+        .label { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; display: block; }
+        .value { font-size: 15px; font-weight: 600; word-break: break-word; }
+
+        /* Box nội dung tin nhắn */
+        .message-box {
+            padding: 24px;
+            border-radius: 16px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #334155;
+            white-space: pre-wrap; /* Giữ xuống dòng */
+        }
+
+        .footer { padding: 28px; text-align: center; font-size: 13px; color: var(--muted); background: #f6fafc; }
+        .btn-action {
+            display: inline-block; margin-top: 20px; padding: 12px 24px;
+            background: white; color: var(--brand); text-decoration: none;
+            font-weight: bold; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<main class="wrapper">
+    <header class="hero">
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 10px;">VietVivu</div>
+        <div class="chip">New Contact Request</div>
+        <h1>Yêu cầu hỗ trợ mới</h1>
+        <p>Có một khách hàng vừa gửi liên hệ qua hệ thống</p>
+    </header>
+
+    <section class="section">
+        <h2>Thông tin khách hàng</h2>
+        <div class="grid">
+            <div class="card">
+                <span class="label">Họ và tên</span>
+                <span class="value" th:text="${customerName}">Nguyễn Văn A</span>
+            </div>
+            <div class="card">
+                <span class="label">Chủ đề</span>
+                <span class="value" th:text="${topic}">Tư vấn Tour</span>
+            </div>
+            <div class="card" style="grid-column: span 2;">
+                <span class="label">Email liên hệ</span>
+                <span class="value" th:text="${customerEmail}">example@gmail.com</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Nội dung tin nhắn</h2>
+        <div class="message-box" th:text="${message}">
+            Nội dung câu hỏi của khách hàng sẽ hiển thị ở đây...
+        </div>
+
+        <div style="text-align: center; margin-top: 24px;">
+            <a th:href="'mailto:' + ${customerEmail}" class="btn-action"
+               style="background: var(--brand); color: white;">
+                Phản hồi ngay
+            </a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © <span th:text="${year}">2025</span> VietVivu Internal System<br>
+        Email này được gửi tự động từ hệ thống Website.
+    </footer>
+</main>
+</body>
+</html>
