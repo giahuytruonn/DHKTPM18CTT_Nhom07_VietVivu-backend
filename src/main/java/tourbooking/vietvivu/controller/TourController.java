@@ -18,11 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.request.TourCreateRequest;
 import tourbooking.vietvivu.dto.request.TourSearchRequest;
 import tourbooking.vietvivu.dto.request.TourUpdateRequest;
-import tourbooking.vietvivu.dto.response.ApiResponse;
-import tourbooking.vietvivu.dto.response.PaginationResponse;
-import tourbooking.vietvivu.dto.response.TourResponse;
-import tourbooking.vietvivu.dto.response.TourSelectionResponse;
+import tourbooking.vietvivu.dto.response.*;
 import tourbooking.vietvivu.enumm.TourStatus;
+import tourbooking.vietvivu.service.BookingService;
 import tourbooking.vietvivu.service.CloudinaryService;
 import tourbooking.vietvivu.service.TourService;
 
@@ -35,8 +33,26 @@ public class TourController {
 
     TourService tourService;
     CloudinaryService cloudinaryService;
+    BookingService bookingService;
 
     // ===== PUBLIC ENDPOINTS =====
+
+    @GetMapping("/{tourId}/bookings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<BookingResponse>> getTourBookings(@PathVariable String tourId) {
+        log.info("GET /tours/{}/bookings - Getting bookings for tour", tourId);
+        try {
+            List<BookingResponse> bookings = bookingService.getBookingsByTourId(tourId);
+            log.info("Found {} bookings for tour {}", bookings.size(), tourId);
+            return ApiResponse.<List<BookingResponse>>builder()
+                    .result(bookings)
+                    .message("Retrieved " + bookings.size() + " bookings")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error getting bookings for tour {}", tourId, e);
+            throw e;
+        }
+    }
 
     @GetMapping
     public ApiResponse<PaginationResponse<TourResponse>> getAllToursPublic(
@@ -178,6 +194,8 @@ public class TourController {
         }
     }
 
+
+
     @DeleteMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteTour(@PathVariable String tourId) {
@@ -239,4 +257,5 @@ public class TourController {
         // Giả sử bạn đã có tourService. Nếu chưa có hàm này trong Service, hãy xem bước tiếp theo
         return ResponseEntity.ok(tourService.getAllTourNames());
     }
+
 }

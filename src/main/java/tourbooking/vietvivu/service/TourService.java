@@ -3,6 +3,7 @@ package tourbooking.vietvivu.service;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -51,7 +53,6 @@ public class TourService {
     TourRepository tourRepository;
     TourMapper tourMapper;
     CloudinaryService cloudinaryService;
-
     EmailService emailService;
     BookingRepository bookingRepository;
 
@@ -223,34 +224,28 @@ public class TourService {
 
         updateTourStatus(tour);
 
+        // LƯU TOUR TRƯỚC (không có ảnh)
+        Tour savedTour = tourRepository.save(tour);
+        log.info("Tour created with id: {} - processing images asynchronously", savedTour.getTourId());
+
+        // XỬ LÝ ẢNH BẤT ĐỒNG BỘ
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            Set<Image> images = request.getImageUrls().stream()
-                    .map(url -> Image.builder()
-                            .imageUrl(url)
-                            .uploadDate(LocalDate.now())
-                            .tour(tour)
-                            .build())
-                    .collect(Collectors.toSet());
-            tour.setImages(images);
+            processImagesAsync(savedTour.getTourId(), request.getImageUrls());
         }
 
-        tourRepository.save(tour);
-
-        log.info("Tour created successfully with id: {}", tour.getTourId());
-        return tourMapper.toTourResponse(tour);
+        return tourMapper.toTourResponse(savedTour);
     }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
         log.info("Updating tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        // LƯU THÔNG TIN CŨ TRƯỚC KHI CẬP NHẬT
         LocalDate oldStartDate = tour.getStartDate();
         LocalDate oldEndDate = tour.getEndDate();
 
-        // KIỂM TRA XEM CÓ THAY ĐỔI NGÀY KHÔNG
         boolean datesChanged = false;
         if (request.getStartDate() != null && !request.getStartDate().equals(oldStartDate)) {
             datesChanged = true;
@@ -269,82 +264,65 @@ public class TourService {
         LocalDate lockDate = startDate.minusDays(1);
         boolean isBeforeLockDate = now.isBefore(lockDate.plusDays(1));
 
-        // ===== XỬ LÝ HÌNH ẢNH =====
-        if (request.getImageUrls() != null) {
-            List<String> oldImageUrls = tour.getImages() != null
-                    ? tour.getImages().stream().map(Image::getImageUrl).toList()
-                    : List.of();
+        // LƯU DANH SÁCH ẢNH CŨ ĐỂ XÓA ĐỒNG BỘ
+        List<String> oldImageUrls = null;
+        if (request.getImageUrls() != null && tour.getImages() != null) {
+            oldImageUrls = tour.getImages().stream()
+                    .map(Image::getImageUrl)
+                    .collect(Collectors.toList());
 
-            cloudinaryService.deleteMultipleImages(oldImageUrls);
-            tour.getImages().clear();
-
-            Set<Image> newImages = request.getImageUrls().stream()
-                    .map(url -> Image.builder()
-                            .imageUrl(url)
-                            .uploadDate(LocalDate.now())
-                            .tour(tour)
-                            .build())
-                    .collect(Collectors.toSet());
-            tour.getImages().addAll(newImages);
+            // XÓA TỪNG PHẦN TỬ thay vì clear() để tránh lỗi orphan removal
+            tour.getImages().removeIf(img -> true);
         }
 
-        // ===== CHO PHÉP ADMIN CHỈ ĐƯỢC ĐẶT TRẠNG THÁI TRƯỚC lockDate =====
+        // XỬ LÝ TRẠNG THÁI
         if (request.getTourStatus() != null && isBeforeLockDate) {
             if (request.getTourStatus() == TourStatus.OPEN_BOOKING
                     || request.getTourStatus() == TourStatus.IN_PROGRESS) {
                 tour.setTourStatus(request.getTourStatus());
-                log.info(
-                        "Admin manually set status to {} (allowed before lock date: {})",
-                        request.getTourStatus(),
-                        lockDate);
-            } else {
-                log.warn(
-                        "Invalid status {} requested. Only OPEN_BOOKING or IN_PROGRESS allowed before lock date.",
-                        request.getTourStatus());
+                log.info("Admin manually set status to {}", request.getTourStatus());
             }
-        } else if (request.getTourStatus() != null) {
-            log.warn(
-                    "Status update ignored: Cannot manually change status on or after lock date ({}). Current date: {}",
-                    lockDate,
-                    now);
         }
 
-        // ===== CẬP NHẬT CÁC FIELD KHÁC =====
+        // CẬP NHẬT CÁC FIELD KHÁC
         tourMapper.updateTour(tour, request);
-
-        // ===== TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI =====
         updateTourStatus(tour);
 
-        tourRepository.save(tour);
+        // LƯU TOUR TRƯỚC
+        Tour savedTour = tourRepository.save(tour);
+        log.info("Tour {} updated - processing images asynchronously", tourId);
 
-        log.info(
-                "Tour {} updated | Final Status: {} | LockDate: {} | Now: {}",
-                tourId,
-                tour.getTourStatus(),
-                lockDate,
-                now);
-
-        // ===== GỬI EMAIL THÔNG BÁO NẾU THAY ĐỔI NGÀY =====
-        if (datesChanged) {
-            log.info("Tour dates changed, sending notifications to customers...");
-            sendScheduleChangeNotifications(tour, oldStartDate, oldEndDate);
+        // XÓA ẢNH CŨ ĐỒNG BỘ VÀ THÊM ẢNH MỚI BẤT ĐỒNG BỘ
+        if (request.getImageUrls() != null) {
+            List<String> finalOldImageUrls = oldImageUrls;
+            updateImagesSync(savedTour.getTourId(), finalOldImageUrls, request.getImageUrls());
         }
 
-        return tourMapper.toTourResponse(tour);
+        // GỬI EMAIL BẤT ĐỒNG BỘ NẾU THAY ĐỔI NGÀY
+        if (datesChanged) {
+            log.info("Tour dates changed, sending notifications asynchronously");
+            sendScheduleChangeNotificationsAsync(savedTour, oldStartDate, oldEndDate);
+        }
+
+        return tourMapper.toTourResponse(savedTour);
     }
+
+    // Thêm method mới với @Async
+
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteTour(String tourId) {
         log.info("Deleting tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
-        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-            List<String> imageUrls =
-                    tour.getImages().stream().map(Image::getImageUrl).toList();
-            cloudinaryService.deleteMultipleImages(imageUrls);
-        }
+        // Lưu danh sách URL ảnh để xóa đồng bộ
+        List<String> imageUrls = tour.getImages() != null && !tour.getImages().isEmpty()
+                ? tour.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList())
+                : List.of();
 
+        // Xóa favorite relationships
         Set<User> users = tour.getUsersFavorited();
         if (users != null && !users.isEmpty()) {
             for (User user : users) {
@@ -353,8 +331,26 @@ public class TourService {
         }
         tour.getUsersFavorited().clear();
 
+        // Xóa ảnh ĐỒNG BỘ (xóa luôn)
+        if (!imageUrls.isEmpty()) {
+            log.info("Deleting {} images synchronously for tour {}", imageUrls.size(), tourId);
+            cloudinaryService.deleteMultipleImages(imageUrls);
+        }
+
+        // Xóa tour khỏi database
         tourRepository.deleteById(tourId);
-        log.info("Tour deleted successfully: {}", tourId);
+        log.info("Tour {} deleted successfully", tourId);
+    }
+
+    @Async
+    public void deleteImagesAsync(List<String> imageUrls) {
+        try {
+            log.info("Deleting {} images asynchronously", imageUrls.size());
+            cloudinaryService.deleteMultipleImagesAsync(imageUrls).join();
+            log.info("Successfully deleted {} images", imageUrls.size());
+        } catch (Exception e) {
+            log.error("Failed to delete images asynchronously: {}", e.getMessage(), e);
+        }
     }
 
     // ===== PRIVATE HELPER METHODS =====
@@ -380,6 +376,30 @@ public class TourService {
             }
         }
 
+        // **THÊM LOGIC NÀY: Kiểm tra quantity = 0**
+        if (tour.getQuantity() != null && tour.getQuantity() == 0) {
+            tour.setAvailability(false);
+
+            // Nếu sau endDate -> COMPLETED
+            if (endDate != null && now.isAfter(endDate)) {
+                tour.setTourStatus(TourStatus.COMPLETED);
+                log.info("Tour {} → COMPLETED (quantity=0, past endDate: {})", tour.getTourId(), endDate);
+                return;
+            }
+
+            // Nếu từ lockDate (startDate - 1) trở đi -> IN_PROGRESS
+            if (!now.isBefore(lockDate.plusDays(1))) {
+                tour.setTourStatus(TourStatus.IN_PROGRESS);
+                log.info("Tour {} → IN_PROGRESS (quantity=0, on/after lockDate: {})", tour.getTourId(), lockDate);
+                return;
+            }
+
+            // Nếu trước lockDate và quantity = 0 -> vẫn IN_PROGRESS
+            tour.setTourStatus(TourStatus.IN_PROGRESS);
+            log.info("Tour {} → IN_PROGRESS (quantity=0, before lockDate: {})", tour.getTourId(), lockDate);
+            return;
+        }
+
         // Ưu tiên cao nhất: Sau endDate → COMPLETED
         if (endDate != null && now.isAfter(endDate)) {
             tour.setTourStatus(TourStatus.COMPLETED);
@@ -388,10 +408,9 @@ public class TourService {
         }
 
         // Từ ngày lockDate (tức startDate - 1) trở đi → IN_PROGRESS
-        if (!now.isBefore(lockDate.plusDays(1))) { // now >= startDate - 1
+        if (!now.isBefore(lockDate.plusDays(1))) {
             tour.setTourStatus(TourStatus.IN_PROGRESS);
             log.info("Tour {} → IN_PROGRESS (on/after lockDate: {})", tour.getTourId(), lockDate);
-
             return;
         }
 
@@ -513,5 +532,63 @@ public class TourService {
 
     public List<TourSelectionResponse> getAllTourNames() {
         return tourRepository.findAllTourNames();
+    }
+
+    @Async
+    protected void sendScheduleChangeNotificationsAsync(Tour tour, LocalDate oldStartDate, LocalDate oldEndDate) {
+        sendScheduleChangeNotifications(tour, oldStartDate, oldEndDate);
+    }
+
+    @Async
+    public void processImagesAsync(String tourId, List<String> imageUrls) {
+        try {
+            log.info("Processing {} images for tour {}", imageUrls.size(), tourId);
+
+            Tour tour = tourRepository.findById(tourId).orElse(null);
+            if (tour == null) {
+                log.error("Tour {} not found for async image processing", tourId);
+                return;
+            }
+
+            // Khởi tạo collection nếu null
+            if (tour.getImages() == null) {
+                tour.setImages(new HashSet<>());
+            }
+
+            // Thêm ảnh mới vào collection hiện tại
+            imageUrls.forEach(url -> {
+                Image image = Image.builder()
+                        .imageUrl(url)
+                        .uploadDate(LocalDate.now())
+                        .tour(tour)
+                        .build();
+                tour.getImages().add(image);
+            });
+
+            tourRepository.save(tour);
+
+            log.info("Successfully added {} images to tour {}", imageUrls.size(), tourId);
+        } catch (Exception e) {
+            log.error("Failed to process images for tour {}: {}", tourId, e.getMessage(), e);
+        }
+    }
+
+    public void updateImagesSync(String tourId, List<String> oldImageUrls, List<String> newImageUrls) {
+        try {
+            // Xóa ảnh cũ ĐỒNG BỘ từ Cloudinary
+            if (oldImageUrls != null && !oldImageUrls.isEmpty()) {
+                log.info("Deleting {} old images synchronously for tour {}", oldImageUrls.size(), tourId);
+                cloudinaryService.deleteMultipleImages(oldImageUrls);
+            }
+
+            // Thêm ảnh mới BẤT ĐỒNG BỘ vào DB
+            if (newImageUrls != null && !newImageUrls.isEmpty()) {
+                processImagesAsync(tourId, newImageUrls);
+            }
+
+            log.info("Successfully updated images for tour {}", tourId);
+        } catch (Exception e) {
+            log.error("Failed to update images for tour {}: {}", tourId, e.getMessage(), e);
+        }
     }
 }

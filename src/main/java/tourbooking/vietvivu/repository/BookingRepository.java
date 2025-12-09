@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import tourbooking.vietvivu.entity.Booking;
+import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.entity.User;
 import tourbooking.vietvivu.enumm.BookingStatus;
 
@@ -108,4 +109,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 			""")
     List<Booking> findBookingsToComplete(
             @Param("statuses") List<BookingStatus> statuses, @Param("currentDate") LocalDate currentDate);
+
+    List<Booking> findByTour(Tour tour);
 }

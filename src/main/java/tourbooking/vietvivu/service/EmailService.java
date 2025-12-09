@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.service;
 
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Year;
@@ -10,7 +11,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -282,6 +282,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendTourScheduleChangeEmail(TourScheduleChangeNotification notification) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -290,8 +291,20 @@ public class EmailService {
             helper.setTo(notification.getCustomerEmail());
             helper.setSubject("⚠️ Thông báo thay đổi lịch trình Tour - " + notification.getTourTitle());
 
-            String htmlContent = buildTourScheduleChangeEmailContent(notification);
-            helper.setText(htmlContent, true);
+            // Sử dụng Thymeleaf context thay vì hardcode HTML
+            Context context = new Context();
+            context.setVariable("customerName", notification.getCustomerName());
+            context.setVariable("tourTitle", notification.getTourTitle());
+            context.setVariable("tourDestination", notification.getTourDestination());
+            context.setVariable("tourId", notification.getTourId());
+            context.setVariable("oldStartDate", notification.getOldStartDate());
+            context.setVariable("oldEndDate", notification.getOldEndDate());
+            context.setVariable("newStartDate", notification.getNewStartDate());
+            context.setVariable("newEndDate", notification.getNewEndDate());
+            context.setVariable("currentYear", Year.now().getValue());
+
+            String html = templateEngine.process("tour-schedule-change-email", context);
+            helper.setText(html, true);
 
             mailSender.send(message);
             log.info("Tour schedule change email sent to: {}", notification.getCustomerEmail());
@@ -300,309 +313,56 @@ public class EmailService {
         }
     }
 
-    private String buildTourScheduleChangeEmailContent(TourScheduleChangeNotification notification) {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        return """
-		<!DOCTYPE html>
-		<html lang="vi">
-		<head>
-			<meta charset="UTF-8">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Thông báo thay đổi lịch trình</title>
-		</head>
-		<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
-			<table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f4f7fa; padding: 40px 0;">
-				<tr>
-					<td align="center">
-						<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-
-							<!-- Header -->
-							<tr>
-								<td style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 40px 30px; text-align: center;">
-									<h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
-										⚠️ Thông Báo Quan Trọng
-									</h1>
-									<p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">
-										Thay đổi lịch trình tour du lịch
-									</p>
-								</td>
-							</tr>
-
-							<!-- Greeting -->
-							<tr>
-								<td style="padding: 30px 40px 20px;">
-									<p style="margin: 0; font-size: 16px; color: #333333; line-height: 1.6;">
-										Kính gửi <strong style="color: #667eea;">%s</strong>,
-									</p>
-								</td>
-							</tr>
-
-							<!-- Important Notice -->
-							<tr>
-								<td style="padding: 0 40px 20px;">
-									<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 4px;">
-										<p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
-											<strong>⚠️ Lưu ý quan trọng:</strong> Lịch trình tour của bạn đã được thay đổi.
-											Vui lòng đọc kỹ thông tin chi tiết bên dưới.
-										</p>
-									</div>
-								</td>
-							</tr>
-
-							<!-- Tour Information -->
-							<tr>
-								<td style="padding: 0 40px 25px;">
-									<div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
-										<h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
-											📋 Thông Tin Tour
-										</h3>
-										<table width="100%%" cellpadding="8" cellspacing="0">
-											<tr>
-												<td style="color: #666666; font-size: 14px; width: 35%%;">
-													<strong>Tên tour:</strong>
-												</td>
-												<td style="color: #333333; font-size: 14px;">
-													<strong>%s</strong>
-												</td>
-											</tr>
-											<tr>
-												<td style="color: #666666; font-size: 14px;">
-													<strong>Điểm đến:</strong>
-												</td>
-												<td style="color: #333333; font-size: 14px;">
-													%s
-												</td>
-											</tr>
-											<tr>
-												<td style="color: #666666; font-size: 14px;">
-													<strong>Mã tour:</strong>
-												</td>
-												<td style="color: #333333; font-size: 14px;">
-													#%s
-												</td>
-											</tr>
-										</table>
-									</div>
-								</td>
-							</tr>
-
-							<!-- Schedule Comparison -->
-							<tr>
-								<td style="padding: 0 40px 25px;">
-									<h3 style="margin: 0 0 20px 0; color: #667eea; font-size: 18px;">
-										📅 Chi Tiết Thay Đổi Lịch Trình
-									</h3>
-
-									<table width="100%%" cellpadding="0" cellspacing="15">
-										<tr>
-											<!-- Old Schedule -->
-											<td width="48%%" style="vertical-align: top;">
-												<div style="background-color: #fee; border: 2px solid #dc3545; border-radius: 8px; padding: 15px;">
-													<div style="text-align: center; margin-bottom: 10px;">
-														<span style="background-color: #dc3545; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-															LỊCH CŨ
-														</span>
-													</div>
-													<table width="100%%" cellpadding="5">
-														<tr>
-															<td style="color: #666; font-size: 13px;">
-																<strong>Ngày khởi hành:</strong>
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #dc3545; font-size: 15px; font-weight: 600; text-decoration: line-through;">
-																%s
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #666; font-size: 13px; padding-top: 8px;">
-																<strong>Ngày kết thúc:</strong>
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #dc3545; font-size: 15px; font-weight: 600; text-decoration: line-through;">
-																%s
-															</td>
-														</tr>
-													</table>
-												</div>
-											</td>
-
-											<!-- Arrow -->
-											<td width="4%%" style="text-align: center; vertical-align: middle;">
-												<span style="font-size: 24px; color: #667eea;">→</span>
-											</td>
-
-											<!-- New Schedule -->
-											<td width="48%%" style="vertical-align: top;">
-												<div style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 15px;">
-													<div style="text-align: center; margin-bottom: 10px;">
-														<span style="background-color: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-															LỊCH MỚI
-														</span>
-													</div>
-													<table width="100%%" cellpadding="5">
-														<tr>
-															<td style="color: #666; font-size: 13px;">
-																<strong>Ngày khởi hành:</strong>
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #28a745; font-size: 15px; font-weight: 600;">
-																%s
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #666; font-size: 13px; padding-top: 8px;">
-																<strong>Ngày kết thúc:</strong>
-															</td>
-														</tr>
-														<tr>
-															<td style="color: #28a745; font-size: 15px; font-weight: 600;">
-																%s
-															</td>
-														</tr>
-													</table>
-												</div>
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-
-							<!-- Apology -->
-							<tr>
-								<td style="padding: 0 40px 25px;">
-									<div style="background-color: #fff9e6; padding: 20px; border-radius: 8px; text-align: center;">
-										<p style="margin: 0 0 10px 0; color: #333333; font-size: 15px; line-height: 1.8;">
-											Chúng tôi chân thành xin lỗi vì sự thay đổi này có thể gây bất tiện cho quý khách.<br>
-											Mong quý khách thông cảm và tiếp tục đồng hành cùng <strong>VietViVu</strong>.
-										</p>
-										<p style="margin: 10px 0 0 0; color: #667eea; font-size: 14px; font-style: italic;">
-											❤️ Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi!
-										</p>
-									</div>
-								</td>
-							</tr>
-
-							<!-- Important Note -->
-							<tr>
-								<td style="padding: 0 40px 25px;">
-									<div style="background-color: #e7f3ff; border-left: 4px solid #2196f3; padding: 15px 20px; border-radius: 4px;">
-										<p style="margin: 0; color: #0d47a1; font-size: 13px; line-height: 1.6;">
-											<strong>📌 Lưu ý:</strong> Nếu lịch trình mới không phù hợp với quý khách,
-											vui lòng liên hệ với chúng tôi để được hỗ trợ đổi tour hoặc hoàn tiền theo chính sách của công ty.
-										</p>
-									</div>
-								</td>
-							</tr>
-
-							<!-- Contact -->
-							<tr>
-								<td style="padding: 0 40px 30px; text-align: center;">
-									<p style="margin: 0 0 15px 0; color: #666; font-size: 14px;">
-										<strong>Liên hệ với chúng tôi:</strong>
-									</p>
-									<table width="100%%" cellpadding="8" cellspacing="0">
-										<tr>
-											<td style="text-align: center;">
-												<a href="tel:1900xxxx" style="display: inline-block; background-color: #667eea; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 5px; font-size: 14px; font-weight: 600;">
-													📞 Hotline: 1900 xxxx
-												</a>
-											</td>
-										</tr>
-										<tr>
-											<td style="text-align: center;">
-												<a href="mailto:support@vietvivu.com" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 5px; font-size: 14px; font-weight: 600;">
-													📧 Email: support@vietvivu.com
-												</a>
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-
-							<!-- Footer -->
-							<tr>
-								<td style="background-color: #2d3748; padding: 25px 40px; text-align: center;">
-									<p style="margin: 0 0 10px 0; color: #ffffff; font-size: 16px; font-weight: 600;">
-										🌏 VietViVu Travel
-									</p>
-									<p style="margin: 0; color: #a0aec0; font-size: 12px; line-height: 1.6;">
-										Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM<br>
-										Hotline: 1900 xxxx | Email: support@vietvivu.com<br>
-										Website: www.vietvivu.com
-									</p>
-									<div style="margin-top: 15px;">
-										<a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; font-size: 24px; text-decoration: none;">📘</a>
-										<a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; font-size: 24px; text-decoration: none;">📷</a>
-										<a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; font-size: 24px; text-decoration: none;">🐦</a>
-									</div>
-									<p style="margin: 15px 0 0 0; color: #718096; font-size: 11px;">
-										© 2024 VietViVu Travel. All rights reserved.
-									</p>
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-		</body>
-		</html>
-		"""
-                .formatted(
-                        notification.getCustomerName(),
-                        notification.getTourTitle(),
-                        notification.getTourDestination(),
-                        notification.getTourId(),
-                        notification.getOldStartDate().format(dateFormatter),
-                        notification.getOldEndDate().format(dateFormatter),
-                        notification.getNewStartDate().format(dateFormatter),
-                        notification.getNewEndDate().format(dateFormatter));
-    }
-
     @Value("${spring.mail.username}")
-    private String fromEmail; // Email hệ thống gửi đi
+    private String fromEmail;
 
     @Value("${app.consulting-email}")
-    private String consultingEmail; // Email ban tư vấn nhận
+    private String consultingEmail;
 
-    @Async // Chạy ngầm để không bắt người dùng chờ lâu
+    @Async
     public void sendContactEmail(ContactRequest request) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
+            MimeMessage message = mailSender.createMimeMessage();
+            // multipart = true để hỗ trợ hình ảnh hoặc file đính kèm nếu cần, encoding UTF-8
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-            message.setFrom(fromEmail);
-            message.setTo(consultingEmail); // Gửi đến ban tư vấn
-            message.setSubject("[VietVivu] Thắc mắc mới từ khách hàng: " + request.getTopic());
+            // 1. Tạo Context để truyền dữ liệu vào Thymeleaf
+            Context context = new Context();
+            context.setVariable(
+                    "customerName", request.getCustomerName() != null ? request.getCustomerName() : "Khách ẩn danh");
+            context.setVariable("customerEmail", request.getCustomerEmail());
+            context.setVariable("topic", convertTopicName(request.getTopic())); // Hàm convert đẹp tên topic
+            context.setVariable("message", request.getMessage());
+            context.setVariable("year", LocalDate.now().getYear());
 
-            // Nội dung email gửi cho nhân viên tư vấn
-            String content = String.format(
-                    """
-				Hệ thống nhận được yêu cầu hỗ trợ mới:
-				--------------------------------------
-				- Khách hàng: %s
-				- Email phản hồi: %s
-				- Chủ đề: %s
+            // 2. Render HTML từ file template (tên file không cần đuôi .html)
+            String htmlContent = templateEngine.process("contact-email", context);
 
-				- Nội dung câu hỏi:
-				%s
-				--------------------------------------
-				Vui lòng phản hồi khách hàng qua email trên.
-				""",
-                    request.getCustomerName() != null ? request.getCustomerName() : "Ẩn danh",
-                    request.getCustomerEmail(),
-                    request.getTopic(),
-                    request.getMessage());
+            // 3. Cấu hình Email
+            helper.setFrom(fromEmail, "VietVivu System"); // Có thể thêm tên hiển thị
+            helper.setTo(consultingEmail);
+            helper.setSubject("[VietVivu] Hỗ trợ khách hàng: " + request.getCustomerName());
+            helper.setText(htmlContent, true); // true = isHtml
 
-            message.setText(content);
+            // 4. Gửi
             mailSender.send(message);
-            log.info("Đã gửi mail contact thành công tới ban tư vấn");
 
-        } catch (Exception e) {
-            log.error("Lỗi gửi mail contact: ", e);
-            // Có thể throw exception nếu muốn handle kỹ hơn
+            // Log (Giả sử bạn có log)
+            System.out.println("Đã gửi HTML mail contact thành công tới ban tư vấn");
+
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            System.err.println("Lỗi gửi mail contact: " + e.getMessage());
         }
+    }
+
+    // Helper nhỏ để đổi Enum/Code sang tiếng Việt đẹp
+    private String convertTopicName(String topicCode) {
+        return switch (topicCode) {
+            case "TOUR_CONSULT" -> "Tư vấn Tour du lịch";
+            case "PAYMENT" -> "Thanh toán & Hoàn tiền";
+            case "BOOKING_CHANGE" -> "Thay đổi lịch trình";
+            default -> "Góp ý khác";
+        };
     }
 }

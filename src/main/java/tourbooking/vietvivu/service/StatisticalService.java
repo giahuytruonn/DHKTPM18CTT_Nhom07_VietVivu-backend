@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -169,6 +170,20 @@ public class StatisticalService {
             String method = row[0] != null ? row[0].toString() : "UNKNOWN";
             Long count = ((Number) row[1]).longValue();
             result.put(method, count);
+        }
+
+        return result;
+    }
+
+    // Thống kê doanh thu theo tour
+    public Map<String, Double> getRevenueByTour(LocalDate startTime, LocalDate endTime) {
+        List<Object[]> rows = invoiceRepository.getRevenueByTour(startTime, endTime);
+        Map<String, Double> result = new LinkedHashMap<>();
+
+        for (Object[] row : rows) {
+            String tourName = safeKey(row[0]);
+            double amount = ((Number) row[1]).doubleValue();
+            result.put(tourName, amount);
         }
 
         return result;
