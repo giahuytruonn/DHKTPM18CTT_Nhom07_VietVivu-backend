@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.service;
 
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Year;
@@ -9,6 +10,7 @@ import java.util.Locale;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,6 +22,7 @@ import org.thymeleaf.context.Context;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import tourbooking.vietvivu.dto.request.ContactRequest;
 import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.TourScheduleChangeNotification;
@@ -313,48 +316,54 @@ public class EmailService {
 		}
 	}
 
-
     @Value("${spring.mail.username}")
-    private String fromEmail; // Email hệ thống gửi đi
+    private String fromEmail;
 
     @Value("${app.consulting-email}")
-    private String consultingEmail; // Email ban tư vấn nhận
+    private String consultingEmail;
 
-    @Async // Chạy ngầm để không bắt người dùng chờ lâu
+    @Async
     public void sendContactEmail(ContactRequest request) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
+            MimeMessage message = mailSender.createMimeMessage();
+            // multipart = true để hỗ trợ hình ảnh hoặc file đính kèm nếu cần, encoding UTF-8
+            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-            message.setFrom(fromEmail);
-            message.setTo(consultingEmail); // Gửi đến ban tư vấn
-            message.setSubject("[VietVivu] Thắc mắc mới từ khách hàng: " + request.getTopic());
+            // 1. Tạo Context để truyền dữ liệu vào Thymeleaf
+            Context context = new Context();
+            context.setVariable("customerName", request.getCustomerName() != null ? request.getCustomerName() : "Khách ẩn danh");
+            context.setVariable("customerEmail", request.getCustomerEmail());
+            context.setVariable("topic", convertTopicName(request.getTopic())); // Hàm convert đẹp tên topic
+            context.setVariable("message", request.getMessage());
+            context.setVariable("year", LocalDate.now().getYear());
 
-            // Nội dung email gửi cho nhân viên tư vấn
-            String content = String.format(
-                    """
-				Hệ thống nhận được yêu cầu hỗ trợ mới:
-				--------------------------------------
-				- Khách hàng: %s
-				- Email phản hồi: %s
-				- Chủ đề: %s
+            // 2. Render HTML từ file template (tên file không cần đuôi .html)
+            String htmlContent = templateEngine.process("contact-email", context);
 
-				- Nội dung câu hỏi:
-				%s
-				--------------------------------------
-				Vui lòng phản hồi khách hàng qua email trên.
-				""",
-                    request.getCustomerName() != null ? request.getCustomerName() : "Ẩn danh",
-                    request.getCustomerEmail(),
-                    request.getTopic(),
-                    request.getMessage());
+            // 3. Cấu hình Email
+            helper.setFrom(fromEmail, "VietVivu System"); // Có thể thêm tên hiển thị
+            helper.setTo(consultingEmail);
+            helper.setSubject("[VietVivu] Hỗ trợ khách hàng: " + request.getCustomerName());
+            helper.setText(htmlContent, true); // true = isHtml
 
-            message.setText(content);
+            // 4. Gửi
             mailSender.send(message);
-            log.info("Đã gửi mail contact thành công tới ban tư vấn");
 
-        } catch (Exception e) {
-            log.error("Lỗi gửi mail contact: ", e);
-            // Có thể throw exception nếu muốn handle kỹ hơn
+            // Log (Giả sử bạn có log)
+            System.out.println("Đã gửi HTML mail contact thành công tới ban tư vấn");
+
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            System.err.println("Lỗi gửi mail contact: " + e.getMessage());
         }
+    }
+
+    // Helper nhỏ để đổi Enum/Code sang tiếng Việt đẹp
+    private String convertTopicName(String topicCode) {
+        return switch (topicCode) {
+            case "TOUR_CONSULT" -> "Tư vấn Tour du lịch";
+            case "PAYMENT" -> "Thanh toán & Hoàn tiền";
+            case "BOOKING_CHANGE" -> "Thay đổi lịch trình";
+            default -> "Góp ý khác";
+        };
     }
 }
