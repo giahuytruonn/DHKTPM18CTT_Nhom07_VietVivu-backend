@@ -240,8 +240,7 @@ public class TourService {
     @PreAuthorize("hasRole('ADMIN')")
     public TourResponse updateTour(String tourId, TourUpdateRequest request) {
         log.info("Updating tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         LocalDate oldStartDate = tour.getStartDate();
         LocalDate oldEndDate = tour.getEndDate();
@@ -267,9 +266,7 @@ public class TourService {
         // LƯU DANH SÁCH ẢNH CŨ ĐỂ XÓA ĐỒNG BỘ
         List<String> oldImageUrls = null;
         if (request.getImageUrls() != null && tour.getImages() != null) {
-            oldImageUrls = tour.getImages().stream()
-                    .map(Image::getImageUrl)
-                    .collect(Collectors.toList());
+            oldImageUrls = tour.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList());
 
             // XÓA TỪNG PHẦN TỬ thay vì clear() để tránh lỗi orphan removal
             tour.getImages().removeIf(img -> true);
@@ -309,13 +306,11 @@ public class TourService {
 
     // Thêm method mới với @Async
 
-
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteTour(String tourId) {
         log.info("Deleting tour: {}", tourId);
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         // Lưu danh sách URL ảnh để xóa đồng bộ
         List<String> imageUrls = tour.getImages() != null && !tour.getImages().isEmpty()

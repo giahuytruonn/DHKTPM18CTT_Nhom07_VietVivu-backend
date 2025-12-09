@@ -194,8 +194,6 @@ public class TourController {
         }
     }
 
-
-
     @DeleteMapping("/{tourId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteTour(@PathVariable String tourId) {
@@ -257,5 +255,4 @@ public class TourController {
         // Giả sử bạn đã có tourService. Nếu chưa có hàm này trong Service, hãy xem bước tiếp theo
         return ResponseEntity.ok(tourService.getAllTourNames());
     }
-
 }

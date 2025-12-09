@@ -17,9 +17,9 @@ public class AsyncConfig {
     @Bean(name = "imageTaskExecutor")
     public Executor imageTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);          // 5 threads sẵn sàng
-        executor.setMaxPoolSize(10);          // Tối đa 10 threads
-        executor.setQueueCapacity(100);       // Queue chứa 100 tasks
+        executor.setCorePoolSize(5); // 5 threads sẵn sàng
+        executor.setMaxPoolSize(10); // Tối đa 10 threads
+        executor.setQueueCapacity(100); // Queue chứa 100 tasks
         executor.setThreadNamePrefix("image-");
         executor.initialize();
         return executor;

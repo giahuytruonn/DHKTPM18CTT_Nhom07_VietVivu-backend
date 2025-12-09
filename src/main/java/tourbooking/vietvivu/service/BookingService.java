@@ -345,13 +345,10 @@ public class BookingService {
     }
 
     public List<BookingResponse> getBookingsByTourId(String tourId) {
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+        Tour tour = tourRepository.findById(tourId).orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         List<Booking> bookings = bookingRepository.findByTour(tour);
 
-        return bookings.stream()
-                .map(this::mapToBookingResponse)
-                .collect(Collectors.toList());
+        return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
     }
 }

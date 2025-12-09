@@ -79,17 +79,14 @@ public class CloudinaryService {
             log.info("Starting async upload for {} images", files.size());
 
             // Upload tất cả ảnh song song
-            List<CompletableFuture<String>> futures = files.stream()
-                    .map(this::uploadImageAsync)
-                    .collect(Collectors.toList());
+            List<CompletableFuture<String>> futures =
+                    files.stream().map(this::uploadImageAsync).collect(Collectors.toList());
 
             // Đợi tất cả upload xong
-            CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-                    futures.toArray(new CompletableFuture[0]));
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-            return allFutures.thenApply(v -> futures.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList()));
+            return allFutures.thenApply(
+                    v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
 
         } catch (Exception e) {
             log.error("Failed to upload multiple images async", e);
@@ -145,9 +142,8 @@ public class CloudinaryService {
     public CompletableFuture<Void> deleteMultipleImagesAsync(List<String> imageUrls) {
         log.info("Starting async deletion for {} images", imageUrls.size());
 
-        List<CompletableFuture<Void>> futures = imageUrls.stream()
-                .map(this::deleteImageAsync)
-                .collect(Collectors.toList());
+        List<CompletableFuture<Void>> futures =
+                imageUrls.stream().map(this::deleteImageAsync).collect(Collectors.toList());
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
