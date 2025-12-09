@@ -1,5 +1,6 @@
 package tourbooking.vietvivu.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -136,6 +137,20 @@ public class StatisticalController {
                 .build();
     }
 
+    // Tống kê doanh thu theo tour trong khoảng thời gian
+    @GetMapping("/revenue-by-tour")
+    ApiResponse<Map<String, Double>> getRevenueByTour(
+            @RequestParam String startTime,
+            @RequestParam String endTime) {
+
+        LocalDate start = LocalDate.parse(startTime);
+        LocalDate end = LocalDate.parse(endTime);
+
+        return ApiResponse.<Map<String, Double>>builder()
+                .result(statisticalService.getRevenueByTour(start, end))
+                .build();
+    }
+
     /* ============================================================
     	6. HÀM HỖ TRỢ
     ============================================================ */
@@ -155,4 +170,5 @@ public class StatisticalController {
 
         return isStart ? LocalDateTime.parse(date + "T00:00:00") : LocalDateTime.parse(date + "T23:59:59");
     }
+
 }
