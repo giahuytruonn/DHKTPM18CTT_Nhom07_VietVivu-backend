@@ -77,7 +77,6 @@ public class Tour {
     TourStatus tourStatus;
 
 
-
     //    @NotEmpty
     //    @Size(min = 1, max = 20)
     @ElementCollection
