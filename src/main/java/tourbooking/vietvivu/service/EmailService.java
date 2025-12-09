@@ -10,9 +10,7 @@ import java.util.Locale;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -22,7 +20,6 @@ import org.thymeleaf.context.Context;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thymeleaf.spring6.SpringTemplateEngine;
 import tourbooking.vietvivu.dto.request.ContactRequest;
 import tourbooking.vietvivu.dto.request.EmailRequest;
 import tourbooking.vietvivu.dto.request.TourScheduleChangeNotification;
@@ -285,36 +282,36 @@ public class EmailService {
         }
     }
 
-	@Async
-	public void sendTourScheduleChangeEmail(TourScheduleChangeNotification notification) {
-		try {
-			MimeMessage message = mailSender.createMimeMessage();
-			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    @Async
+    public void sendTourScheduleChangeEmail(TourScheduleChangeNotification notification) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-			helper.setTo(notification.getCustomerEmail());
-			helper.setSubject("⚠️ Thông báo thay đổi lịch trình Tour - " + notification.getTourTitle());
+            helper.setTo(notification.getCustomerEmail());
+            helper.setSubject("⚠️ Thông báo thay đổi lịch trình Tour - " + notification.getTourTitle());
 
-			// Sử dụng Thymeleaf context thay vì hardcode HTML
-			Context context = new Context();
-			context.setVariable("customerName", notification.getCustomerName());
-			context.setVariable("tourTitle", notification.getTourTitle());
-			context.setVariable("tourDestination", notification.getTourDestination());
-			context.setVariable("tourId", notification.getTourId());
-			context.setVariable("oldStartDate", notification.getOldStartDate());
-			context.setVariable("oldEndDate", notification.getOldEndDate());
-			context.setVariable("newStartDate", notification.getNewStartDate());
-			context.setVariable("newEndDate", notification.getNewEndDate());
-			context.setVariable("currentYear", Year.now().getValue());
+            // Sử dụng Thymeleaf context thay vì hardcode HTML
+            Context context = new Context();
+            context.setVariable("customerName", notification.getCustomerName());
+            context.setVariable("tourTitle", notification.getTourTitle());
+            context.setVariable("tourDestination", notification.getTourDestination());
+            context.setVariable("tourId", notification.getTourId());
+            context.setVariable("oldStartDate", notification.getOldStartDate());
+            context.setVariable("oldEndDate", notification.getOldEndDate());
+            context.setVariable("newStartDate", notification.getNewStartDate());
+            context.setVariable("newEndDate", notification.getNewEndDate());
+            context.setVariable("currentYear", Year.now().getValue());
 
-			String html = templateEngine.process("tour-schedule-change-email", context);
-			helper.setText(html, true);
+            String html = templateEngine.process("tour-schedule-change-email", context);
+            helper.setText(html, true);
 
-			mailSender.send(message);
-			log.info("Tour schedule change email sent to: {}", notification.getCustomerEmail());
-		} catch (Exception e) {
-			log.error("Failed to send tour schedule change email to: {}", notification.getCustomerEmail(), e);
-		}
-	}
+            mailSender.send(message);
+            log.info("Tour schedule change email sent to: {}", notification.getCustomerEmail());
+        } catch (Exception e) {
+            log.error("Failed to send tour schedule change email to: {}", notification.getCustomerEmail(), e);
+        }
+    }
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -327,11 +324,13 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             // multipart = true để hỗ trợ hình ảnh hoặc file đính kèm nếu cần, encoding UTF-8
-            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
             // 1. Tạo Context để truyền dữ liệu vào Thymeleaf
             Context context = new Context();
-            context.setVariable("customerName", request.getCustomerName() != null ? request.getCustomerName() : "Khách ẩn danh");
+            context.setVariable(
+                    "customerName", request.getCustomerName() != null ? request.getCustomerName() : "Khách ẩn danh");
             context.setVariable("customerEmail", request.getCustomerEmail());
             context.setVariable("topic", convertTopicName(request.getTopic())); // Hàm convert đẹp tên topic
             context.setVariable("message", request.getMessage());

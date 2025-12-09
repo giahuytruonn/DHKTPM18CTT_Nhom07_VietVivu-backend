@@ -76,7 +76,6 @@ public class Tour {
     @Enumerated(EnumType.STRING)
     TourStatus tourStatus;
 
-
     //    @NotEmpty
     //    @Size(min = 1, max = 20)
     @ElementCollection

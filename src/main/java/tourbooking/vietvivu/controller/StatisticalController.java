@@ -139,9 +139,7 @@ public class StatisticalController {
 
     // Tống kê doanh thu theo tour trong khoảng thời gian
     @GetMapping("/revenue-by-tour")
-    ApiResponse<Map<String, Double>> getRevenueByTour(
-            @RequestParam String startTime,
-            @RequestParam String endTime) {
+    ApiResponse<Map<String, Double>> getRevenueByTour(@RequestParam String startTime, @RequestParam String endTime) {
 
         LocalDate start = LocalDate.parse(startTime);
         LocalDate end = LocalDate.parse(endTime);
@@ -170,5 +168,4 @@ public class StatisticalController {
 
         return isStart ? LocalDateTime.parse(date + "T00:00:00") : LocalDateTime.parse(date + "T23:59:59");
     }
-
 }

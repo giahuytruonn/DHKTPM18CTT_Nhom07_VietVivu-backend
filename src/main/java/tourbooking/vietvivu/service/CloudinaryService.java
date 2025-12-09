@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,7 +44,22 @@ public class CloudinaryService {
     }
 
     /**
-     * Upload nhiều ảnh
+     * Upload 1 ảnh bất đồng bộ
+     */
+    @Async
+    public CompletableFuture<String> uploadImageAsync(MultipartFile file) {
+        try {
+            log.info("Async uploading image: {}", file.getOriginalFilename());
+            String url = uploadImage(file);
+            return CompletableFuture.completedFuture(url);
+        } catch (IOException e) {
+            log.error("Async upload failed for: {}", file.getOriginalFilename(), e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Upload nhiều ảnh đồng bộ (giữ nguyên cho backward compatibility)
      */
     public List<String> uploadMultipleImages(List<MultipartFile> files) throws IOException {
         List<String> urls = new ArrayList<>();
@@ -53,14 +71,38 @@ public class CloudinaryService {
     }
 
     /**
+     * Upload nhiều ảnh bất đồng bộ (song song)
+     */
+    @Async
+    public CompletableFuture<List<String>> uploadMultipleImagesAsync(List<MultipartFile> files) {
+        try {
+            log.info("Starting async upload for {} images", files.size());
+
+            // Upload tất cả ảnh song song
+            List<CompletableFuture<String>> futures = files.stream()
+                    .map(this::uploadImageAsync)
+                    .collect(Collectors.toList());
+
+            // Đợi tất cả upload xong
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(
+                    futures.toArray(new CompletableFuture[0]));
+
+            return allFutures.thenApply(v -> futures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList()));
+
+        } catch (Exception e) {
+            log.error("Failed to upload multiple images async", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
      * Xóa ảnh từ Cloudinary bằng URL
      */
     public void deleteImage(String imageUrl) throws IOException {
         log.info("Deleting image from Cloudinary: {}", imageUrl);
 
-        // Extract public_id từ URL
-        // VD: https://res.cloudinary.com/dpyshymwv/image/upload/v1234/vietvivu/tours/abc.jpg
-        // => public_id = vietvivu/tours/abc
         String publicId = extractPublicId(imageUrl);
 
         if (publicId != null) {
@@ -70,7 +112,21 @@ public class CloudinaryService {
     }
 
     /**
-     * Xóa nhiều ảnh
+     * Xóa ảnh bất đồng bộ
+     */
+    @Async
+    public CompletableFuture<Void> deleteImageAsync(String imageUrl) {
+        try {
+            deleteImage(imageUrl);
+            return CompletableFuture.completedFuture(null);
+        } catch (IOException e) {
+            log.error("Failed to delete image async: {}", imageUrl, e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Xóa nhiều ảnh đồng bộ
      */
     public void deleteMultipleImages(List<String> imageUrls) {
         for (String url : imageUrls) {
@@ -83,18 +139,29 @@ public class CloudinaryService {
     }
 
     /**
+     * Xóa nhiều ảnh bất đồng bộ (song song)
+     */
+    @Async
+    public CompletableFuture<Void> deleteMultipleImagesAsync(List<String> imageUrls) {
+        log.info("Starting async deletion for {} images", imageUrls.size());
+
+        List<CompletableFuture<Void>> futures = imageUrls.stream()
+                .map(this::deleteImageAsync)
+                .collect(Collectors.toList());
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
+
+    /**
      * Trích xuất public_id từ Cloudinary URL
      */
     private String extractPublicId(String imageUrl) {
         try {
-            // URL format: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/{public_id}.{format}
             String[] parts = imageUrl.split("/upload/");
             if (parts.length < 2) return null;
 
             String pathWithVersion = parts[1];
-            // Remove version (vXXXX/)
             String path = pathWithVersion.replaceFirst("v\\d+/", "");
-            // Remove extension
             return path.substring(0, path.lastIndexOf('.'));
         } catch (Exception e) {
             log.error("Failed to extract public_id from URL: {}", imageUrl, e);
