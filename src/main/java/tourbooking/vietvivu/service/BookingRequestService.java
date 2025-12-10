@@ -32,6 +32,8 @@ public class BookingRequestService {
     private final HistoryRepository historyRepository;
     private final TourRepository tourRepository;
     private final PromotionRepository promotionRepository;
+    private final CheckoutRepository checkoutRepository;
+    private final InvoiceRepository invoiceRepository;
     private final EmailService emailService;
 
     public List<BookingRequestResponse> getPendingRequests() {
@@ -142,6 +144,28 @@ public class BookingRequestService {
                 booking.setTotalPrice(recalculatedTotal);
             }
             bookingRepository.save(booking);
+
+            // Đồng bộ lại checkout/invoice nếu booking đã thanh toán trước đó
+            Checkout checkout = booking.getCheckout();
+            if (checkout != null) {
+                checkout.setBooking(booking);
+                if (recalculatedTotal != null) {
+                    checkout.setAmount(recalculatedTotal);
+                }
+                checkoutRepository.save(checkout);
+            }
+
+            Invoice invoice = booking.getInvoice();
+            if (invoice != null) {
+                invoice.setBooking(booking);
+                if (checkout != null) {
+                    invoice.setCheckout(checkout);
+                }
+                if (recalculatedTotal != null) {
+                    invoice.setAmount(recalculatedTotal);
+                }
+                invoiceRepository.save(invoice);
+            }
 
             setHistoryRepository(bookingRequest, ActionType.CHANGE);
         } // DENIED_CANCELLATION
