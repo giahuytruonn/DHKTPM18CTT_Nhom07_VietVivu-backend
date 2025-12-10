@@ -36,6 +36,7 @@ public class BookingRequestService {
     private final InvoiceRepository invoiceRepository;
     private final EmailService emailService;
 
+    // Admin
     public List<BookingRequestResponse> getPendingRequests() {
         List<BookingStatus> pendingStatuses =
                 Arrays.asList(BookingStatus.PENDING_CANCELLATION, BookingStatus.PENDING_CHANGE);
@@ -131,13 +132,20 @@ public class BookingRequestService {
 
             Booking booking = bookingRequest.getBooking();
             Tour tourToRestore = bookingRequest.getOldTour() != null ? bookingRequest.getOldTour() : booking.getTour();
+            Tour newTour = bookingRequest.getNewTour();
+
+            // Khôi phục số lượng cho tour cũ (cộng lại)
             restoreTourCapacity(tourToRestore, booking.getNumAdults(), booking.getNumChildren());
+
+            // Trừ số lượng cho tour mới
+            reduceTourCapacity(newTour, booking.getNumAdults(), booking.getNumChildren());
+
             booking.setBookingStatus(BookingStatus.CONFIRMED_CHANGE);
-            booking.setTour(bookingRequest.getNewTour());
+            booking.setTour(newTour);
             if (bookingRequest.getPromotion() != null) {
                 booking.setPromotion(bookingRequest.getPromotion());
             }
-            // Recalculate total price based on new tour and applied promotion (if any)
+            // Tinh toan lai gia khi co promotion
             Double recalculatedTotal =
                     calculateTotalPrice(bookingRequest.getNewTour(), booking, bookingRequest.getPromotion());
             if (recalculatedTotal != null) {
@@ -469,5 +477,28 @@ public class BookingRequestService {
             tour.setAvailability(true);
         }
         tourRepository.save(tour);
+    }
+
+    private void reduceTourCapacity(Tour tour, Integer adults, Integer children) {
+        if (tour == null) {
+            log.warn("Cannot reduce capacity because tour is null");
+            return;
+        }
+        int total = (adults != null ? adults : 0) + (children != null ? children : 0);
+        if (total <= 0) {
+            return;
+        }
+        int updatedQuantity = tour.getQuantity() - total;
+        // Đảm bảo quantity không âm
+        updatedQuantity = Math.max(updatedQuantity, 0);
+        tour.setQuantity(updatedQuantity);
+
+        // Nếu quantity = 0 thì set availability = false
+        if (updatedQuantity <= 0) {
+            tour.setAvailability(false);
+        }
+
+        tourRepository.save(tour);
+        log.info("Reduced {} slots from tour {}", total, tour.getTourId());
     }
 }

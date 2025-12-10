@@ -321,6 +321,7 @@ public class BookingService {
         return bookings.stream().map(this::mapToBookingResponse).collect(Collectors.toList());
     }
 
+    // set cancelled theo payment term
     private void applyCancellationIfOverdue(Booking booking) {
         LocalDateTime paymentTerm = booking.getPaymentTerm();
         if (paymentTerm != null
@@ -331,6 +332,7 @@ public class BookingService {
         }
     }
 
+    // set complete theo day
     private void applyCompletionIfNecessary(Booking booking) {
         Tour tour = booking.getTour();
         if (tour == null || tour.getEndDate() == null) {
