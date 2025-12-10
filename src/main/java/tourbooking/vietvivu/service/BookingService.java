@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tourbooking.vietvivu.dto.request.BookingRequest;
 import tourbooking.vietvivu.dto.response.BookingResponse;
 import tourbooking.vietvivu.entity.*;
@@ -23,6 +24,7 @@ import tourbooking.vietvivu.exception.ErrorCode;
 import tourbooking.vietvivu.repository.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BookingService {
     private static final Set<BookingStatus> COMPLETABLE_STATUSES = Set.of(
@@ -137,9 +139,9 @@ public class BookingService {
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         // Check: phải đặt trước 10 ngày
-//        if (request.getBookingDate().isAfter(tour.getStartDate().minusDays(3))) {
-//            throw new AppException(ErrorCode.DATE_NOT_AVAILABLE);
-//        }
+        //        if (request.getBookingDate().isAfter(tour.getStartDate().minusDays(3))) {
+        //            throw new AppException(ErrorCode.DATE_NOT_AVAILABLE);
+        //        }
 
         // Check số lượng
         if ((request.getNumOfAdults() + request.getNumOfChildren() > tour.getQuantity())) {
@@ -328,8 +330,34 @@ public class BookingService {
                 && booking.getBookingStatus() == BookingStatus.PENDING
                 && LocalDateTime.now().isAfter(paymentTerm)) {
             booking.setBookingStatus(BookingStatus.CANCELLED);
+            restoreTourCapacity(booking);
             bookingRepository.save(booking);
         }
+    }
+
+    private void restoreTourCapacity(Booking booking) {
+        Tour tour = booking.getTour();
+        if (tour == null) {
+            log.warn("Cannot restore capacity because tour is null");
+            return;
+        }
+        int adults = booking.getNumAdults() != null ? booking.getNumAdults() : 0;
+        int children = booking.getNumChildren() != null ? booking.getNumChildren() : 0;
+        int total = adults + children;
+        if (total <= 0) {
+            return;
+        }
+        Integer initialQuantity = tour.getInitialQuantity();
+        int updatedQuantity = tour.getQuantity() + total;
+        if (initialQuantity != null) {
+            updatedQuantity = Math.min(updatedQuantity, initialQuantity);
+        }
+        tour.setQuantity(updatedQuantity);
+        if (updatedQuantity > 0) {
+            tour.setAvailability(true);
+        }
+        tourRepository.save(tour);
+        log.info("Restored {} slots to tour {} due to overdue cancellation", total, tour.getTourId());
     }
 
     // set complete theo day
