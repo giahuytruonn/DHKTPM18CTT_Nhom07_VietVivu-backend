@@ -25,7 +25,6 @@ public class PromotionService {
 
     // CRUD Promotion
     public void createPromotion(Promotion promotion) {
-        promotion.setPromotionId(UUID.randomUUID().toString().substring(0, 8));
         promotionRepository.save(promotion);
     }
 

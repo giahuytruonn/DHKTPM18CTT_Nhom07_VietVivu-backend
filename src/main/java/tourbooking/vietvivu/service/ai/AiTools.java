@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import tourbooking.vietvivu.dto.response.ChatResponse;
 import tourbooking.vietvivu.dto.response.TourSummary;
+import tourbooking.vietvivu.dto.response.TourSummaryArray;
+import tourbooking.vietvivu.entity.Tour;
 import tourbooking.vietvivu.repository.ImageRepository;
 import tourbooking.vietvivu.service.TourService;
 
@@ -56,6 +58,14 @@ public class AiTools {
 			📞 **Hỗ trợ:** Hotline 1900-888-555 hoặc email: support@vietvivu.vn
 		""");
     }
+
+	@Tool(name = "getGreetingMessage",description = "Chào hỏi người dùng khi họ bắt đầu cuộc trò chuyện")
+	public ChatResponse getGreetingMessage() {
+		return new ChatResponse(
+				"""
+    		👋 Xin chào! Tôi có thể giúp bạn tìm kiếm tour du lịch phù hợp hoặc trả lời các câu hỏi về quy trình đặt, hủy, đổi tour. Bạn cần hỗ trợ gì hôm nay?
+    		""");
+	}
 
     @Tool(description = "Hướng dẫn người dùng quy trình hủy Tour trên website VietViVu")
     public ChatResponse getInstructionToCancelBookingTour() {
@@ -150,4 +160,26 @@ public class AiTools {
                 doc.getMetadata().get("duration").toString(),
                 doc.getMetadata().get("imageUrls").toString().split(","));
     }
+
+	@Tool(description = "Gợi ý các tour du lịch hot nhất hiện nay")
+	public TourSummaryArray findAllHotTours() {
+
+		List<Tour> tours = tourService.findAllHotTours();
+
+		String summaryId = "hot_tours_01";
+		TourSummary[] summaries = new TourSummary[tours.size()];
+		for (int i = 0; i < tours.size(); i++) {
+			Tour tour = tours.get(i);
+			List<String> imageUrls = imageRepository.findImageUrlsByTour_TourId(tour.getTourId());
+			summaries[i] = new TourSummary(
+					tour.getTourId(),
+					tour.getTitle(),
+					String.valueOf(tour.getPriceAdult()),
+					String.valueOf(tour.getPriceChild()),
+				(String.valueOf(tour.getDuration())),
+					imageUrls.toArray(new String[0]));
+		}
+		return new TourSummaryArray(summaryId, summaries);
+	}
+
 }
