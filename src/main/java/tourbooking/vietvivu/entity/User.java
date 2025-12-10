@@ -51,15 +51,6 @@ public class User implements Serializable {
     Set<History> histories;
 
     @OneToMany(mappedBy = "user")
-    Set<Conversation> conversationsAsUser;
-
-    @OneToMany(mappedBy = "admin")
-    Set<Conversation> conversationsAsAdmin;
-
-    @OneToMany(mappedBy = "sender")
-    Set<Message> messages;
-
-    @OneToMany(mappedBy = "user")
     Set<Review> reviews;
 
     @OneToMany(mappedBy = "user")
