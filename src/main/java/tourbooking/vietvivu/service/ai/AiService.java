@@ -61,7 +61,7 @@ public class AiService {
 				{
 				"tourId": null
 				}
-				
+
 				Nếu không tìm thấy tour phù hợp, thì xin lỗi người dùng.
 
 				🧩 **Khi người dùng hỏi về quy trình:**
@@ -69,12 +69,12 @@ public class AiService {
 				- `getInstructionToBookingTour`
 				- `getInstructionToCancelBookingTour`
 				- `getInstructionToChangeBookingTour`
-				
+
 				- Trả lời lại người dùng bằng nội dung do công cụ trả về.
-				
+
 				** Khi khách hàng muốn xem các tour hot nhất:**
 				- Gọi công cụ `findAllHotTours` để lấy danh sách các tour được đặt nhiều nhất.
-				
+
 				**Khi người dùng chào hỏi trợ lý AI:**
 				- Nếu họ chào hỏi như “Xin chào”, “Chào bạn”, “Hi”, v.v → hãy phản hồi bằng cách gọi công cụ tương ứng:
 				- Gọi công cụ `getGreetingMessage` để lấy nội dung chào hỏi.
