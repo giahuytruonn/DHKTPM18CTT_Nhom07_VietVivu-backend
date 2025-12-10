@@ -137,9 +137,9 @@ public class BookingService {
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         // Check: phải đặt trước 10 ngày
-        if (request.getBookingDate().isAfter(tour.getStartDate().minusDays(10))) {
-            throw new AppException(ErrorCode.DATE_NOT_AVAILABLE);
-        }
+//        if (request.getBookingDate().isAfter(tour.getStartDate().minusDays(3))) {
+//            throw new AppException(ErrorCode.DATE_NOT_AVAILABLE);
+//        }
 
         // Check số lượng
         if ((request.getNumOfAdults() + request.getNumOfChildren() > tour.getQuantity())) {

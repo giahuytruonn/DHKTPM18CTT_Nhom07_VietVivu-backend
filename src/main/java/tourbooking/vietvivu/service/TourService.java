@@ -260,7 +260,7 @@ public class TourService {
             throw new IllegalArgumentException("Start date cannot be null");
         }
 
-        LocalDate lockDate = startDate.minusDays(1);
+        LocalDate lockDate = startDate.minusDays(2);
         boolean isBeforeLockDate = now.isBefore(lockDate.plusDays(1));
 
         // LƯU DANH SÁCH ẢNH CŨ ĐỂ XÓA ĐỒNG BỘ
