@@ -45,7 +45,8 @@ public enum ErrorCode {
     TOKEN_RESET_INVALID(1035, "Reset token is invalid", HttpStatus.BAD_REQUEST),
     TOKEN_RESET_EXPIRED(1036, "Reset token is expired", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(1037, "Email already existed", HttpStatus.BAD_REQUEST),
-    PASSWORD_INCORRECT(1038, "Old password is incorrect", HttpStatus.BAD_REQUEST);
+    PASSWORD_INCORRECT(1038, "Old password is incorrect", HttpStatus.BAD_REQUEST),
+    CONTACT_NOT_FOUND(1039, "Contact not found", HttpStatus.NOT_FOUND);
 
     // code 200 - OK
 

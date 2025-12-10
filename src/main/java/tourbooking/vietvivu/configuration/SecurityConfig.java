@@ -58,7 +58,8 @@ public class SecurityConfig {
         "/users/admin/**",
         "/bookings/admin/**",
         "/statistical/**",
-        "/api/explore/admin/**"
+        "/api/explore/admin/**",
+        "/admin/contacts/**"
     };
 
     // ===== USER AUTHENTICATED ENDPOINTS =====

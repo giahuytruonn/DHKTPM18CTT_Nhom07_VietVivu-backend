@@ -17,9 +17,6 @@ public interface UserMapper {
 
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "histories", ignore = true)
-    @Mapping(target = "conversationsAsUser", ignore = true)
-    @Mapping(target = "conversationsAsAdmin", ignore = true)
-    @Mapping(target = "messages", ignore = true)
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "bookings", ignore = true)
     @Mapping(target = "invalidatedTokens", ignore = true)

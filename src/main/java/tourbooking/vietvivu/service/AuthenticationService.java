@@ -71,7 +71,7 @@ public class AuthenticationService {
     protected String REDIRECT_URI;
 
     @NonFinal
-    protected final String GRANT_TYPE = "authorization_code";
+    protected String GRANT_TYPE = "authorization_code";
 
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
