@@ -181,4 +181,20 @@ public class AiTools {
         }
         return new TourSummaryArray(summaryId, summaries);
     }
+
+    @Tool(description = "Trả lời khi không tìm thấy tour phù hợp")
+    public ChatResponse getNoTourFoundMessage() {
+        return new ChatResponse(
+                """
+			Xin lỗi, hiện tại tôi không tìm thấy tour du lịch phù hợp với yêu cầu của bạn. Bạn có muốn tôi gợi ý thêm các tour khác không?
+			""");
+    }
+
+    @Tool(description = "Trả lời khi câu hỏi không thuộc phạm vi hỗ trợ của VietViVu")
+    public ChatResponse getOutOfScopeMessage() {
+        return new ChatResponse(
+                """
+			Xin lỗi, tôi chỉ hỗ trợ các vấn đề liên quan đến tour du lịch VietViVu. Vui lòng đặt câu hỏi về du lịch hoặc dịch vụ của chúng tôi.
+			""");
+    }
 }

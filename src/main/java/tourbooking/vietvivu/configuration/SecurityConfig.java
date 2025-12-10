@@ -42,7 +42,9 @@ public class SecurityConfig {
         "/reviews/tour/**",
         "/contact/send",
         "/api/explore/**",
-        "/reviews/**"
+        "/reviews/**",
+        "/bookings/**",
+        "/payment/**",
     };
 
     // ===== ADMIN ENDPOINTS =====
@@ -65,7 +67,7 @@ public class SecurityConfig {
         "/users/favorite-tours/**",
         "/users/my-info",
         "/users/create-password",
-        "/bookings/**",
+        //        "/bookings/**",
         "/bookings-request/**",
         "/change-tour/**",
         "/reviews/my-reviews",
