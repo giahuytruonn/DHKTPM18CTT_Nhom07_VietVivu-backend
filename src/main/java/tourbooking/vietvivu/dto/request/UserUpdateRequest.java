@@ -13,7 +13,9 @@ import tourbooking.vietvivu.validator.DobConstraint;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserUpdateRequest {
     String name;
+    String email;
+    String phoneNumber;
+    String address;
 
-    @DobConstraint(min = 18, message = "INVALID_DOB")
     List<String> roles;
 }

@@ -20,5 +20,9 @@ public interface UserMapper {
     @Mapping(target = "reviews", ignore = true)
     @Mapping(target = "bookings", ignore = true)
     @Mapping(target = "invalidatedTokens", ignore = true)
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "email", target = "email")
+    @Mapping(source = "phoneNumber", target = "phoneNumber")
+    @Mapping(source = "address", target = "address")
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

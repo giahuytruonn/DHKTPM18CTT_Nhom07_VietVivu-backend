@@ -256,6 +256,11 @@ public class UserService {
 
         userMapper.updateUser(user, request);
 
+        if (!user.getEmail().equals(request.getEmail())
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 }
