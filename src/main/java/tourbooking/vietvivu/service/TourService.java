@@ -586,4 +586,12 @@ public class TourService {
             log.error("Failed to update images for tour {}: {}", tourId, e.getMessage(), e);
         }
     }
+
+    public List<Tour> findAllToursIsAvailable() {
+        return tourRepository.findAllToursIsAvailable();
+    }
+
+    public List<Tour> findAllHotTours() {
+        return tourRepository.findHotTours();
+    }
 }

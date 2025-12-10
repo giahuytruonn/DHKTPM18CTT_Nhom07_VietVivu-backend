@@ -104,4 +104,21 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     @Query("SELECT new tourbooking.vietvivu.dto.response.TourSelectionResponse(t.id, t.title) FROM Tour t")
     List<TourSelectionResponse> findAllTourNames();
+
+	@Query("SELECT t FROM Tour t WHERE t.tourStatus = 'OPEN_BOOKING'")
+	List<Tour> findAllToursIsAvailable();
+
+
+	// Lấy những tour co booking nhiều
+	@Query("""
+    SELECT t 
+    FROM Tour t
+    LEFT JOIN t.bookings b
+    WHERE t.tourStatus = 'OPEN_BOOKING'
+    GROUP BY t
+    ORDER BY COUNT(b.bookingId) DESC
+    LIMIT 3
+""")
+	List<Tour> findHotTours();
+
 }
